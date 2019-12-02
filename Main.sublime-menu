@@ -1,0 +1,48 @@
+[
+    {
+        "id": "tools",
+        "children": [
+            {
+                "caption": "-",
+                "id": "software"
+            },
+            {
+                "caption": "Music Time",
+                "children": [
+                    {
+                        "command": "connect_spotify",
+                        "caption": "Connect Spotify"
+                    },
+                    {
+                        "command": "disconnect_spotify",
+                        "caption": "Disconnect Spotify"
+                    },
+                    {
+                        "command": "launch_music_time_metrics",
+                        "caption": "Music Time Dashboard"
+                    },
+                    {
+                        "command": "software_top_forty",
+                        "caption": "Software Top 40"
+                    },
+                    {
+                        "command": "submit_issue_github",
+                        "caption": "Submit an Issue on GitHub"
+                    },
+                    {
+                        "command": "submit_feedback",
+                        "caption": "Send feedback to cody@software.com"
+                    },
+                    {
+                        "command": "connect_slack",
+                        "caption": "Connect Slack"
+                    },
+                    {
+                        "command": "disconnect_slack",
+                        "caption": "Disonnect Slack"
+                    }
+                ]
+            }
+        ]
+    }
+]
