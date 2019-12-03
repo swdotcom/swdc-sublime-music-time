@@ -1,4 +1,4 @@
-# Copyright (c) 2018 by Software.com
+# Copyright (c) 2019 by Software.com
 
 from .lib.SoftwareSettings import *
 from .lib.SoftwareOffline import *
@@ -752,30 +752,32 @@ def initializeUser():
     fileExists = softwareSessionFileExists()
     jwt = getItem("jwt")
     log("JWT VAL: %s" % jwt)
-    if (fileExists is False or jwt is None):
-        if (serverAvailable is False):
-            if (retry_counter == 0):
-                showOfflinePrompt()
-            initializeUserTimer = Timer(
-                check_online_interval_sec, initializeUser)
-            initializeUserTimer.start()
-        else:
-            result = createAnonymousUser(serverAvailable)
-            if (result is None):
-                if (retry_counter == 0):
-                    showOfflinePrompt()
-                initializeUserTimer = Timer(
-                    check_online_interval_sec, initializeUser)
-                initializeUserTimer.start()
-            else:
-                initializePlugin(True, serverAvailable)
-    else:
-        initializePlugin(False, serverAvailable)
+    # we don't need to create the anonymous account on initializatino
+    # if (fileExists is False or jwt is None):
+    #     if (serverAvailable is False):
+    #         if (retry_counter == 0):
+    #             showOfflinePrompt()
+    #         initializeUserTimer = Timer(
+    #             check_online_interval_sec, initializeUser)
+    #         initializeUserTimer.start()
+    #     else:
+    #         result = createAnonymousUser(serverAvailable)
+    #         if (result is None):
+    #             if (retry_counter == 0):
+    #                 showOfflinePrompt()
+    #             initializeUserTimer = Timer(
+    #                 check_online_interval_sec, initializeUser)
+    #             initializeUserTimer.start()
+    #         else:
+    #             initializePlugin(True, serverAvailable)
+    # else:
+        # initializePlugin(False, serverAvailable)
+    initializePlugin(False, serverAvailable)
 
 
 def initializePlugin(initializedAnonUser, serverAvailable):
     PACKAGE_NAME = __name__.split('.')[0]
-    log('Code Time: Loaded v%s of package name: %s' % (VERSION, PACKAGE_NAME))
+    log('Music Time: Loaded v%s of package name: %s' % (VERSION, PACKAGE_NAME))
     if (ismusictime() == False):
         showStatus("Code Time")
     else:
@@ -788,8 +790,8 @@ def initializePlugin(initializedAnonUser, serverAvailable):
     setOnlineStatusTimer = Timer(2, setOnlineStatus)
     setOnlineStatusTimer.start()
 
-    sendOfflineDataTimer = Timer(10, sendOfflineData)
-    sendOfflineDataTimer.start()
+    # sendOfflineDataTimer = Timer(10, sendOfflineData)
+    # sendOfflineDataTimer.start()
 
     gatherMusicTimer = Timer(45, gatherMusicInfo)
     gatherMusicTimer.start()
@@ -797,35 +799,35 @@ def initializePlugin(initializedAnonUser, serverAvailable):
     hourlyTimer = Timer(60, hourlyTimerHandler)
     hourlyTimer.start()
 
-    initializeUserInfo(initializedAnonUser)
+    # initializeUserInfo(initializedAnonUser)
 
 
-def initializeUserInfo(initializedAnonUser):
-    getUserStatus()
+# def initializeUserInfo(initializedAnonUser):
+    # getUserStatus()
 
-    if (initializedAnonUser is True):
-        showLoginPrompt()
-        PluginData.send_initial_payload()
+    # if (initializedAnonUser is True):
+    #     showLoginPrompt()
+    #     PluginData.send_initial_payload()
 
-    sendInitHeartbeatTimer = Timer(15, sendInitializedHeartbeat)
-    sendInitHeartbeatTimer.start()
+    # sendInitHeartbeatTimer = Timer(15, sendInitializedHeartbeat)
+    # sendInitHeartbeatTimer.start()
 
     # re-fetch user info in another 90 seconds
-    checkUserAuthTimer = Timer(90, userStatusHandler)
-    checkUserAuthTimer.start()
+    # checkUserAuthTimer = Timer(90, userStatusHandler)
+    # checkUserAuthTimer.start()
 
 
-def userStatusHandler():
-    getUserStatus()
+# def userStatusHandler():
+#     getUserStatus()
 
-    loggedOn = getValue("logged_on", True)
-    if (loggedOn is True):
-        # no need to fetch any longer
-        return
+#     loggedOn = getValue("logged_on", True)
+#     if (loggedOn is True):
+#         # no need to fetch any longer
+#         return
 
-    # re-fetch user info in another 10 minutes
-    checkUserAuthTimer = Timer(60 * 10, userStatusHandler)
-    checkUserAuthTimer.start()
+#     # re-fetch user info in another 10 minutes
+#     checkUserAuthTimer = Timer(60 * 10, userStatusHandler)
+#     checkUserAuthTimer.start()
 
 
 def plugin_unloaded():
@@ -854,13 +856,14 @@ def hourlyTimerHandler():
 
 
 def processCommits():
-    global PROJECT_DIR
-    gatherCommits(PROJECT_DIR)
+    log("processing commits")
+#     global PROJECT_DIR
+#     gatherCommits(PROJECT_DIR)
 
 
-def showOfflinePrompt():
-    infoMsg = "Our service is temporarily unavailable. We will try to reconnect again in 10 minutes. Your status bar will not update at this time."
-    sublime.message_dialog(infoMsg)
+# def showOfflinePrompt():
+#     infoMsg = "Our service is temporarily unavailable. We will try to reconnect again in 10 minutes. Your status bar will not update at this time."
+#     sublime.message_dialog(infoMsg)
 
 
 def setOnlineStatus():
