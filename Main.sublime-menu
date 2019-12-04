@@ -40,6 +40,14 @@
                     {
                         "command": "disconnect_slack",
                         "caption": "Disonnect Slack"
+                    },
+                    {
+                        "command": "open_playlists",
+                        "caption": "Open playlists"
+                    },
+                    {
+                        "command": "open_songs",
+                        "caption": "Open songs"
                     }
                 ]
             }

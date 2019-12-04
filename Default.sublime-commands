@@ -26,5 +26,13 @@
     {
         "command": "connect_slack",
         "caption": "Log in slack"
+    },
+    {
+        "command": "open_playlists",
+        "caption": "Open playlists"
+    },
+    {
+        "command": "open_songs",
+        "caption": "Open songs"
     }
 ]

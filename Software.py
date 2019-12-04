@@ -6,6 +6,7 @@ from .lib.SoftwareRepo import *
 from .lib.SoftwareMusic import *
 from .lib.SoftwareUtil import *
 from .lib.SoftwareHttp import *
+from .lib.Playlists import *
 from threading import Thread, Timer, Event
 from package_control import events
 from queue import Queue
@@ -565,7 +566,6 @@ class PauseKpmUpdatesCommand(sublime_plugin.TextCommand):
 
 # Command to re-enable kpm metrics
 
-
 class EnableKpmUpdatesCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         log(plugin_name + ": metrics enabled")
@@ -575,8 +575,8 @@ class EnableKpmUpdatesCommand(sublime_plugin.TextCommand):
     def is_enabled(self):
         return (getValue("software_telemetry_on", True) is False)
 
-# Runs once instance per view (i.e. tab, or single file window)
 
+# Runs once instance per view (i.e. tab, or single file window)
 
 class EventListener(sublime_plugin.EventListener):
     def on_load_async(self, view):
@@ -773,7 +773,6 @@ def initializeUser():
     # else:
         # initializePlugin(False, serverAvailable)
     initializePlugin(False, serverAvailable)
-
 
 def initializePlugin(initializedAnonUser, serverAvailable):
     PACKAGE_NAME = __name__.split('.')[0]
