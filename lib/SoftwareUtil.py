@@ -23,7 +23,7 @@ from .SoftwareSettings import *
 from ..Software import *
 
 # the plugin version
-VERSION = '0.9.4'
+VERSION = '0.0.1'
 PLUGIN_ID = 1
 DASHBOARD_LABEL_WIDTH = 25
 DASHBOARD_VALUE_WIDTH = 25
@@ -580,7 +580,7 @@ def getUserStatus():
     # check if they're logged in or not
     loggedOn = isLoggedOn(serverAvailable)
 
-    setValue("logged_on", loggedOn)
+    setValue("music_time_logged_on", loggedOn)
     currentUserStatus["loggedOn"] = loggedOn
 
     if (loggedOn is True and loggedInCacheState != loggedOn):
@@ -866,3 +866,4 @@ def Disconnectspotify():
 def musictimedash():
     print("Music Time: Loading Music time dashboard ...")
     pass
+

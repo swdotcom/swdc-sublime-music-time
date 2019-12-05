@@ -86,7 +86,7 @@ def updateStatusBarWithSummaryData():
         if (averageDailyInfo.get("data", 0) > 0) and ismusictime() != True:
             statusMsg += " | " + averageDailyInfo["formatted"]
 
-    elif getValue("logged_on", True) == True:
+    elif getValue("music_time_logged_on", True) == True:
         statusMsg = "🎧 Spotify connected"
 
     # for displaying current playback track

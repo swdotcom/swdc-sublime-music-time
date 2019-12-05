@@ -327,7 +327,7 @@ class GoToSoftware(sublime_plugin.TextCommand):
         launchWebDashboardUrl()
 
     def is_enabled(self):
-        loggedOn = getValue("logged_on", True)
+        loggedOn = getValue("music_time_logged_on", True)
         online = getValue("online", True)
         if (loggedOn is True and online is True):
             return True
@@ -342,7 +342,7 @@ class CodeTimeLogin(sublime_plugin.TextCommand):
         launchLoginUrl()
 
     def is_enabled(self):
-        loggedOn = getValue("logged_on", True)
+        loggedOn = getValue("music_time_logged_on", True)
         online = getValue("online", True)
         if (loggedOn is False and online is True):
             return True
@@ -393,17 +393,17 @@ class ConnectSpotify(sublime_plugin.TextCommand):
             # if user == "premium" and isWindows():
 
             message_dialog = sublime.message_dialog("Spotify Connected !")
-            setValue("logged_on", True)
+            setValue("music_time_logged_on", True)
             showStatus("Spotify Connected")
             # elif user == "premium" and isMac():
 
             #     message_dialog = sublime.message_dialog("Spotify Connected !")
-            #     setValue("logged_on", True)
+            #     setValue("music_time_logged_on", True)
             #     showStatus("Spotify Connected")
             # elif user == "non-premium" and isMac():
 
             #     message_dialog = sublime.message_dialog("Spotify Connected !")
-            #     setValue("logged_on", True)
+            #     setValue("music_time_logged_on", True)
             #     showStatus("Spotify Connected")
             # elif user == "non-premium" and isWindows():
             #     ClearSpotifyTokens()
@@ -424,10 +424,10 @@ class ConnectSpotify(sublime_plugin.TextCommand):
 
 
     def is_enabled(self):
-        return (getValue("logged_on", True) is False)
+        return (getValue("music_time_logged_on", True) is False)
 
     # def is_enabled(self):
-    #     loggedOn = getValue("logged_on", True)
+    #     loggedOn = getValue("music_time_logged_on", True)
     #     # online = getValue("online", True)
     #     if loggedOn is True:
     #         return False
@@ -442,16 +442,16 @@ class DisconnectSpotify(sublime_plugin.TextCommand):
         # disconnect = sublime.yes_no_cancel_dialog("Do want to Disconnect Spotify ?", "Yes", "No")
         # if disconnect == "yes":
         Disconnectspotify()
-        setValue("logged_on", False)
+        setValue("music_time_logged_on", False)
         showStatus("Connect Spotify")
         message_dialog = sublime.message_dialog("Disconnected Spotify !")
         showStatus("Connect Spotify")
 
     def is_enabled(self):
-        return (getValue("logged_on", True) is True)
+        return (getValue("music_time_logged_on", True) is True)
 
     # def is_enabled(self):
-    #     loggedOn = getValue("logged_on", True)
+    #     loggedOn = getValue("music_time_logged_on", True)
 
     #     return bool(loggedOn-1)
 
@@ -462,10 +462,10 @@ class LaunchMusicTimeMetrics(sublime_plugin.TextCommand):
         pass
 
 #     def is_enabled(self):
-#         return (getValue("logged_on", True) is True)
+#         return (getValue("music_time_logged_on", True) is True)
 
     def is_enabled(self):
-        loggedOn = getValue("logged_on", True)
+        loggedOn = getValue("music_time_logged_on", True)
         # if getItem("spotify_access_token") is False and (loggedOn is False):
         if loggedOn == True:
             return True
@@ -481,7 +481,7 @@ class ConnectSlack(sublime_plugin.TextCommand):
         pass
 
     def is_enabled(self):
-        return (getValue("logged_on", True) is False)
+        return (getValue("music_time_logged_on", True) is False)
 
 
 class DisconnectSlack(sublime_plugin.TextCommand):
@@ -491,7 +491,7 @@ class DisconnectSlack(sublime_plugin.TextCommand):
         pass
 
     def is_enabled(self):
-        return (getValue("logged_on", True) is True)
+        return (getValue("music_time_logged_on", True) is True)
 
 
 # Report an issue on github
@@ -819,7 +819,7 @@ def initializePlugin(initializedAnonUser, serverAvailable):
 # def userStatusHandler():
 #     getUserStatus()
 
-#     loggedOn = getValue("logged_on", True)
+#     loggedOn = getValue("music_time_logged_on", True)
 #     if (loggedOn is True):
 #         # no need to fetch any longer
 #         return
@@ -878,3 +878,5 @@ def setOnlineStatus():
     # run the check in another 1 minute
     timer = Timer(60 * 1, setOnlineStatus)
     timer.start()
+
+

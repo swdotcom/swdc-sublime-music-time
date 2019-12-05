@@ -48,6 +48,22 @@
                     {
                         "command": "open_songs",
                         "caption": "Open songs"
+                    },
+                    {
+                        "command": "play_song",
+                        "caption": "Play"
+                    },
+                    {
+                        "command": "pause_song",
+                        "caption": "Pause"
+                    },
+                    {
+                        "command": "next_song",
+                        "caption": "Next"
+                    },
+                    {
+                        "command": "prev_song",
+                        "caption": "Previous"
                     }
                 ]
             }
