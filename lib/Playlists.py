@@ -1,27 +1,13 @@
 import sublime_plugin
 import sublime
-import datetime
-import time
-import webbrowser
-import json
-import base64
-import six
-import threading
-from .SoftwareSettings import *
 from .SoftwareUtil import *
-# from SoftwareUtil import isMusicTime
-from ..Software import *
-import json
-import sys
-import requests
 
-
-currentDeviceId = ''
+print("ACESS token in playlists",getItem("spotify_access_token"))
 # mock data
 data = [
-    {"id": 1, "name": "Running", "songs": ["Diane Young", "Ottoman", "This Life"]},
-    {"id": 2, "name": "Working", "songs": ["How Long", "Jerusalem, New York, Berlin", "Harmony Hall"]},
-    {"id": 3, "name": "Fun", "songs": ["A-Punk", "Step", "Sunflower"]}
+	{"id": 1, "name": "Running", "songs": ["Diane Young", "Ottoman", "This Life"]},
+	{"id": 2, "name": "Working", "songs": ["How Long", "Jerusalem, New York, Berlin", "Harmony Hall"]},
+	{"id": 3, "name": "Fun", "songs": ["A-Punk", "Step", "Sunflower"]}
 ]
 
 # global variables
@@ -38,67 +24,67 @@ class OpenPlaylistsCommand(sublime_plugin.TextCommand):
         self.view.insert(edit, 0, playlists_tree)
 
 class OpenSongsCommand(sublime_plugin.TextCommand):
-    def input(self, args):
-        return SongInputHandler()
+	def input(self, args):
+		return SongInputHandler()
 
-    def run(self, edit, songs_tree):
-        self.view.insert(edit, 0, songs_tree)
+	def run(self, edit, songs_tree):
+		self.view.insert(edit, 0, songs_tree)
 
 class PlaylistInputHandler(sublime_plugin.ListInputHandler):
-    def __init__(self):
-        super(sublime_plugin.ListInputHandler, self).__init__()
+	def __init__(self):
+		super(sublime_plugin.ListInputHandler, self).__init__()
 
-    def name(self):
-        return "playlists_tree"
+	def name(self):
+		return "playlists_tree"
 
-    def initial_text(self):
-        return None
+	def initial_text(self):
+		return None
 
-    def placeholder(self):
-        return "Select a playlist"
+	def placeholder(self):
+		return "Select a playlist"
 
-    def list_items(self):
-        return get_playlists()
+	def list_items(self):
+		return get_playlists()
 
-    def confirm(self, value):
-        global current_playlist_name
-        current_playlist_name = value
-        print(current_playlist_name)
+	def confirm(self, value):
+		global current_playlist_name
+		current_playlist_name = value
+		print(current_playlist_name)
 
-    def next_input(self, args):
-        return SongInputHandler()
+	def next_input(self, args):
+		return SongInputHandler()
 
 class SongInputHandler(sublime_plugin.ListInputHandler):
-    def __init__(self):
-        super(sublime_plugin.ListInputHandler, self).__init__()
+	def __init__(self):
+		super(sublime_plugin.ListInputHandler, self).__init__()
 
-    def name(self):
-        return "songs_tree"
+	def name(self):
+		return "songs_tree"
 
-    def placeholder(self):
-        return "Select a song"
+	def placeholder(self):
+		return "Select a song"
 
-    def list_items(self):
-        global current_playlist_name
-        return get_songs_in_playlist(current_playlist_name)
+	def list_items(self):
+		global current_playlist_name
+		return get_songs_in_playlist(current_playlist_name)
 
-    def confirm(self, value):
-        global current_song
-        current_song = value
-        print(current_song)
+	def confirm(self, value):
+		global current_song
+		current_song = value
+		print(current_song)
 
 def get_playlists():
-    global data
-    playlists = []
-    for playlist in data:
-        playlists.append(playlist.get("name"))
-    return playlists
+	global data
+	playlists = []
+	for playlist in data:
+		playlists.append(playlist.get("name"))
+	return playlists
 
 def get_songs_in_playlist(playlist_name):
-    global data
-    for playlist in data:
-        if playlist.get("name")==playlist_name:
-            return playlist.get("songs")
+	global data
+	for playlist in data:
+		if playlist.get("name")==playlist_name:
+			return playlist.get("songs")
 
 
 class PlaySong(sublime_plugin.TextCommand):
@@ -154,7 +140,7 @@ def playsong():
     # print(plays.status_code)
     print("Playing :", plays.status_code, "|",plays.text)
     # song, state = currenttrackinfo()
-    showStatus("▶️",currenttrackinfo()[0]) if currenttrackinfo()[1] is True else print("⏯️",currenttrackinfo()[0])
+    showStatus("Playing "+(currenttrackinfo()[0]))# if currenttrackinfo()[1] is True else print("Paused",currenttrackinfo()[0]))
     # showStatus(song)
 
 def pausesong():
@@ -163,7 +149,7 @@ def pausesong():
     pause = requests.put(pausestr, headers=headers)
     print("Paused ...", pause.status_code, "|",pause.text)
     # song, state = currenttrackinfo()
-    showStatus("▶️",currenttrackinfo()[0]) if currenttrackinfo()[1] is True else print("⏯️",currenttrackinfo()[0])
+    showStatus("Paused "+(currenttrackinfo()[0]))# if currenttrackinfo()[1] is True else print("Paused",currenttrackinfo()[0]))
     # showStatus(song)
 
 def nextsong():
@@ -172,7 +158,7 @@ def nextsong():
     nxt = requests.post(nxtstr, headers=headers)
     print(" next ...", nxt.status_code, "|",nxt.text)
     # song, state = currenttrackinfo()
-    showStatus("▶️",currenttrackinfo()[0]) if currenttrackinfo()[1] is True else print("⏯️",currenttrackinfo()[0])
+    showStatus("Playing "+(currenttrackinfo()[0]))# if currenttrackinfo()[1] is True else print("Paused",currenttrackinfo()[0]))
     # showStatus(song)
 
 def prevsong():
@@ -180,11 +166,12 @@ def prevsong():
     prevstr = "https://api.spotify.com/v1/me/player/previous?device_id=" + getActivedevice()#currentDeviceId
     prev = requests.post(prevstr, headers=headers)
     print(" previous ...", prev.status_code, "|",prev.text)
-    showStatus("▶️",currenttrackinfo()[0]) if currenttrackinfo()[1] is True else print("⏯️",currenttrackinfo()[0])
+    showStatus("Playing "+currenttrackinfo()[0])# if currenttrackinfo()[1] is True else print("Paused",currenttrackinfo()[0])
     # song, state = currenttrackinfo()
     # showStatus(song)
 
 def getActivedevice():
+    print("{}".format(getItem('spotify_access_token')))
     global currentDeviceId
     headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
     getdevs = requests.get("https://api.spotify.com/v1/me/player/devices", headers=headers)
@@ -223,13 +210,31 @@ def getActivedevice():
 
 
 def currenttrackinfo():
-    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-    trackstr = "https://api.spotify.com/v1/me/player/currently-playing?device_id=" + getActivedevice()#currentDeviceId
-    track = requests.get(trackstr, headers=headers)
-    trackinfo = {}
+    try:
+        headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+        trackstr = "https://api.spotify.com/v1/me/player/currently-playing?device_id=" + getActivedevice()#currentDeviceId
+        track = requests.get(trackstr, headers=headers)
+        trackinfo = {}
+        trackinfo = ''
+        trackstate =''
 
-    if track.status_code == 200:
-        trackinfo = track.json()['item']['name']
-        trackstate = track.json()['is_playing']
-        
-    return trackinfo,trackstate
+        if track.status_code == 200:
+            trackinfo = track.json()['item']['name']
+            trackstate = track.json()['is_playing']
+  
+        print(trackinfo,"|",trackstate)
+        if trackstate is True:
+            showStatus("Playing "+trackinfo)
+        else:
+            showStatus("Paused "+trackinfo)
+
+        return trackinfo,trackstate
+
+        # showStatus("Playing "+currenttrackinfo()[0]) if currenttrackinfo()[1] is True else print("Paused",currenttrackinfo()[0])
+
+    except Exception as E:
+        print("Track on status bar error : ",E)
+        pass
+
+    updatestatusbar = Timer(05.0, currenttrackinfo)
+    updatestatusbar.start()

@@ -1,3 +1,7 @@
 [
-  { "keys": ["ctrl+alt+o"], "command": "go_to_software" }
+  {"keys": ["ctrl+alt+o"],"command": "go_to_software" },
+  {"keys": ["ctrl+alt+p"],"command":"play_song"},
+  {"keys": ["ctrl+alt+space"],"command":"pause_song"},
+  {"keys": ["ctrl+alt+n"],"command":"next_song"},
+  {"keys": ["ctrl+alt+b"],"command":"prev_song"},
 ]
