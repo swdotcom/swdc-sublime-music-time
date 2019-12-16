@@ -393,12 +393,12 @@ class ConnectSpotify(sublime_plugin.TextCommand):
             # if user == "premium" and isWindows():
 
             message_dialog = sublime.message_dialog("Spotify Connected !")
-            if isMac is True:
-                try:
-                    os.system("open -a spotify")
-                except Exception as e:
-                    print("Desktop player didn't opened")
-                    pass
+#             if isMac is True:
+            try:
+                os.system("open -a spotify")
+            except Exception as e:
+                print("Desktop player didn't opened")
+                pass
             setValue("logged_on", True)
             showStatus("Spotify Connected")
             # elif user == "premium" and isMac():
