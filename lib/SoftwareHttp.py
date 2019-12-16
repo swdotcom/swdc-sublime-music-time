@@ -19,8 +19,8 @@ from ..Software import *
 # from .SoftwareOffline import *
 # from .SoftwareSettings import *
 
-USER_AGENT = 'Code Time Sublime Plugin'
-lastMsg = None
+USER_AGENT = 'Music Time Sublime Plugin'
+lastMsg = ''
 windowView = None
 plugin = ''
 
@@ -43,9 +43,9 @@ def toggleStatus():
         showStatus(lastMsg)
     elif (ismusictime is True):
         showStatus("🎧")
-    else:
-        # show clock icon unicode
-        showStatus("⏱")
+    # else:
+    #     # show clock icon unicode
+    #     currenttrackinfo()
 
 # update the status bar message
 
@@ -60,9 +60,12 @@ def showStatus(msg):
         if (showStatusVal is False):
             msg = "⏱"
         elif (ismusictime is True):
-            msg = "Connect Spotify"
-        else:
-            lastMsg = msg
+            if getValue("logged_on", True) is True:
+                msg = "Spotify Connected"
+            else:
+                msg = "Connect Spotify"
+        # else:
+        #     currenttrackinfo()
 
         if (active_window is not None):
             for view in active_window.views():

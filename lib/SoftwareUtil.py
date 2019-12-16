@@ -865,4 +865,5 @@ def Disconnectspotify():
 
 def musictimedash():
     print("Music Time: Loading Music time dashboard ...")
+    webbrowser.open("https://app.software.com/music")
     pass
