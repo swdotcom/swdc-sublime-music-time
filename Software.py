@@ -1,4 +1,4 @@
-# Copyright (c) 2018 by Software.com
+# Copyright (c) 2019 by Software.com
 
 from .lib.SoftwareSettings import *
 from .lib.SoftwareOffline import *
@@ -6,6 +6,7 @@ from .lib.SoftwareRepo import *
 from .lib.SoftwareMusic import *
 from .lib.SoftwareUtil import *
 from .lib.SoftwareHttp import *
+from .lib.Playlists import *
 from threading import Thread, Timer, Event
 from package_control import events
 from queue import Queue
@@ -17,6 +18,7 @@ import json
 import os
 import sublime_plugin
 import sublime
+import subprocess
 import sys
 sys.path.append("..")
 # from .SoftwareHttp import *
@@ -35,20 +37,16 @@ PROJECT_DIR = None
 check_online_interval_sec = 60 * 10
 retry_counter = 0
 
+
 # payload trigger to store it for later.
-
-
 def post_json(json_data):
     # save the data to the offline data file
     storePayload(json_data)
-
+ 
     PluginData.reset_source_data()
 
-#
+
 # Background thread used to send data every minute.
-#
-
-
 class BackgroundWorker():
     def __init__(self, threads_count, target_func):
         self.queue = Queue(maxsize=0)
@@ -392,8 +390,33 @@ class ConnectSpotify(sublime_plugin.TextCommand):
             # if user == "premium" and isWindows():
 
             message_dialog = sublime.message_dialog("Spotify Connected !")
+
+            if isMac() is True and user == "non-premium":            
+                # if openDesktopplayer() is True:
+                #     print("getSpotifyTrackState",getSpotifyTrackState())
+                #     print("getTrackInfo",getTrackInfo())
+                # else:
+                #     message_dialog = sublime.message_dialog("Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+
+                try:
+                    msg = subprocess.Popen(["open","-a","spotify"],stdout=subprocess.PIPE)
+                    if msg == "Unable to find application named 'spotify'":
+                        message_dialog = sublime.message_dialog("Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+                        howStatus("Connect Premium")
+                    else:
+                        print("getSpotifyTrackState",getSpotifyTrackState())
+                        print("getTrackInfo",getTrackInfo())
+
+                    # currenttrackinfo()
+                except Exception as e:
+                    print("Music Time: Desktop player didn't opened")
+                    message_dialog = sublime.message_dialog("Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+
             setValue("logged_on", True)
             showStatus("Spotify Connected")
+            getActivedevice()
+            refreshstatusbar()
+            # print("IsPremium :",IsPremium)
             # elif user == "premium" and isMac():
 
             #     message_dialog = sublime.message_dialog("Spotify Connected !")
@@ -565,7 +588,6 @@ class PauseKpmUpdatesCommand(sublime_plugin.TextCommand):
 
 # Command to re-enable kpm metrics
 
-
 class EnableKpmUpdatesCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         log(plugin_name + ": metrics enabled")
@@ -575,8 +597,8 @@ class EnableKpmUpdatesCommand(sublime_plugin.TextCommand):
     def is_enabled(self):
         return (getValue("software_telemetry_on", True) is False)
 
-# Runs once instance per view (i.e. tab, or single file window)
 
+# Runs once instance per view (i.e. tab, or single file window)
 
 class EventListener(sublime_plugin.EventListener):
     def on_load_async(self, view):
@@ -752,30 +774,32 @@ def initializeUser():
     fileExists = softwareSessionFileExists()
     jwt = getItem("jwt")
     log("JWT VAL: %s" % jwt)
-    if (fileExists is False or jwt is None):
-        if (serverAvailable is False):
-            if (retry_counter == 0):
-                showOfflinePrompt()
-            initializeUserTimer = Timer(
-                check_online_interval_sec, initializeUser)
-            initializeUserTimer.start()
-        else:
-            result = createAnonymousUser(serverAvailable)
-            if (result is None):
-                if (retry_counter == 0):
-                    showOfflinePrompt()
-                initializeUserTimer = Timer(
-                    check_online_interval_sec, initializeUser)
-                initializeUserTimer.start()
-            else:
-                initializePlugin(True, serverAvailable)
-    else:
-        initializePlugin(False, serverAvailable)
-
+    checkuserstate()
+    # we don't need to create the anonymous account on initializatino
+    # if (fileExists is False or jwt is None):
+    #     if (serverAvailable is False):
+    #         if (retry_counter == 0):
+    #             showOfflinePrompt()
+    #         initializeUserTimer = Timer(
+    #             check_online_interval_sec, initializeUser)
+    #         initializeUserTimer.start()
+    #     else:
+    #         result = createAnonymousUser(serverAvailable)
+    #         if (result is None):
+    #             if (retry_counter == 0):
+    #                 showOfflinePrompt()
+    #             initializeUserTimer = Timer(
+    #                 check_online_interval_sec, initializeUser)
+    #             initializeUserTimer.start()
+    #         else:
+    #             initializePlugin(True, serverAvailable)
+    # else:
+        # initializePlugin(False, serverAvailable)
+    initializePlugin(False, serverAvailable)
 
 def initializePlugin(initializedAnonUser, serverAvailable):
     PACKAGE_NAME = __name__.split('.')[0]
-    log('Code Time: Loaded v%s of package name: %s' % (VERSION, PACKAGE_NAME))
+    log('Music Time: Loaded v%s of package name: %s' % (VERSION, PACKAGE_NAME))
     if (ismusictime() == False):
         showStatus("Code Time")
     else:
@@ -788,8 +812,8 @@ def initializePlugin(initializedAnonUser, serverAvailable):
     setOnlineStatusTimer = Timer(2, setOnlineStatus)
     setOnlineStatusTimer.start()
 
-    sendOfflineDataTimer = Timer(10, sendOfflineData)
-    sendOfflineDataTimer.start()
+    # sendOfflineDataTimer = Timer(10, sendOfflineData)
+    # sendOfflineDataTimer.start()
 
     gatherMusicTimer = Timer(45, gatherMusicInfo)
     gatherMusicTimer.start()
@@ -797,35 +821,35 @@ def initializePlugin(initializedAnonUser, serverAvailable):
     hourlyTimer = Timer(60, hourlyTimerHandler)
     hourlyTimer.start()
 
-    initializeUserInfo(initializedAnonUser)
+    # initializeUserInfo(initializedAnonUser)
 
 
-def initializeUserInfo(initializedAnonUser):
-    getUserStatus()
+# def initializeUserInfo(initializedAnonUser):
+    # getUserStatus()
 
-    if (initializedAnonUser is True):
-        showLoginPrompt()
-        PluginData.send_initial_payload()
+    # if (initializedAnonUser is True):
+    #     showLoginPrompt()
+    #     PluginData.send_initial_payload()
 
-    sendInitHeartbeatTimer = Timer(15, sendInitializedHeartbeat)
-    sendInitHeartbeatTimer.start()
+    # sendInitHeartbeatTimer = Timer(15, sendInitializedHeartbeat)
+    # sendInitHeartbeatTimer.start()
 
     # re-fetch user info in another 90 seconds
-    checkUserAuthTimer = Timer(90, userStatusHandler)
-    checkUserAuthTimer.start()
+    # checkUserAuthTimer = Timer(90, userStatusHandler)
+    # checkUserAuthTimer.start()
 
 
-def userStatusHandler():
-    getUserStatus()
+# def userStatusHandler():
+#     getUserStatus()
 
-    loggedOn = getValue("logged_on", True)
-    if (loggedOn is True):
-        # no need to fetch any longer
-        return
+#     loggedOn = getValue("logged_on", True)
+#     if (loggedOn is True):
+#         # no need to fetch any longer
+#         return
 
-    # re-fetch user info in another 10 minutes
-    checkUserAuthTimer = Timer(60 * 10, userStatusHandler)
-    checkUserAuthTimer.start()
+#     # re-fetch user info in another 10 minutes
+#     checkUserAuthTimer = Timer(60 * 10, userStatusHandler)
+#     checkUserAuthTimer.start()
 
 
 def plugin_unloaded():
@@ -854,13 +878,14 @@ def hourlyTimerHandler():
 
 
 def processCommits():
-    global PROJECT_DIR
-    gatherCommits(PROJECT_DIR)
+    log("processing commits")
+#     global PROJECT_DIR
+#     gatherCommits(PROJECT_DIR)
 
 
-def showOfflinePrompt():
-    infoMsg = "Our service is temporarily unavailable. We will try to reconnect again in 10 minutes. Your status bar will not update at this time."
-    sublime.message_dialog(infoMsg)
+# def showOfflinePrompt():
+#     infoMsg = "Our service is temporarily unavailable. We will try to reconnect again in 10 minutes. Your status bar will not update at this time."
+#     sublime.message_dialog(infoMsg)
 
 
 def setOnlineStatus():
@@ -876,3 +901,34 @@ def setOnlineStatus():
     # run the check in another 1 minute
     timer = Timer(60 * 1, setOnlineStatus)
     timer.start()
+
+
+def checkuserstate():
+    try:
+        jwt = getItem("jwt")
+        headers = {'content-type': 'application/json', 'Authorization': jwt}
+        check_state_url= "https://api.software.com/users/plugin/state"
+        resp = requests.get(check_state_url,headers=headers)
+        resp_data = resp.json()
+        if resp_data['state'] == "OK":
+            setValue("logged_on", True)
+            getActivedevice()
+            refreshstatusbar()
+            print('logged_on:True','\nEmail:',resp_data['email'])
+        else:
+            setValue("logged_on", False)
+            print('logged_on:False')
+    except Exception as e:
+        # print('checkuserstate',e)
+        print('logged_on:False')
+        setValue("logged_on", False)
+        pass
+
+
+def openDesktopplayer():
+    msg = subprocess.Popen(["open","-a","spotify"],stdout=subprocess.PIPE)
+    print(msg)
+    if msg == "Unable to find application named 'spotify'":
+        return False
+    else:
+        return True

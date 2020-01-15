@@ -11,6 +11,8 @@ from .SoftwareSettings import *
 from .SoftwareUtil import *
 # from SoftwareUtil import isMusicTime
 from ..Software import *
+# from .schedule import *
+
 
 # import SoftwareUtil as sd
 # import SoftwareUtil
@@ -19,8 +21,8 @@ from ..Software import *
 # from .SoftwareOffline import *
 # from .SoftwareSettings import *
 
-USER_AGENT = 'Code Time Sublime Plugin'
-lastMsg = None
+USER_AGENT = 'Music Time Sublime Plugin'
+lastMsg = ''
 windowView = None
 plugin = ''
 
@@ -43,9 +45,9 @@ def toggleStatus():
         showStatus(lastMsg)
     elif (ismusictime is True):
         showStatus("🎧")
-    else:
-        # show clock icon unicode
-        showStatus("⏱")
+    # else:
+    #     # show clock icon unicode
+    #     currenttrackinfo()
 
 # update the status bar message
 
@@ -60,9 +62,10 @@ def showStatus(msg):
         if (showStatusVal is False):
             msg = "⏱"
         elif (ismusictime is True):
-            msg = "Connect Spotify"
-        else:
-            lastMsg = msg
+            if getValue("logged_on", True) is True:
+                msg = "Spotify Connected"
+        # else:
+        #     currenttrackinfo()
 
         if (active_window is not None):
             for view in active_window.views():
@@ -118,9 +121,9 @@ def requestIt(method, api, payload, jwt):
         if (payload is None):
             payload = {}
             httpLog(
-                "Code Time: Requesting [" + method + ": " + api_endpoint + "" + api + "]")
+                "Music Time: Requesting [" + method + ": " + api_endpoint + "" + api + "]")
         else:
-            httpLog("Code Time: Sending [" + method + ": " + api_endpoint + "" +
+            httpLog("Music Time: Sending [" + method + ": " + api_endpoint + "" +
                     api + ", headers: " + json.dumps(headers) + "] payload: %s" % payload)
 
         # send the request
@@ -130,7 +133,7 @@ def requestIt(method, api, payload, jwt):
         # httpLog("Code Time: " + api_endpoint + "" + api + " Response (%d)" % response.status)
         return response
     except Exception as ex:
-        print("Code Time: " + api + " Network error: %s" % ex)
+        print("Music Time: " + api + " Network error: %s" % ex)
         return None
 
 

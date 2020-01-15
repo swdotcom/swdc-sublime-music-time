@@ -21,9 +21,11 @@ from subprocess import Popen, PIPE
 from .SoftwareHttp import *
 from .SoftwareSettings import *
 from ..Software import *
+# from .schedule import *
+
 
 # the plugin version
-VERSION = '0.9.4'
+VERSION = '0.0.3'
 PLUGIN_ID = 1
 DASHBOARD_LABEL_WIDTH = 25
 DASHBOARD_VALUE_WIDTH = 25
@@ -38,6 +40,7 @@ timezone = ''
 CLIENT_ID = ''
 CLIENT_SECRET = ''
 # plugin = ''
+usertype = "" 
 
 
 # def isMusicTime():
@@ -199,7 +202,7 @@ def getItunesTrackState():
         result = runCommand(cmd, ['osascript', '-'])
         return result
     except Exception as e:
-        log("Code Time: error getting track state: %s " % e)
+        log("Music Time: error getting track state: %s " % e)
         # no music found playing
         return "stopped"
 
@@ -213,7 +216,7 @@ def getSpotifyTrackState():
         result = runCommand(cmd, ['osascript', '-'])
         return result
     except Exception as e:
-        log("Code Time: error getting track state: %s " % e)
+        log("Music Time: error getting track state: %s " % e)
         # no music found playing
         return "stopped"
 
@@ -243,7 +246,7 @@ def getMacTrackInfo():
     script = '''
         on buildItunesRecord(appState)
             tell application "iTunes"
-                set track_artist to artist of current track
+                set track_artist to artist of current track 
                 set track_name to name of current track
                 set track_genre to genre of current track
                 set track_id to database ID of current track
@@ -312,7 +315,7 @@ def getMacTrackInfo():
         else:
             return {}
     except Exception as e:
-        log("Code Time: error getting track: %s " % e)
+        log("Music Time: error getting track: %s " % e)
         # no music found playing
         return {}
 
@@ -584,7 +587,7 @@ def getUserStatus():
     currentUserStatus["loggedOn"] = loggedOn
 
     if (loggedOn is True and loggedInCacheState != loggedOn):
-        log("Code Time: Logged on")
+        log("Music Time: Logged on")
         sendHeartbeat("STATE_CHANGE:LOGGED_IN:true")
 
     loggedInCacheState = loggedOn
@@ -610,9 +613,9 @@ def sendHeartbeat(reason):
             response = requestIt("POST", api, json.dumps(payload), jwt)
 
             if (response is not None and isResponsOk(response) is False):
-                log("Code Time: Unable to send heartbeat ping")
+                log("Music Time: Unable to send heartbeat ping")
         except Exception as ex:
-            log("Code Time: Unable to send heartbeat: %s" % ex)
+            log("Music Time: Unable to send heartbeat: %s" % ex)
 
 
 def humanizeMinutes(minutes):
@@ -776,25 +779,27 @@ def Userme():
 
 def UserInfo():
     global spotifyuser
-    usertype = ''
+    global usertype
     try:
         spotifyuser = Userme()
         print("Music Time : User Info \n", spotifyuser)
 
         if spotifyuser['product'] == "premium":
             usertype = "premium"
+            # IsPremium = True
         else:
             usertype = "non-premium"
+            # IsPremium = False
     except Exception as e:
         print('Music Time: Spotify user info not found :>', e)
+        showStatus("Connect Spotify")
         pass
 
-    print("Music Time: User type detected #######")
+    print("Music Time: User type detected ")
     return usertype
 
+
 # get spotify client credentials
-
-
 def get_credentials():
     get_JWT = requests.get('https://api.software.com/data/apptoken?token=30000')
     jwt = get_JWT.json()['jwt']
@@ -841,7 +846,7 @@ def ClearSpotifyTokens():
     setItem("name", '')
     setItem("spotify_access_token", '')
     setItem("spotify_refresh_token", '')
-#     setItem("jwt", '')
+    setItem("jwt", '')
     print("Music Time: Tokens Cleared !")
 
 # disconnecting spotify
@@ -865,4 +870,5 @@ def Disconnectspotify():
 
 def musictimedash():
     print("Music Time: Loading Music time dashboard ...")
+    webbrowser.open("https://app.software.com/music")
     pass
