@@ -443,6 +443,8 @@ class ConnectSpotify(sublime_plugin.TextCommand):
             message_dialog = sublime.message_dialog(
                 "Please try to connect using Spotify Premium Account !")
             showStatus("Connect Spotify")
+        getUserPlaylists()
+        getActivedevice()
 
 
     def is_enabled(self):
@@ -477,22 +479,17 @@ class DisconnectSpotify(sublime_plugin.TextCommand):
 
     #     return bool(loggedOn-1)
 
-# launch_music_time_metrics
-class LaunchMusicTimeMetrics(sublime_plugin.TextCommand):
-    def run(self, edit):
-        musictimedash()
-        pass
+# # launch_music_time_metrics
+# class LaunchMusicTimeMetrics(sublime_plugin.TextCommand):
+#     def run(self, edit):
+#         data = getMusicTimedashboard()
+#         print(data)
+#         self.view.add_phantom("test", view.sel()[0], data, sublime.LAYOUT_BLOCK)
+#         # musictimedash()
+#         pass
 
 #     def is_enabled(self):
 #         return (getValue("logged_on", True) is True)
-
-    def is_enabled(self):
-        loggedOn = getValue("logged_on", True)
-        # if getItem("spotify_access_token") is False and (loggedOn is False):
-        if loggedOn == True:
-            return True
-        else:
-            return False
 
 
 # Slack connectivtiy
@@ -528,14 +525,6 @@ class SubmitFeedback(sublime_plugin.TextCommand):
         mailto = "mailto:cody@software.com"
         webbrowser.open(mailto, new = 1)
         pass
-
-
-class SoftwareTopForty(sublime_plugin.TextCommand):
-    def run(self, edit):
-        webbrowser.open("https://api.software.com/music/top40")
-
-    def is_enabled(self):
-        return (getValue("online", True) is True)
 
 
 class ToggleStatusBarMetrics(sublime_plugin.TextCommand):
@@ -912,6 +901,7 @@ def checkuserstate():
         resp_data = resp.json()
         if resp_data['state'] == "OK":
             setValue("logged_on", True)
+            getUserPlaylists()
             getActivedevice()
             refreshstatusbar()
             print('logged_on:True','\nEmail:',resp_data['email'])

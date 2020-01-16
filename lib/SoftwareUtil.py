@@ -33,7 +33,7 @@ MARKER_WIDTH = 4
 jwt = ''
 spotifyuser = {}
 sessionMap = {}
-
+uid = ''
 runningResourceCmd = False
 loggedInCacheState = False
 timezone = ''
@@ -43,22 +43,10 @@ CLIENT_SECRET = ''
 usertype = "" 
 
 
-# def isMusicTime():
-#     plugin = getValue("plugin","music-time")
-#     # print(">><<",plugin)
-#     # plugin = getItem("plugin")
-#     if plugin == "music-time":
-#         return True
-#     else:
-#         return False
-
-
 # log the message.
 def log(message):
     if (getValue("software_logging_on", True)):
         print(message)
-
-# .
 
 
 def getUrlEndpoint():
@@ -114,8 +102,6 @@ def getHostname():
         return os.uname().nodename
 
 # fetch a value from the .software/sesion.json file
-
-
 def getItem(key):
     val = sessionMap.get(key, None)
     if (val is not None):
@@ -128,8 +114,6 @@ def getItem(key):
     return val
 
 # set an item from the session json file
-
-
 def setItem(key, value):
     sessionMap[key] = value
     jsonObj = getSoftwareSessionAsJson()
@@ -177,8 +161,21 @@ def getSoftwareDir(autoCreate):
 
 def getDashboardFile():
     file = getSoftwareDir(True)
-    return os.path.join(file, 'CodeTime.txt')
+    return os.path.join(file, 'MusicTime.txt')
 
+def getMusicTimedashboard():
+    jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI0MTYwLCJpYXQiOjE1NzYwNzI2NDZ9.96PjeOosPVsA4mfWwizhxJ5Skqy8Onvia8Oh-mQCHf8"
+    # jwt = getItem("jwt")
+    headers = {'content-type': 'application/json', 'Authorization': jwt}
+    dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
+    resp = requests.get(dash_url, headers = headers)
+    file = getDashboardFile()
+    with open(file, 'w', encoding='utf-8') as f:
+        f.write(resp.text)
+
+    file = getDashboardFile()
+    sublime.active_window().open_file(file)
+    # return resp.text
 
 def getCustomDashboardFile():
     file = getSoftwareDir(True)
@@ -233,15 +230,11 @@ def getTrackInfo():
         return {}
 
 # windows
-
-
 def getWinTrackInfo():
     # not supported on other platforms yet
     return {}
 
 # OS X
-
-
 def getMacTrackInfo():
     script = '''
         on buildItunesRecord(appState)
@@ -695,19 +688,10 @@ def launchSpotifyLoginUrl():
             "Please try to connect Spotify after some time. !")
 
 # get user authentication data
-
-
 def getauthinfo():
     global jwt
     # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTU3MzE5NjE5MSwiaWF0IjoxNTczMTk2MTk1fQ.VIiKF3eZD7alV49oV_IF3PrdP4Rg9cZNi-BerVfWXSc"
     jwt = requests.get('https://api.software.com/data/apptoken?token='+str(round(time.time()))).json()['jwt']
-
-#     if getItem("jwt"):
-#         jwt = getItem("jwt")
-#     else:
-#         get_JWT = requests.get(
-#             'https://api.software.com/data/apptoken?token='+str(round(time.time())))
-#         jwt = get_JWT.json()['jwt']
     setItem("jwt", jwt)
     # print(">>@<<",jwt)
     headers = {'content-type': 'application/json', 'Authorization': jwt}
@@ -730,7 +714,6 @@ def getauthinfo():
 
 # Access tokens from user auth
 def GetToken(authinfo):
-
     try:
         EMAIL = authinfo['email']
         for i in range(len(authinfo['auths'])):
@@ -747,8 +730,6 @@ def GetToken(authinfo):
     return EMAIL, ACCESS_TOKEN, REFRESH_TOKEN
 
 # Update session file after getting spotify access tokens
-
-
 def Updatetokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
     setItem("name", '')
     setItem("spotify_access_token", '')
@@ -759,8 +740,6 @@ def Updatetokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
     print("Music Time: Access token Added !")
 
 # get userinfo from spotify
-
-
 def Userme():
     url = 'https://api.spotify.com/v1/me'
     headers = {'Authorization': 'Bearer ' + getItem('spotify_access_token')}
@@ -775,14 +754,14 @@ def Userme():
     return spotifyUserInfo
 
 # check user type premium/ non-premium
-
-
 def UserInfo():
     global spotifyuser
     global usertype
+    global uid
     try:
         spotifyuser = Userme()
         print("Music Time : User Info \n", spotifyuser)
+        uid = spotifyuser.get("id")
 
         if spotifyuser['product'] == "premium":
             usertype = "premium"
@@ -811,8 +790,6 @@ def get_credentials():
     return clientId, clientSecret
 
 # Refresh access token after expiry
-
-
 def Refreshspotifytoken():
     payload = {}
     obj = {}
@@ -850,8 +827,6 @@ def ClearSpotifyTokens():
     print("Music Time: Tokens Cleared !")
 
 # disconnecting spotify
-
-
 def Disconnectspotify():
     jwt = getItem("jwt")
     # print(">>@<<",jwt)

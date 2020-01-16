@@ -4,26 +4,17 @@ from threading import Thread, Timer, Event
 from .SoftwareUtil import *
 from .SoftwareHttp import *
 import requests
+import webbrowser
 # from .schedule import *
 
 
-ACTIVE_DEVICE = {'id':"","name":""}
+ACTIVE_DEVICE = {}
 DEVICES = []
 
-
-# mock data
-data = [
-    {"id": 1, "name": "Running", "songs": ["Diane Young", "Ottoman", "This Life"]},
-    {"id": 2, "name": "Working", "songs": ["How Long", "Jerusalem, New York, Berlin", "Harmony Hall"]},
-    {"id": 3, "name": "Fun", "songs": ["A-Punk", "Step", "Sunflower"]}
-]
-
-'''
- * Spotify Error Cases
- * When performing an action that is restricted,
- * 404 NOT FOUND (NO_ACTIVE_DEVICE)
- * 403 FORBIDDEN will be returned together with a player error message.(non-premium)
-'''
+playlist_info ={}
+uid = "j1dz6tgj6n8bphkeaafgnjuvs"
+playlist_id = ''
+data= []
 
 # global variables
 current_playlist_name = "Running"
@@ -38,12 +29,25 @@ class OpenPlaylistsCommand(sublime_plugin.TextCommand):
     def run(self, edit, playlists_tree):
         self.view.insert(edit, 0, playlists_tree)
 
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
+
+
 class OpenSongsCommand(sublime_plugin.TextCommand):
     def input(self, args):
         return SongInputHandler()
 
     def run(self, edit, songs_tree):
         self.view.insert(edit, 0, songs_tree)
+        if playlist_id == None:
+            playThissong(ACTIVE_DEVICE.get('device_id'), songs_tree)
+        else:
+            playSongfromplaylist(ACTIVE_DEVICE.get('device_id'), playlist_id,songs_tree)
+        print("++++++++++++++++++++++++++++++++++++++++++++",songs_tree)
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
+
 
 class PlaylistInputHandler(sublime_plugin.ListInputHandler):
     def __init__(self):
@@ -63,8 +67,10 @@ class PlaylistInputHandler(sublime_plugin.ListInputHandler):
 
     def confirm(self, value):
         global current_playlist_name
+        global playlist_id
         current_playlist_name = value
-        print(current_playlist_name)
+        playlist_id = playlist_info.get(current_playlist_name)
+        print("current_playlist_name:",current_playlist_name,"\nPlaylist_id",playlist_id)
 
     def next_input(self, args):
         return SongInputHandler()
@@ -74,6 +80,7 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
         super(sublime_plugin.ListInputHandler, self).__init__()
 
     def name(self):
+        # print(SongInputHandler.name(self))
         return "songs_tree"
 
     def placeholder(self):
@@ -87,12 +94,20 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
         global current_song
         current_song = value
         print(current_song)
+        if playlist_id == None:
+            print('#'*10,'playlist_id == None SongInputHandler')
+            playThissong(ACTIVE_DEVICE.get('device_id'), current_song)
+        else:
+            print('#'*10,'else == None SongInputHandler')
+            playSongfromplaylist(ACTIVE_DEVICE.get('device_id'), playlist_id,current_song)
+        print("=========================================",current_song)
+
 
 def get_playlists():
-    global data
     playlists = []
     for playlist in data:
         playlists.append(playlist.get("name"))
+    print('playlists',playlists)
     return playlists
 
 def get_songs_in_playlist(playlist_name):
@@ -100,6 +115,104 @@ def get_songs_in_playlist(playlist_name):
     for playlist in data:
         if playlist.get("name")==playlist_name:
             return playlist.get("songs")
+
+
+def getlikedsongs():
+    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+    playlist_track = "https://api.spotify.com/v1/me/tracks"
+    tracklist =requests.get(playlist_track,headers=headers )
+    if tracklist.status_code == 200:
+        track_list = tracklist.json()
+        ids = []
+        names = []
+        tracks = {}
+        for i in track_list['items']:
+            ids.append(i['track']['id'])
+            names.append(i['track']['name'])
+            tracks = tuple(zip(names,ids))
+    else:
+        tracks = list('No song found',)
+#             tracks = dict(zip(names,ids))
+    return list(tracks)
+
+
+#GET playlist name and ids ro view
+def getuserPlaylistinfo(uid):
+    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+    playlist_track = "https://api.spotify.com/v1/users/"+uid+"/playlists"
+    playlist =requests.get(playlist_track,headers=headers )
+    if playlist.status_code == 200:
+        playlistname = playlist.json()
+        names = []
+        ids =[]
+        playlist=[]
+        for i in playlistname['items']:
+            names.append(i['name'])
+            ids.append(i['id'])
+            playlist=dict(zip(names,ids))
+#             print(ids," ",name)
+        
+    return playlist
+
+
+# playlist_id = "6jCkTED0V5NEuM8sKbGG1Z"
+def gettracks(playlist_id):
+    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+    playlist_track = "https://api.spotify.com/v1/playlists/"+playlist_id+"/tracks"
+    tracklist =requests.get(playlist_track,headers=headers )
+    if tracklist.status_code == 200:
+        track_list = tracklist.json()
+        ids = []
+        names = []
+        tracks = {}
+        for i in track_list['items']:
+            ids.append(i['track']['id'])
+            names.append(i['track']['name'])
+            tracks = tuple(zip(names,ids))
+    else:
+        tracks = list('No song found',)
+
+    return list(tracks)
+
+
+# UserPlaylists = []
+# playlist_info ={}
+def getUserPlaylists():
+    global playlist_info
+    '''
+    playlist data should be in this form
+    data = [{"id": 1, "name": "Running", "songs": [('Tokyo Drifting (with Denzel Curry)', '3AHqaOkEFKZ6zEHdiplIv7'),
+                                               ('Alan Silvestri', '0pHcFONMGTN8g18jbz6lJu')]}]
+    '''
+    playlist_info = getuserPlaylistinfo(uid)
+    for k,v in playlist_info.items():
+      data.append({'id':v, 'name':k ,'songs':gettracks(v)})
+    data.append({'id':'000','name':'Liked songs', 'songs':getlikedsongs()})
+    print("GOT playlist data :\n",data)
+
+
+def playThissong(currentDeviceId, track_id):
+    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+    data = {}
+    print("track_id",track_id)
+    data = {"uris":["spotify:track:" + track_id]}
+    payload = json.dumps(data)
+    playstr = "https://api.spotify.com/v1/me/player/play?device_id=" + currentDeviceId
+    plays = requests.put(playstr, headers=headers, data=payload)
+    print(plays.text)
+
+
+def playSongfromplaylist(currentDeviceId, playlistid, track_id):
+    global playlist_id
+    playlist_id = playlistid
+    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+    playstr = "https://api.spotify.com/v1/me/player/play?device_id=" + currentDeviceId
+    data = {}
+    data["context_uri"] = "spotify:playlist:"+ playlist_id
+    data['offset'] =  {"uri": "spotify:track:"+ track_id}
+    payload = json.dumps(data)
+    plays = requests.put(playstr, headers=headers, data=payload)
+    print(plays.text)
 
 
 class PlaySong(sublime_plugin.TextCommand):
@@ -154,6 +267,84 @@ class OpenSpotify(sublime_plugin.TextCommand):
             webbrowser.open("https://open.spotify.com/")
 
 
+class RefreshPlaylist(sublime_plugin.TextCommand):
+    def run(self, edit):
+        try:
+            getUserPlaylists()
+        except Exception as E:
+            print("RefreshPlaylist:",E)
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
+
+
+# class MusicTimeDash(sublime_plugin.TextCommand):
+#     def run(self, edit):
+#         pass
+
+#     def is_enabled(self):
+#         return (getValue("logged_on", True) is True)
+
+
+# open musictime.txt/html file
+class LaunchMusicTimeMetrics(sublime_plugin.TextCommand):
+    def run(self, edit):
+        try:
+            getMusicTimedashboard()
+        except Exception as E:
+            print("LaunchMusicTimeMetrics:",E)
+        pass
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
+
+# Launch web dashboard .../music
+class SeeWebAnalytics(sublime_plugin.TextCommand):
+    def run(self, edit):
+        try:
+            musictimedash()
+        except Exception as E:
+            print("SeeWebAnalytics:",E)
+        pass
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
+
+
+class GenRefresh(sublime_plugin.TextCommand):
+    def run(self, edit):
+        pass
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
+
+
+# Generate AI playlist 
+class GenerateAIPlaylist(sublime_plugin.TextCommand):
+    def run(self, edit):
+        try:
+            generateAIplaylist()
+        except Exception as E:
+            print("RefreshPlaylist:",E)
+        pass
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
+
+# Refresh AI playlist 
+class RefreshAIPlaylist(sublime_plugin.TextCommand):
+    def run(self, edit):
+        try:
+            refreshAIplaylist()
+        except Exception as E:
+            print("RefreshPlaylist:",E)
+        pass
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
+
+
+# Song's Controls: Play
 def playsong():
     getActivedevice()
     # print("isMac",isMac(),'|',UserInfo())
@@ -171,7 +362,7 @@ def playsong():
         print("Web player Working | Playing :", plays.status_code, "|",plays.text)
         currenttrackinfo()
 
-
+# Song's Controls: Pause
 def pausesong():
     getActivedevice()
     # print("isMac",isMac(),'|',UserInfo())
@@ -187,7 +378,7 @@ def pausesong():
         print("Web player Working | Paused ...", pause.status_code, "|",pause.text)
         currenttrackinfo()
 
-
+# Song's Controls: Next
 def nextsong():
     getActivedevice()
     # print("isMac",isMac(),'|',UserInfo())
@@ -202,7 +393,7 @@ def nextsong():
         print("Web player Working | Next ...", nxt.status_code, "|",nxt.text)
         currenttrackinfo()
 
-
+# Song's Controls: Previous
 def prevsong():
     getActivedevice()
     # print("isMac",isMac(),'|',UserInfo())
@@ -218,19 +409,19 @@ def prevsong():
         # showStatus("▶️ "+currenttrackinfo()[0])# if currenttrackinfo()[1] is True else print("Paused",currenttrackinfo()[0])
         currenttrackinfo()
 
-
+# Launch Spotify player
 def startPlayer():
     args = "open -a Spotify"
     os.system(args)
 
-
+# Song's Controls: Play from Desktop
 def playPlayer():
     play = '''
     osascript -e 'tell application "Spotify" to play'
     '''
     os.system(play)
 
-
+# Song's Controls: Pause from Desktop
 def pausePlayer():
     pause = '''
     osascript -e 'tell application "Spotify" to pause'  
@@ -239,20 +430,21 @@ def pausePlayer():
     # args = { "osascript", "-e", "tell application \""+ playerName + "\" to pause" }
     # return runCommand(args, None)
 
-
+# Song's Controls: Previous from Desktop
 def previousTrack():
     prev = '''
     osascript -e 'tell application "Spotify" to play (previous track)'
     ''' 
     os.system(prev)
 
-
+# Song's Controls: Next from Desktop
 def nextTrack():
     nxt = '''
     osascript -e 'tell application "Spotify" to play (next track)'
     '''
     os.system(nxt)
 
+# Fetch Active device  and Devices(all device including inactive devices)
 def getActivedevice():
     # print("{}".format(getItem('spotify_access_token')))
     # global currentDeviceId
@@ -423,6 +615,8 @@ def currenttrackinfo():
         #     updatestatusbar.start()
         # except Exception as e:
         #     print("timer",e)
+
+# Continuous refresh statusbar
 def refreshstatusbar():
 
     try:
@@ -437,7 +631,7 @@ def refreshstatusbar():
         # showStatus("Connect Spotify")
         pass
 
-
+# Continuous refresh devices
 def refreshdevicestatus():
 
     try:
