@@ -30,6 +30,8 @@ REFRESH_TOKEN = ''
 EMAIL = ''
 DEFAULT_DURATION = 60
 user = ''
+user_id = ""
+
 # plugin_name = getItem("plugin")
 # print("PLUGIN name is ",plugin_name)
 PROJECT_DIR = None
@@ -414,6 +416,7 @@ class ConnectSpotify(sublime_plugin.TextCommand):
 
             setValue("logged_on", True)
             showStatus("Spotify Connected")
+            print("USER_id:",user_id)
             getActivedevice()
             refreshstatusbar()
             # print("IsPremium :",IsPremium)

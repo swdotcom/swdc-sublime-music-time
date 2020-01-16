@@ -3,6 +3,7 @@ import sublime
 from threading import Thread, Timer, Event
 from .SoftwareUtil import *
 from .SoftwareHttp import *
+from ..Software import *
 import requests
 import webbrowser
 # from .schedule import *
@@ -12,9 +13,10 @@ ACTIVE_DEVICE = {}
 DEVICES = []
 
 playlist_info ={}
-uid = "j1dz6tgj6n8bphkeaafgnjuvs"
+# user_id = "j1dz6tgj6n8bphkeaafgnjuvs"
+# user_id = ""
 playlist_id = ''
-data= []
+data = []
 
 # global variables
 current_playlist_name = "Running"
@@ -116,7 +118,7 @@ def get_songs_in_playlist(playlist_name):
         if playlist.get("name")==playlist_name:
             return playlist.get("songs")
 
-
+# fetch liked songs tracks
 def getlikedsongs():
     headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
     playlist_track = "https://api.spotify.com/v1/me/tracks"
@@ -137,9 +139,9 @@ def getlikedsongs():
 
 
 #GET playlist name and ids ro view
-def getuserPlaylistinfo(uid):
+def getuserPlaylistinfo(user_id):
     headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-    playlist_track = "https://api.spotify.com/v1/users/"+uid+"/playlists"
+    playlist_track = "https://api.spotify.com/v1/users/"+user_id+"/playlists"
     playlist =requests.get(playlist_track,headers=headers )
     if playlist.status_code == 200:
         playlistname = playlist.json()
@@ -155,7 +157,7 @@ def getuserPlaylistinfo(uid):
     return playlist
 
 
-# playlist_id = "6jCkTED0V5NEuM8sKbGG1Z"
+# get tracks data using playlist id
 def gettracks(playlist_id):
     headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
     playlist_track = "https://api.spotify.com/v1/playlists/"+playlist_id+"/tracks"
@@ -175,22 +177,28 @@ def gettracks(playlist_id):
     return list(tracks)
 
 
-# UserPlaylists = []
-# playlist_info ={}
+# Populate playlist data include playlists name/ids and tracks name/ids
 def getUserPlaylists():
     global playlist_info
+    user_id = Userme().get('id')
+    print("user_id: ",user_id)
+    global data
+    data = []
     '''
     playlist data should be in this form
     data = [{"id": 1, "name": "Running", "songs": [('Tokyo Drifting (with Denzel Curry)', '3AHqaOkEFKZ6zEHdiplIv7'),
                                                ('Alan Silvestri', '0pHcFONMGTN8g18jbz6lJu')]}]
     '''
-    playlist_info = getuserPlaylistinfo(uid)
+    try:
+        playlist_info = getuserPlaylistinfo(user_id)
+    except Exception as e:
+        print("Music Time: getuserPlaylistinfoerror",e)
     for k,v in playlist_info.items():
       data.append({'id':v, 'name':k ,'songs':gettracks(v)})
     data.append({'id':'000','name':'Liked songs', 'songs':getlikedsongs()})
     print("GOT playlist data :\n",data)
 
-
+# Play song from playlist without playlist_id
 def playThissong(currentDeviceId, track_id):
     headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
     data = {}
@@ -201,7 +209,7 @@ def playThissong(currentDeviceId, track_id):
     plays = requests.put(playstr, headers=headers, data=payload)
     print(plays.text)
 
-
+# Play song from playlist using playlist_id and track_id
 def playSongfromplaylist(currentDeviceId, playlistid, track_id):
     global playlist_id
     playlist_id = playlistid
@@ -214,7 +222,7 @@ def playSongfromplaylist(currentDeviceId, playlistid, track_id):
     plays = requests.put(playstr, headers=headers, data=payload)
     print(plays.text)
 
-
+# Play control in main menu
 class PlaySong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
@@ -225,7 +233,7 @@ class PlaySong(sublime_plugin.TextCommand):
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
-
+# Pause control in main menu
 class PauseSong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
@@ -236,7 +244,7 @@ class PauseSong(sublime_plugin.TextCommand):
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
-
+# Next control in main menu
 class NextSong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
@@ -247,7 +255,7 @@ class NextSong(sublime_plugin.TextCommand):
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
-
+# Previous control in main menu
 class PrevSong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
@@ -259,14 +267,14 @@ class PrevSong(sublime_plugin.TextCommand):
         return (getValue("logged_on", True) is True)
 
         
-class OpenSpotify(sublime_plugin.TextCommand):
-    def run(self, edit):
-        if isMac() == True:
-            os.system("open -a spotify")
-        else:
-            webbrowser.open("https://open.spotify.com/")
+# class OpenSpotify(sublime_plugin.TextCommand):
+#     def run(self, edit):
+#         if isMac() == True:
+#             os.system("open -a spotify")
+#         else:
+#             webbrowser.open("https://open.spotify.com/")
 
-
+# Refresh playlist option in main menu
 class RefreshPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
@@ -311,12 +319,12 @@ class SeeWebAnalytics(sublime_plugin.TextCommand):
         return (getValue("logged_on", True) is True)
 
 
-class GenRefresh(sublime_plugin.TextCommand):
-    def run(self, edit):
-        pass
+# class GenRefresh(sublime_plugin.TextCommand):
+#     def run(self, edit):
+#         pass
 
-    def is_enabled(self):
-        return (getValue("logged_on", True) is True)
+#     def is_enabled(self):
+#         return (getValue("logged_on", True) is True)
 
 
 # Generate AI playlist 

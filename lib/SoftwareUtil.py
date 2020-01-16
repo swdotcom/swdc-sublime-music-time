@@ -33,7 +33,7 @@ MARKER_WIDTH = 4
 jwt = ''
 spotifyuser = {}
 sessionMap = {}
-uid = ''
+user_id = ''
 runningResourceCmd = False
 loggedInCacheState = False
 timezone = ''
@@ -167,7 +167,8 @@ def getMusicTimedashboard():
     jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI0MTYwLCJpYXQiOjE1NzYwNzI2NDZ9.96PjeOosPVsA4mfWwizhxJ5Skqy8Onvia8Oh-mQCHf8"
     # jwt = getItem("jwt")
     headers = {'content-type': 'application/json', 'Authorization': jwt}
-    dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
+    dash_url = "https://api.software.com/dashboard/music"
+    # dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
     resp = requests.get(dash_url, headers = headers)
     file = getDashboardFile()
     with open(file, 'w', encoding='utf-8') as f:
@@ -757,11 +758,11 @@ def Userme():
 def UserInfo():
     global spotifyuser
     global usertype
-    global uid
+    global user_id
     try:
         spotifyuser = Userme()
         print("Music Time : User Info \n", spotifyuser)
-        uid = spotifyuser.get("id")
+        user_id = spotifyuser.get("id")
 
         if spotifyuser['product'] == "premium":
             usertype = "premium"
