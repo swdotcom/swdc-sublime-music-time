@@ -18,13 +18,16 @@ playlist_info ={}
 playlist_id = ''
 data = []
 
+# Lambda function for checking user
+check_user = lambda : "Spotify Connected" if (UserInfo() == "premium") else ("Connect Premium" if (UserInfo() == "open") else "Connect Spotify")
+
 # global variables
 current_playlist_name = "Running"
 current_song = "Diane Young"
 
 class OpenPlaylistsCommand(sublime_plugin.TextCommand):
     def input(self, args):
-        infoMsg = "Playlists opened"
+        infoMsg = "Music Time: Playlists opened"
         print(infoMsg)
         return PlaylistInputHandler()
 
@@ -45,7 +48,7 @@ class OpenSongsCommand(sublime_plugin.TextCommand):
             playThissong(ACTIVE_DEVICE.get('device_id'), songs_tree)
         else:
             playSongfromplaylist(ACTIVE_DEVICE.get('device_id'), playlist_id,songs_tree)
-        print("++++++++++++++++++++++++++++++++++++++++++++",songs_tree)
+        print("+"*20,songs_tree)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
@@ -102,7 +105,7 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
         else:
             print('#'*10,'else == None SongInputHandler')
             playSongfromplaylist(ACTIVE_DEVICE.get('device_id'), playlist_id,current_song)
-        print("=========================================",current_song)
+        print("="*20,current_song)
 
 
 def get_playlists():
@@ -143,16 +146,18 @@ def getuserPlaylistinfo(user_id):
     headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
     playlist_track = "https://api.spotify.com/v1/users/"+user_id+"/playlists"
     playlist =requests.get(playlist_track,headers=headers )
-    if playlist.status_code == 200:
-        playlistname = playlist.json()
-        names = []
-        ids =[]
-        playlist=[]
-        for i in playlistname['items']:
-            names.append(i['name'])
-            ids.append(i['id'])
-            playlist=dict(zip(names,ids))
-#             print(ids," ",name)
+    try:    
+        if playlist.status_code == 200:
+            playlistname = playlist.json()
+            names = []
+            ids = []
+            playlist=[]
+            for i in playlistname['items']:
+                names.append(i['name'])
+                ids.append(i['id'])
+                playlist=dict(zip(names,ids))
+    except Exception as e:
+        print("getuserPlaylistinfo err",e)
         
     return playlist
 
@@ -172,7 +177,7 @@ def gettracks(playlist_id):
             names.append(i['track']['name'])
             tracks = tuple(zip(names,ids))
     else:
-        tracks = list('No song found',)
+        tracks = list('No song found',"")
 
     return list(tracks)
 
@@ -202,12 +207,15 @@ def getUserPlaylists():
 def playThissong(currentDeviceId, track_id):
     headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
     data = {}
-    print("track_id",track_id)
-    data = {"uris":["spotify:track:" + track_id]}
-    payload = json.dumps(data)
-    playstr = "https://api.spotify.com/v1/me/player/play?device_id=" + currentDeviceId
-    plays = requests.put(playstr, headers=headers, data=payload)
-    print(plays.text)
+    try:
+        print("track_id",track_id)
+        data = {"uris":["spotify:track:" + track_id]}
+        payload = json.dumps(data)
+        playstr = "https://api.spotify.com/v1/me/player/play?device_id=" + currentDeviceId
+        plays = requests.put(playstr, headers=headers, data=payload)
+        print(plays.text)
+    except Exception as e:
+        print("playThissong",e)
 
 # Play song from playlist using playlist_id and track_id
 def playSongfromplaylist(currentDeviceId, playlistid, track_id):
@@ -216,16 +224,20 @@ def playSongfromplaylist(currentDeviceId, playlistid, track_id):
     headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
     playstr = "https://api.spotify.com/v1/me/player/play?device_id=" + currentDeviceId
     data = {}
-    data["context_uri"] = "spotify:playlist:"+ playlist_id
-    data['offset'] =  {"uri": "spotify:track:"+ track_id}
-    payload = json.dumps(data)
-    plays = requests.put(playstr, headers=headers, data=payload)
-    print(plays.text)
+    try:
+        data["context_uri"] = "spotify:playlist:"+ playlist_id
+        data['offset'] =  {"uri": "spotify:track:"+ track_id}
+        payload = json.dumps(data)
+        plays = requests.put(playstr, headers=headers, data=payload)
+        print(plays.text)
+    except Exception as e:
+        print("playSongfromplaylist",e)
 
 # Play control in main menu
 class PlaySong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
+            self.view.show_popup(myTooltip())
             playsong()
         except Exception as E:
             print("play",E)
@@ -237,6 +249,7 @@ class PlaySong(sublime_plugin.TextCommand):
 class PauseSong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
+            # self.view.show_popup(myTooltip())
             pausesong()
         except Exception as E:
             print("pause",E)
@@ -248,6 +261,7 @@ class PauseSong(sublime_plugin.TextCommand):
 class NextSong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
+            # self.view.show_popup(myTooltip())
             nextsong()
         except Exception as E:
             print("next",E)
@@ -259,12 +273,44 @@ class NextSong(sublime_plugin.TextCommand):
 class PrevSong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
+            # self.view.show_popup(myTooltip())
             prevsong()
         except Exception as E:
             print("prev",E)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
+
+
+def myTooltip():
+    global DEVICES
+    # print('myTooltip()',ACTIVE_DEVICE)
+    # print('myTooltip()',DEVICES)
+    header = "<h3>MUSIC TIME</h3>"
+    connected = '<p><a href="show"><img src="res://Packages/swdc-sublime-music-time/spotify-icons-logos/spotify-icons-logos/icons/01_RGB/02_PNG/Spotify_Icon_RGB_Green.png" height="20" width="20">{}</a></p>'.format(check_user())
+    listen_on = '<p><a href="show"><img src="res://Packages/swdc-sublime-music-time/spotify-icons-logos/spotify-icons-logos/icons/01_RGB/02_PNG/Spotify_Icon_RGB_Green.png" height="20" width="20">Listening on {}</a></p>'.format(ACTIVE_DEVICE.get('name'))
+    available_on = '<p><a href="show"><img src="res://Packages/swdc-sublime-music-time/spotify-icons-logos/spotify-icons-logos/icons/01_RGB/02_PNG/Spotify_Icon_RGB_Green.png" height="20" width="20">Available on {}</a></p>'.format(','.join(DEVICES))
+    # no_device_msg = '<p><a href="show"><img src="res://Packages/swdc-sublime-music-time/spotify-icons-logos/spotify-icons-logos/icons/01_RGB/02_PNG/Spotify_Icon_RGB_Green.png" height="20" width="20">No device found</a></p>'
+
+
+    if len(ACTIVE_DEVICE.values()) == 0:
+        body = "<body>" + header + connected + available_on + "</body>"
+    # elif len(DEVICES) == 0:
+    #     body = "<body>" + header + connected + no_device_msg + "</body>"
+    else:
+        body = "<body>" + header + connected + listen_on + "</body>"
+
+    return body
+
+class ConnectionStatus(sublime_plugin.TextCommand):
+    def run(self, edit):
+        print("ConnectionStatus :",DEVICES) 
+        self.view.show_popup(myTooltip(), max_width=300, max_height=1000)
+    def navigate(self,href):
+        if href == 'show':
+            pass
+        else:
+            pass
 
         
 # class OpenSpotify(sublime_plugin.TextCommand):
@@ -478,6 +524,8 @@ def getActivedevice():
                         print("Music Time: Active device found > ",ACTIVE_DEVICE['name'])
         
             DEVICES.append(devices['devices'][j]['name'])
+            print("ACTIVE_DEVICE",ACTIVE_DEVICE)
+            print("DEVICES :",DEVICES)
             print("Music Time: Number of connected devices: ",len(DEVICES))
             # print("ACTIVE_DEVICE",ACTIVE_DEVICE)
                     
@@ -653,3 +701,5 @@ def refreshdevicestatus():
         showStatus("No device found . . . ")
         # showStatus("Connect Spotify")
         pass
+
+

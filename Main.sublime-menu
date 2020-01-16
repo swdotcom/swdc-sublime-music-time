@@ -90,6 +90,10 @@
 
                         ]
                     },
+                    {
+                        "command": "connection_status",
+                        "caption": "Connection Status"
+                    }
 
                         ]
                 }
