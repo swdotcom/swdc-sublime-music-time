@@ -163,28 +163,32 @@ def getDashboardFile():
     file = getSoftwareDir(True)
     return os.path.join(file, 'MusicTime.txt')
 
+# To fetch and shoe music-time dashboard
 def getMusicTimedashboard():
-    jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI0MTYwLCJpYXQiOjE1NzYwNzI2NDZ9.96PjeOosPVsA4mfWwizhxJ5Skqy8Onvia8Oh-mQCHf8"
-    # jwt = getItem("jwt")
+    # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI0MTYwLCJpYXQiOjE1NzYwNzI2NDZ9.96PjeOosPVsA4mfWwizhxJ5Skqy8Onvia8Oh-mQCHf8"
+    jwt = getItem("jwt")
     headers = {'content-type': 'application/json', 'Authorization': jwt}
     dash_url = "https://api.software.com/dashboard/music"
     # dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
     resp = requests.get(dash_url, headers = headers)
+    if resp.status_code == 200:
+        print("Music Time: launch MusicTime.txt")
+    else:
+        print('getMusicTimedashboard error\n',resp.text)
+
     file = getDashboardFile()
     with open(file, 'w', encoding='utf-8') as f:
         f.write(resp.text)
 
     file = getDashboardFile()
     sublime.active_window().open_file(file)
-    # return resp.text
+
 
 def getCustomDashboardFile():
     file = getSoftwareDir(True)
     return os.path.join(file, 'CustomDashboard.txt')
 
 # execute the applescript command
-
-
 def runCommand(cmd, args=[]):
     p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate(cmd)
@@ -684,7 +688,7 @@ def launchSpotifyLoginUrl():
         print("Music Time: ",spotify_url)
         webbrowser.open(spotify_url)
     except Exception as e:
-        print("Music Time: Try to connctt after some time.", e)
+        print("Music Time: Try to connect after some time.", e)
         message_dialog = sublime.message_dialog(
             "Please try to connect Spotify after some time. !")
 
@@ -694,35 +698,65 @@ def getauthinfo():
     # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTU3MzE5NjE5MSwiaWF0IjoxNTczMTk2MTk1fQ.VIiKF3eZD7alV49oV_IF3PrdP4Rg9cZNi-BerVfWXSc"
     jwt = requests.get('https://api.software.com/data/apptoken?token='+str(round(time.time()))).json()['jwt']
     setItem("jwt", jwt)
-    # print(">>@<<",jwt)
     headers = {'content-type': 'application/json', 'Authorization': jwt}
     launchSpotifyLoginUrl()
     time.sleep(50)
     getauth = requests.get(
-        'https://api.software.com/auth/spotify/user', headers=headers)
+        'https://api.software.com/users/plugin/state', headers=headers)
     if getauth.status_code == 200:
+        print(getauth.text)
         authinfo = {}
+        # authinfo = getauth.json()
         try:
-            #     # print("succeed")
             authinfo = getauth.json()
-        #     # print("<<<<<<<<<<<<<<->>>>>>>>>\n\n",authinfo)
+            if authinfo['state'] =="OK":
+                print("succeed")
+                # authinfo = getauth.json()
+                print("<<<<<<<<<<<<<<->>>>>>>>>\n\n",authinfo)
+            else:
+                print("STATE_OK_NOT_FOUND")
+
         except Exception as e:
             print("Music Time: AUTHTOKEN ERROR: ", e)
 
         # print("#######getauthinfo######")
         return authinfo
 
+    # getauth = requests.get(
+    #     'https://api.software.com/auth/spotify/user', headers=headers)
+    # if getauth.status_code == 200:
+    #     authinfo = {}
+    #     try:
+    #         #     # print("succeed")
+    #         authinfo = getauth.json()
+    #     #     # print("<<<<<<<<<<<<<<->>>>>>>>>\n\n",authinfo)
+    #     except Exception as e:
+    #         print("Music Time: AUTHTOKEN ERROR: ", e)
+
+    #     # print("#######getauthinfo######")
+    #     return authinfo
+
 
 # Access tokens from user auth
 def GetToken(authinfo):
     try:
         EMAIL = authinfo['email']
-        for i in range(len(authinfo['auths'])):
-            if authinfo['auths'][i]['type'] == "spotify":
+        setItem("jwt", authinfo['jwt'])
+        print("Music Time: JWT updated from /users/plugin/state")
 
-                # EMAIL = authinfo['auths'][i]['email']
-                ACCESS_TOKEN = authinfo['auths'][i]['access_token']
-                REFRESH_TOKEN = authinfo['auths'][i]['refresh_token']
+        for i in range(len(authinfo['user']['auths'])):
+            if authinfo['user']['auths'][i]['type'] == "spotify":
+                ACCESS_TOKEN = authinfo['user']['auths'][i]['access_token']
+                REFRESH_TOKEN = authinfo['user']['auths'][i]['refresh_token']
+
+        # EMAIL = authinfo['email']
+        # # setItem(authinfo['jwt'], jwt)
+        # for i in range(len(authinfo['auths'])):
+        #     if authinfo['auths'][i]['type'] == "spotify":
+
+        #         # EMAIL = authinfo['auths'][i]['email']
+        #         ACCESS_TOKEN = authinfo['auths'][i]['access_token']
+        #         REFRESH_TOKEN = authinfo['auths'][i]['refresh_token']
 
     except Exception as e:
         print("Music Time: Token not found", e)

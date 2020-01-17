@@ -183,6 +183,33 @@ def gettracks(playlist_id):
 
 
 # Populate playlist data include playlists name/ids and tracks name/ids
+def getSortedUserPlaylists():
+    global playlist_info
+    user_id = Userme().get('id')
+    print("user_id: ",user_id)
+    global data
+    data = []
+    '''
+    playlist data should be in this form
+    data = [{"id": 1, "name": "Running", "songs": [('Tokyo Drifting (with Denzel Curry)', '3AHqaOkEFKZ6zEHdiplIv7'),
+                                               ('Alan Silvestri', '0pHcFONMGTN8g18jbz6lJu')]}]
+    '''
+    try:
+        playlist_info = getuserPlaylistinfo(user_id)
+    except Exception as e:
+        print("Music Time: getuserPlaylistinfoerror",e)
+
+    sorted_playlist = dict(sorted(playlist_info.items(), key=lambda playlist_info: playlist_info[0]))
+    print(sorted_playlist)
+
+
+    for k,v in sorted_playlist.items():
+      data.append({'id':v, 'name':k ,'songs':gettracks(v)})
+    data.append({'id':'000','name':'Liked songs', 'songs':getlikedsongs()})
+    print("GOT playlist data :\n",data)
+
+
+# Populate playlist data include playlists name/ids and tracks name/ids
 def getUserPlaylists():
     global playlist_info
     user_id = Userme().get('id')
@@ -203,35 +230,54 @@ def getUserPlaylists():
     data.append({'id':'000','name':'Liked songs', 'songs':getlikedsongs()})
     print("GOT playlist data :\n",data)
 
+
 # Play song from playlist without playlist_id
 def playThissong(currentDeviceId, track_id):
-    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-    data = {}
-    try:
-        print("track_id",track_id)
-        data = {"uris":["spotify:track:" + track_id]}
-        payload = json.dumps(data)
-        playstr = "https://api.spotify.com/v1/me/player/play?device_id=" + currentDeviceId
-        plays = requests.put(playstr, headers=headers, data=payload)
-        print(plays.text)
-    except Exception as e:
-        print("playThissong",e)
+    if isMac() == True and UserInfo() == "non-premium":
+        script = '''
+        osascript -e 'tell application "Spotify" to play track "spotify:track:{}"'
+        '''.format(track_id) 
+        os.system(script)
+        print("Played from desktop")
+
+    else:    
+        headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+        data = {}
+        try:
+            print("track_id",track_id)
+            data = {"uris":["spotify:track:" + track_id]}
+            payload = json.dumps(data)
+            playstr = "https://api.spotify.com/v1/me/player/play?device_id=" + currentDeviceId
+            plays = requests.put(playstr, headers=headers, data=payload)
+            print(plays.text)
+        except Exception as e:
+            print("playThissong",e)
+
 
 # Play song from playlist using playlist_id and track_id
 def playSongfromplaylist(currentDeviceId, playlistid, track_id):
     global playlist_id
     playlist_id = playlistid
-    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-    playstr = "https://api.spotify.com/v1/me/player/play?device_id=" + currentDeviceId
-    data = {}
-    try:
-        data["context_uri"] = "spotify:playlist:"+ playlist_id
-        data['offset'] =  {"uri": "spotify:track:"+ track_id}
-        payload = json.dumps(data)
-        plays = requests.put(playstr, headers=headers, data=payload)
-        print(plays.text)
-    except Exception as e:
-        print("playSongfromplaylist",e)
+    if isMac() == True and UserInfo() == "non-premium":
+        script = '''
+        osascript -e 'tell application "Spotify" to play track "spotify:track:{}" in context "spotify:playlist:{}"'
+        '''.format(track_id,playlist_id) 
+        os.system(script)
+        print("Played from desktop")
+        pass
+
+    else:
+        headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+        playstr = "https://api.spotify.com/v1/me/player/play?device_id=" + currentDeviceId
+        data = {}
+        try:
+            data["context_uri"] = "spotify:playlist:"+ playlist_id
+            data['offset'] =  {"uri": "spotify:track:"+ track_id}
+            payload = json.dumps(data)
+            plays = requests.put(playstr, headers=headers, data=payload)
+            print(plays.text)
+        except Exception as e:
+            print("playSongfromplaylist",e)
 
 # Play control in main menu
 class PlaySong(sublime_plugin.TextCommand):
@@ -326,18 +372,22 @@ class RefreshPlaylist(sublime_plugin.TextCommand):
         try:
             getUserPlaylists()
         except Exception as E:
-            print("RefreshPlaylist:",E)
+            print("Music Time: RefreshPlaylist:",E)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
 
-# class MusicTimeDash(sublime_plugin.TextCommand):
-#     def run(self, edit):
-#         pass
+class SortPlaylist(sublime_plugin.TextCommand):
+    def run(self, edit):
+        try:
+            getSortedUserPlaylists()
+        except Exception as e:
+            print("Music Time: SortPlaylist",e)
+        
 
-#     def is_enabled(self):
-#         return (getValue("logged_on", True) is True)
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
 
 
 # open musictime.txt/html file
@@ -475,6 +525,7 @@ def playPlayer():
     '''
     os.system(play)
 
+
 # Song's Controls: Pause from Desktop
 def pausePlayer():
     pause = '''
@@ -509,8 +560,9 @@ def getActivedevice():
     #print(devices)
     try:
         if devices['devices'] == [] and UserInfo() == "premium":
-            webbrowser.open("https://open.spotify.com/")
-            print("Music Time: No active device")
+            url = "https://open.spotify.com/"
+            webbrowser.open(url)
+            print("Music Time: No active device found. Opening Spotify player")
         else:
             for i in devices:
                 for j in range(len(devices['devices'])):
@@ -610,9 +662,6 @@ def currenttrackinfo():
             trackstr = "https://api.spotify.com/v1/me/player/currently-playing?" + ACTIVE_DEVICE.get('device_id')#getActivedevice()
             track = requests.get(trackstr, headers=headers)
 
-        # track = requests.get(trackstr, headers=headers)
-        
-
             if track.status_code == 200:
                 trackinfo = track.json()['item']['name']
                 trackstate = track.json()['is_playing']
@@ -624,19 +673,6 @@ def currenttrackinfo():
                     showStatus("Paused ⏸️ "+str(trackinfo))
                     print("Paused "+trackinfo)
 
-            # elif track.status_code == 204:
-            #     headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-            #     trackstr = "https://api.spotify.com/v1/me/player/recently-played?" + getActivedevice()
-            #     track = requests.get(trackstr, headers=headers)
-            #     trackinfo = track.json()['item']['name']
-            #     trackstate = track.json()['is_playing']
-
-            #     if trackstate is True:
-            #         showStatus("Playing ▶️"+str(trackinfo))
-            #         print("Playing "+trackinfo)
-            #     else:
-            #         showStatus("Paused ⏸️ "+str(trackinfo))
-            #         print("Paused "+trackinfo)
             else:
                 # showStatus("Loading . . . ")
                 showStatus("No Active device found. Please open Spotify player and play the music ")

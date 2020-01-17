@@ -64,8 +64,13 @@ def showStatus(msg):
         elif (ismusictime is True):
             if getValue("logged_on", True) is True:
                 msg = "Spotify Connected"
-        # else:
-        #     currenttrackinfo()
+        # elif getValue("logged_on", True) is True:
+        #     msg = "Spotify Connected"
+        # elif getValue("logged_on", False) is True:
+        #     msg = "Connect Spotify"
+        else:
+            pass
+            # currenttrackinfo()
 
         if (active_window is not None):
             for view in active_window.views():

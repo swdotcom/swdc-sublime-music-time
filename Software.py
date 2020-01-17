@@ -903,6 +903,7 @@ def checkuserstate():
         resp = requests.get(check_state_url,headers=headers)
         resp_data = resp.json()
         if resp_data['state'] == "OK":
+            # setItem(resp_data['jwt'], jwt)
             setValue("logged_on", True)
             getUserPlaylists()
             getActivedevice()

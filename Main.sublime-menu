@@ -40,8 +40,10 @@
                                     "command": "open_songs",
                                     "caption": "Open songs"
                                 },
-
-
+                    {
+                        "command": "sort_playlist",
+                        "caption": "Sort Playlist A-Z"
+                    },
                     {
                         "command": "launch_music_time_metrics",
                         "caption": "Music Time Dashboard"
