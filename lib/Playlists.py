@@ -209,7 +209,7 @@ def getSortedUserPlaylists():
         print("Music Time: getuserPlaylistinfoerror",e)
 
     sorted_playlist = dict(sorted(playlist_info.items(), key=lambda playlist_info: playlist_info[0]))
-    print(sorted_playlist)
+    # print(sorted_playlist)
 
 
     for k,v in sorted_playlist.items():
@@ -232,6 +232,7 @@ def getUserPlaylists():
     '''
     try:
         playlist_info = getUserPlaylistInfo(user_id)
+        print("List of Playlists: ",playlist_info)
     except Exception as e:
         print("Music Time: getuserPlaylistinfoerror",e)
     for k,v in playlist_info.items():

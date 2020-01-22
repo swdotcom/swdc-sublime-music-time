@@ -734,12 +734,11 @@ def getAuthInfo():
                 # authinfo = getauth.json()
                 print("<<<<<<<<<<<<<<->>>>>>>>>\n\n", authinfo)
             else:
-                print("STATE_OK_NOT_FOUND")
+                print("STATE_NOT_FOUND")
 
         except Exception as e:
             print("Music Time: AUTHTOKEN ERROR: ", e)
 
-        # print("#######getAuthInfo######")
         return authinfo
 
 
@@ -807,7 +806,7 @@ def userTypeInfo():
     global user_id
     try:
         spotifyuser = userMeInfo()
-        print("Music Time : User Info \n", spotifyuser)
+        # print("Music Time : User Info \n", spotifyuser)
         user_id = spotifyuser.get("id")
 
         if spotifyuser['product'] == "premium":
@@ -821,7 +820,7 @@ def userTypeInfo():
         showStatus("Connect Spotify")
         pass
 
-    print("Music Time: User type detected ")
+    # print("Music Time: User type detected ")
     return user_type
 
 
