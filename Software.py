@@ -1,29 +1,30 @@
 # Copyright (c) 2019 by Software.com
 
-from .lib.SoftwareSettings import *
-from .lib.SoftwareOffline import *
-from .lib.SoftwareRepo import *
-from .lib.SoftwareMusic import *
-from .lib.SoftwareUtil import *
-from .lib.SoftwareHttp import *
-from .lib.Playlists import *
-from .lib.MusicCommandManager import *
 from .lib.MusicControlManager import *
+from .lib.MusicCommandManager import *
+from .lib.Playlists import *
+from .lib.SoftwareHttp import *
+from .lib.SoftwareUtil import *
+from .lib.SoftwareMusic import *
+from .lib.SoftwareRepo import *
+from .lib.SoftwareOffline import *
+from .lib.SoftwareSettings import *
 
-from threading import Thread, Timer, Event
-from package_control import events
-from queue import Queue
-import requests
 import webbrowser
+from threading import Thread, Timer, Event
 import time
 import datetime
 import json
 import os
+from package_control import events
+from queue import Queue
+import requests
 import sublime_plugin
 import sublime
 import subprocess
 import sys
 sys.path.append("..")
+
 
 SOFTWARE_API = "https://api.software.com"
 SPOTIFY_API = "https://api.spotify.com"
@@ -35,8 +36,6 @@ DEFAULT_DURATION = 60
 user_type = ''
 user_id = ""
 
-# plugin_name = getItem("plugin")
-# print("PLUGIN name is ",plugin_name)
 PROJECT_DIR = None
 
 check_online_interval_sec = 60 * 10
@@ -47,7 +46,7 @@ retry_counter = 0
 def post_json(json_data):
     # save the data to the offline data file
     storePayload(json_data)
- 
+
     PluginData.reset_source_data()
 
 
@@ -69,6 +68,8 @@ class BackgroundWorker():
             self.queue.task_done()
 
 # kpm payload data structure
+
+
 class PluginData():
     __slots__ = ('source', 'keystrokes', 'start', 'local_start',
                  'project', 'pluginId', 'version', 'os', 'timezone')
@@ -322,19 +323,6 @@ class PluginData():
         PluginData.send_all_datas()
 
 
-class GoToSoftware(sublime_plugin.TextCommand):
-    def run(self, edit):
-        launchWebDashboardUrl()
-
-    def is_enabled(self):
-        loggedOn = getValue("logged_on", True)
-        online = getValue("online", True)
-        if (loggedOn is True and online is True):
-            return True
-        else:
-            return False
-
-
 # connect spotify menu
 class ConnectSpotify(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -352,26 +340,29 @@ class ConnectSpotify(sublime_plugin.TextCommand):
 
             message_dialog = sublime.message_dialog("Spotify Connected !")
 
-            if isMac() is True and user_type == "non-premium":            
+            if isMac() is True and user_type == "non-premium":
                 try:
-                    msg = subprocess.Popen(["open","-a","spotify"],stdout=subprocess.PIPE)
+                    msg = subprocess.Popen(
+                        ["open", "-a", "spotify"], stdout=subprocess.PIPE)
                     if msg == "Unable to find application named 'spotify'":
-                        message_dialog = sublime.message_dialog("Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+                        message_dialog = sublime.message_dialog(
+                            "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
                         showStatus("Connect Premium")
                     else:
-                        print("getSpotifyTrackState",getSpotifyTrackState())
-                        print("getTrackInfo",getTrackInfo())
+                        print("getSpotifyTrackState", getSpotifyTrackState())
+                        print("getTrackInfo", getTrackInfo())
 
                     # currentTrackInfo()
                 except Exception as e:
                     print("Music Time: Desktop player didn't opened")
-                    message_dialog = sublime.message_dialog("Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+                    message_dialog = sublime.message_dialog(
+                        "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
 
             setValue("logged_on", True)
             showStatus("Spotify Connected")
-            print("USER_id:",user_id)
+            print("USER_id:", user_id)
             # getActiveDeviceInfo()
-            
+
         except Exception as E:
             print("Music Time: Unable to connect")
             message_dialog = sublime.message_dialog(
@@ -592,8 +583,9 @@ def initializeUser():
     #         else:
     #             initializePlugin(True, serverAvailable)
     # else:
-        # initializePlugin(False, serverAvailable)
+    # initializePlugin(False, serverAvailable)
     initializePlugin(False, serverAvailable)
+
 
 def initializePlugin(initializedAnonUser, serverAvailable):
     PACKAGE_NAME = __name__.split('.')[0]
@@ -677,8 +669,8 @@ def checkUserState():
     try:
         jwt = getItem("jwt")
         headers = {'content-type': 'application/json', 'Authorization': jwt}
-        check_state_url= SOFTWARE_API + "/users/plugin/state"
-        resp = requests.get(check_state_url,headers=headers)
+        check_state_url = SOFTWARE_API + "/users/plugin/state"
+        resp = requests.get(check_state_url, headers=headers)
         resp_data = resp.json()
         if resp_data['state'] == "OK":
             # setItem(resp_data['jwt'], jwt)
@@ -686,7 +678,7 @@ def checkUserState():
             getUserPlaylists()
             getActiveDeviceInfo()
             refreshStatusBar()
-            print('logged_on:True','\nEmail:',resp_data['email'])
+            print('logged_on:True', '\nEmail:', resp_data['email'])
         else:
             setValue("logged_on", False)
             print('logged_on:False')
@@ -698,7 +690,7 @@ def checkUserState():
 
 
 def openDesktopPlayer():
-    msg = subprocess.Popen(["open","-a","spotify"],stdout=subprocess.PIPE)
+    msg = subprocess.Popen(["open", "-a", "spotify"], stdout=subprocess.PIPE)
     print(msg)
     if msg == "Unable to find application named 'spotify'":
         return False

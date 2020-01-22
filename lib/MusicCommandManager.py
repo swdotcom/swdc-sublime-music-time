@@ -3,16 +3,16 @@
 '''
 import sublime_plugin
 import sublime
+import requests
 from threading import Thread, Timer, Event
+import webbrowser
+
 # from ..Software import *
 # from .SoftwareUtil import *
 # from .SoftwareHttp import *
 # from .SoftwareMusic import *
 # from .Playlists import *
 from .MusicControlManager import *
-import requests
-import webbrowser
-
 
 
 # Report an issue on github
@@ -22,31 +22,37 @@ class SubmitIssueGithub(sublime_plugin.TextCommand):
         webbrowser.open(github_url)
 
 # Submit feedback
+
+
 class SubmitFeedback(sublime_plugin.TextCommand):
     def run(self, edit):
         mailto = "mailto:cody@software.com"
-        webbrowser.open(mailto, new = 1)
+        webbrowser.open(mailto, new=1)
         pass
 
 # open musictime.txt/html file
+
+
 class LaunchMusicTimeMetrics(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
             getMusicTimedashboard()
         except Exception as E:
-            print("LaunchMusicTimeMetrics:",E)
+            print("LaunchMusicTimeMetrics:", E)
         pass
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
 # Launch web dashboard .../music
+
+
 class SeeWebAnalytics(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
             seeWebAnalytics()
         except Exception as E:
-            print("SeeWebAnalytics:",E)
+            print("SeeWebAnalytics:", E)
         pass
 
     def is_enabled(self):
@@ -75,8 +81,9 @@ class OpenSongsCommand(sublime_plugin.TextCommand):
         if playlist_id == None:
             playThisSong(ACTIVE_DEVICE.get('device_id'), songs_tree)
         else:
-            playSongFromPlaylist(ACTIVE_DEVICE.get('device_id'), playlist_id,songs_tree)
-        print("+"*20,songs_tree)
+            playSongFromPlaylist(ACTIVE_DEVICE.get(
+                'device_id'), playlist_id, songs_tree)
+        print("+"*20, songs_tree)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
@@ -103,10 +110,12 @@ class PlaylistInputHandler(sublime_plugin.ListInputHandler):
         global playlist_id
         current_playlist_name = value
         playlist_id = playlist_info.get(current_playlist_name)
-        print("current_playlist_name:",current_playlist_name,"\nPlaylist_id",playlist_id)
+        print("current_playlist_name:", current_playlist_name,
+              "\nPlaylist_id", playlist_id)
 
     def next_input(self, args):
         return SongInputHandler()
+
 
 class SongInputHandler(sublime_plugin.ListInputHandler):
     def __init__(self):
@@ -128,13 +137,14 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
         current_song = value
         print(current_song)
         if playlist_id == None:
-            print('#'*10,'playlist_id == None SongInputHandler')
+            print('#'*10, 'playlist_id == None SongInputHandler')
             playThisSong(ACTIVE_DEVICE.get('device_id'), current_song)
         else:
-            print('#'*10,'else == None SongInputHandler')
-            playSongFromPlaylist(ACTIVE_DEVICE.get('device_id'), playlist_id,current_song)
-        print("="*20,current_song)
-        
+            print('#'*10, 'else == None SongInputHandler')
+            playSongFromPlaylist(ACTIVE_DEVICE.get(
+                'device_id'), playlist_id, current_song)
+        print("="*20, current_song)
+
 
 # Play control in main menu
 class PlaySong(sublime_plugin.TextCommand):
@@ -143,7 +153,7 @@ class PlaySong(sublime_plugin.TextCommand):
             self.view.show_popup(myToolTip())
             playSong()
         except Exception as E:
-            print("play",E)
+            print("play", E)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
@@ -156,7 +166,7 @@ class PauseSong(sublime_plugin.TextCommand):
             # self.view.show_popup(myToolTip())
             pauseSong()
         except Exception as E:
-            print("pause",E)
+            print("pause", E)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
@@ -169,7 +179,7 @@ class NextSong(sublime_plugin.TextCommand):
             # self.view.show_popup(myToolTip())
             nextSong()
         except Exception as E:
-            print("next",E)
+            print("next", E)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
@@ -182,10 +192,11 @@ class PrevSong(sublime_plugin.TextCommand):
             # self.view.show_popup(myToolTip())
             previousSong()
         except Exception as E:
-            print("prev",E)
+            print("prev", E)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
+
 
 # Open Playlist
 class OpenPlaylistsCommand(sublime_plugin.TextCommand):
@@ -200,6 +211,7 @@ class OpenPlaylistsCommand(sublime_plugin.TextCommand):
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
+
 # Open Song list
 class OpenSongsCommand(sublime_plugin.TextCommand):
     def input(self, args):
@@ -211,11 +223,12 @@ class OpenSongsCommand(sublime_plugin.TextCommand):
             if playlist_id == None:
                 playThissong(ACTIVE_DEVICE.get('device_id'), songs_tree)
             elif playlist_id != None:
-                playSongfromplaylist(ACTIVE_DEVICE.get('device_id'), playlist_id,songs_tree)
-                print("+"*20,songs_tree)
+                playSongfromplaylist(ACTIVE_DEVICE.get(
+                    'device_id'), playlist_id, songs_tree)
+                print("+"*20, songs_tree)
             else:
                 pass
-                print("No song track found")
+                # print("No song track found")
         except Exception as e:
             print("No song track found")
 
@@ -229,7 +242,7 @@ class RefreshPlaylist(sublime_plugin.TextCommand):
         try:
             getUserPlaylists()
         except Exception as E:
-            print("Music Time: RefreshPlaylist:",E)
+            print("Music Time: RefreshPlaylist:", E)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
@@ -240,40 +253,42 @@ class SortPlaylist(sublime_plugin.TextCommand):
         try:
             getSortedUserPlaylists()
         except Exception as e:
-            print("Music Time: SortPlaylist",e)
-        
+            print("Music Time: SortPlaylist", e)
+
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
 
-# Generate AI playlist 
+# Generate AI playlist
 class GenerateAIPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
             generateAIplaylist()
         except Exception as E:
-            print("RefreshPlaylist:",E)
+            print("RefreshPlaylist:", E)
         pass
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
-# Refresh AI playlist 
+# Refresh AI playlist
+
+
 class RefreshAIPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
             refreshAIplaylist()
         except Exception as E:
-            print("RefreshPlaylist:",E)
+            print("RefreshPlaylist:", E)
         pass
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
 
-class DeviceStatus(sublime_plugin.TextCommand):
+class ConnectionStatus(sublime_plugin.TextCommand):
     def run(self, edit):
-        # print("ConnectionStatus :",DEVICES) 
+        # print("ConnectionStatus :",DEVICES)
         self.view.show_popup(myToolTip(),) # max_width=300, max_height=1000
     def navigate(self,href):
         if href == 'show':
@@ -281,7 +296,7 @@ class DeviceStatus(sublime_plugin.TextCommand):
         else:
             pass
 
-            
+
 # Slack connectivtiy
 class ConnectSlack(sublime_plugin.TextCommand):
     def run(self, edit):

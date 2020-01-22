@@ -3,11 +3,38 @@ import sublime_plugin
 import sublime
 import copy
 import time
+
 from .SoftwareHttp import *
 from .SoftwareUtil import *
+from ..Software import *
+# from .MusicControlManager import *
 
 currentTrackInfo = {}
+ACTIVE_DEVICE = {}
+DEVICES = []
 
+
+# To fetch and shoe music-time dashboard
+
+
+def getMusicTimedashboard():
+    # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI0MTYwLCJpYXQiOjE1NzYwNzI2NDZ9.96PjeOosPVsA4mfWwizhxJ5Skqy8Onvia8Oh-mQCHf8"
+    jwt = getItem("jwt")
+    headers = {'content-type': 'application/json', 'Authorization': jwt}
+    dash_url = SOFTWARE_API + "/dashboard/music"
+    # dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
+    resp = requests.get(dash_url, headers=headers)
+    if resp.status_code == 200:
+        print("Music Time: launch MusicTime.txt")
+    else:
+        print('getMusicTimedashboard error\n', resp.text)
+
+    file = getDashboardFile()
+    with open(file, 'w', encoding='utf-8') as f:
+        f.write(resp.text)
+
+    file = getDashboardFile()
+    sublime.active_window().open_file(file)
 
 def gatherMusicInfo():
     global currentTrackInfo
@@ -106,3 +133,142 @@ def gatherMusicInfo():
     # gatherMusicInfoTimer = Timer(15, gatherMusicInfo)
     # gatherMusicInfoTimer.start()
     pass
+
+
+# Fetch Active device  and Devices(all device including inactive devices)
+def getActiveDeviceInfo():
+    # print("{}".format(getItem('spotify_access_token')))
+    # global currentDeviceId
+    headers = {"Authorization": "Bearer {}".format(
+        getItem('spotify_access_token'))}
+    get_device_url = SPOTIFY_API + "/v1/me/player/devices"
+    getdevs = requests.get(get_device_url, headers=headers)
+
+    devices = getdevs.json()
+    # print(devices)
+    try:
+        if devices['devices'] == [] and userTypeInfo() == "premium":
+            url = "https://open.spotify.com/"
+            webbrowser.open(url)
+            print("Music Time: No active device found. Opening Spotify player")
+        else:
+            for i in devices:
+                for j in range(len(devices['devices'])):
+                    DEVICES = []
+                    # get devices name list to display in tree view
+                    DEVICES.append(devices['devices'][j]['name'])
+
+                    if devices['devices'][j]['is_active'] == True:
+                        ACTIVE_DEVICE['device_id'] = devices['devices'][j]['id']
+                        ACTIVE_DEVICE['name'] = devices['devices'][j]['name']
+                        print("Music Time: Active device found > ",
+                              ACTIVE_DEVICE['name'])
+
+            DEVICES.append(devices['devices'][j]['name'])
+            print("ACTIVE_DEVICE", ACTIVE_DEVICE)
+            print("DEVICES :", DEVICES)
+            print("Music Time: Number of connected devices: ", len(DEVICES))
+            # print("ACTIVE_DEVICE",ACTIVE_DEVICE)
+
+    except Exception as E:
+        print("Music Time: getActiveDeviceInfo", E)
+
+    refreshDeviceStatus()
+
+
+def currentTrackInfo():
+    trackstate = ''
+    trackinfo = ''
+    # try:
+    if isMac() == True and userTypeInfo() == "non-premium":
+        '''For MAC user get info from desktop player'''
+        # startPlayer()
+        try:
+            trackstate = getSpotifyTrackState()
+            trackinfo = getTrackInfo()["name"]
+        # getTrackInfo {'duration': '268210', 'state': 'playing', 'name': 'Dhaga Dhaga', \
+        # 'artist': 'harsh wavre', 'genre': '', 'type': 'spotify', 'id': 'spotify:track:79TKZDxCWEonklGmC5WbDC'}
+            if trackstate == "playing":
+                showStatus("Now Playing "+str(trackinfo) +
+                           " on " + ACTIVE_DEVICE.get('name'))
+                # print("Playing "+trackinfo)
+            else:
+                showStatus("Paused "+str(trackinfo) +
+                           " on " + ACTIVE_DEVICE.get('name'))
+                # print("Paused "+trackinfo)
+        except Exception as e:
+            print("Music time: player not found", e)
+            showStatus("Connect Premium")
+
+        # print("BEFORE",currentTrackInfo)
+        # refreshStatusBar()
+        # print("After",currentTrackInfo)
+
+    else:
+        try:
+            headers = {"Authorization": "Bearer {}".format(
+                getItem('spotify_access_token'))}
+            trackstr = SPOTIFY_API + "/v1/me/player/currently-playing?" + \
+                ACTIVE_DEVICE.get('device_id')  # getActiveDeviceInfo()
+            track = requests.get(trackstr, headers=headers)
+
+            if track.status_code == 200:
+                trackinfo = track.json()['item']['name']
+                trackstate = track.json()['is_playing']
+                # print(trackinfo,"|",trackstate)
+                if trackstate == True:
+                    showStatus("Now Playing "+str(trackinfo) +
+                               " on "+ACTIVE_DEVICE.get('name'))
+                    # print("Playing "+trackinfo)
+                else:
+                    showStatus("Paused "+str(trackinfo) +
+                               " on "+ACTIVE_DEVICE.get('name'))
+                    # print("Paused "+trackinfo)
+
+            else:
+                # showStatus("Loading . . . ")
+                showStatus(
+                    "No Active device found. Please open Spotify player and play the music ")
+                try:
+                    refreshSpotifyToken()
+                    currentTrackInfo()
+                except KeyError:
+                    showStatus("Connect Spotify")
+
+        except Exception as e:
+            print('Music Time: currentTrackInfo', e)
+            showStatus(
+                "No Active device found. Please open Spotify player and play the music ")
+            pass
+    refreshStatusBar()
+
+
+# Continuous refresh statusbar
+def refreshStatusBar():
+    try:
+        t = Timer(10, currentTrackInfo)
+        t.start()
+        # schedule.every(5).seconds.do(currentTrackInfo())
+        # while True:
+        #     schedule.run_pending()
+    except Exception as E:
+        print("Music Time: refreshStatusBar", E)
+        showStatus("No device found . . . ")
+        # showStatus("Connect Spotify")
+        pass
+
+# Continuous refresh devices
+
+
+def refreshDeviceStatus():
+    try:
+        t = Timer(60, getActiveDeviceInfo)
+        t.start()
+        # schedule.every(5).seconds.do(currentTrackInfo())
+        # while True:
+        #     schedule.run_pending()
+    except Exception as E:
+        print("Music Time: refreshStatusBar", E)
+        showStatus("No device found . . . ")
+        # showStatus("Connect Spotify")
+        pass

@@ -3,16 +3,17 @@
  in Cody Music for Javascript), as well as the AppleScript commands, could be 
  in a separate file (MusicControlManager).
 '''
+import os
+import requests
 import sublime_plugin
 import sublime
 from threading import Thread, Timer, Event
-# from .SoftwareUtil import *
-# from .SoftwareHttp import *
-# from ..Software import *
-from .Playlists import *
-import requests
 import webbrowser
-import os
+
+from .Playlists import *
+from .SoftwareMusic import *
+# from .SoftwareUtil import *
+# from ..Software import *
 # from .MusicCommandManager import *
 
 

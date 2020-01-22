@@ -1,23 +1,23 @@
 # Copyright (c) 2018 by Software.com
-from threading import Thread, Timer, Event
-import os
-import six
-import json
-import time
+import base64
 import datetime
+import json
+import os
+import platform
+import requests
+import re
+import six
 import socket
 import sublime_plugin
 import sublime
-import requests
-import base64
 import sys
-import uuid
-import platform
-import re
+from threading import Thread, Timer, Event
+import time
 import uuid
 import webbrowser
 from urllib.parse import quote_plus
 from subprocess import Popen, PIPE
+
 from .SoftwareHttp import *
 from .SoftwareSettings import *
 from ..Software import *
@@ -44,7 +44,7 @@ timezone = ''
 CLIENT_ID = ''
 CLIENT_SECRET = ''
 # plugin = ''
-user_type = "" 
+user_type = ""
 
 
 # log the message.
@@ -106,6 +106,8 @@ def getHostname():
         return os.uname().nodename
 
 # fetch a value from the .software/sesion.json file
+
+
 def getItem(key):
     val = sessionMap.get(key, None)
     if (val is not None):
@@ -118,6 +120,8 @@ def getItem(key):
     return val
 
 # set an item from the session json file
+
+
 def setItem(key, value):
     sessionMap[key] = value
     jsonObj = getSoftwareSessionAsJson()
@@ -167,25 +171,27 @@ def getDashboardFile():
     file = getSoftwareDir(True)
     return os.path.join(file, 'MusicTime.txt')
 
-# To fetch and shoe music-time dashboard
-def getMusicTimedashboard():
-    # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI0MTYwLCJpYXQiOjE1NzYwNzI2NDZ9.96PjeOosPVsA4mfWwizhxJ5Skqy8Onvia8Oh-mQCHf8"
-    jwt = getItem("jwt")
-    headers = {'content-type': 'application/json', 'Authorization': jwt}
-    dash_url = SOFTWARE_API + "/dashboard/music"
-    # dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
-    resp = requests.get(dash_url, headers = headers)
-    if resp.status_code == 200:
-        print("Music Time: launch MusicTime.txt")
-    else:
-        print('getMusicTimedashboard error\n',resp.text)
+# # To fetch and shoe music-time dashboard
 
-    file = getDashboardFile()
-    with open(file, 'w', encoding='utf-8') as f:
-        f.write(resp.text)
 
-    file = getDashboardFile()
-    sublime.active_window().open_file(file)
+# def getMusicTimedashboard():
+#     # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI0MTYwLCJpYXQiOjE1NzYwNzI2NDZ9.96PjeOosPVsA4mfWwizhxJ5Skqy8Onvia8Oh-mQCHf8"
+#     jwt = getItem("jwt")
+#     headers = {'content-type': 'application/json', 'Authorization': jwt}
+#     dash_url = SOFTWARE_API + "/dashboard/music"
+#     # dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
+#     resp = requests.get(dash_url, headers=headers)
+#     if resp.status_code == 200:
+#         print("Music Time: launch MusicTime.txt")
+#     else:
+#         print('getMusicTimedashboard error\n', resp.text)
+
+#     file = getDashboardFile()
+#     with open(file, 'w', encoding='utf-8') as f:
+#         f.write(resp.text)
+
+#     file = getDashboardFile()
+#     sublime.active_window().open_file(file)
 
 
 def getCustomDashboardFile():
@@ -193,6 +199,8 @@ def getCustomDashboardFile():
     return os.path.join(file, 'CustomDashboard.txt')
 
 # execute the applescript command
+
+
 def runCommand(cmd, args=[]):
     p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate(cmd)
@@ -239,11 +247,15 @@ def getTrackInfo():
         return {}
 
 # windows
+
+
 def getWinTrackInfo():
     # not supported on other platforms yet
     return {}
 
 # OS X
+
+
 def getMacTrackInfo():
     script = '''
         on buildItunesRecord(appState)
@@ -688,8 +700,9 @@ def launchSpotifyLoginUrl():
     # api_endpoint = getValue("software_api_endpoint", "api.software.com")
 #     jwt = getItem("jwt")
     try:
-        spotify_url = SOFTWARE_API + "/auth/spotify?token=" + jwt + "&mac=" + str(isMac()).lower()
-        print("Music Time: ",spotify_url)
+        spotify_url = SOFTWARE_API + "/auth/spotify?token=" + \
+            jwt + "&mac=" + str(isMac()).lower()
+        print("Music Time: ", spotify_url)
         webbrowser.open(spotify_url)
     except Exception as e:
         print("Music Time: Try to connect after some time.", e)
@@ -697,10 +710,13 @@ def launchSpotifyLoginUrl():
             "Please try to connect Spotify after some time. !")
 
 # get user authentication data
+
+
 def getAuthInfo():
-    global jwt    
-    jwt = requests.get(SOFTWARE_API + '/data/apptoken?token='+str(round(time.time()))).json()['jwt']
-    print("getAuthInfo JWT ^^^^^^",jwt)
+    global jwt
+    jwt = requests.get(SOFTWARE_API + '/data/apptoken?token=' +
+                       str(round(time.time()))).json()['jwt']
+    print("getAuthInfo JWT ^^^^^^", jwt)
     setItem("jwt", jwt)
     headers = {'content-type': 'application/json', 'Authorization': jwt}
     launchSpotifyLoginUrl()
@@ -713,10 +729,10 @@ def getAuthInfo():
         # authinfo = getauth.json()
         try:
             authinfo = getauth.json()
-            if authinfo['state'] =="OK":
+            if authinfo['state'] == "OK":
                 print("succeed")
                 # authinfo = getauth.json()
-                print("<<<<<<<<<<<<<<->>>>>>>>>\n\n",authinfo)
+                print("<<<<<<<<<<<<<<->>>>>>>>>\n\n", authinfo)
             else:
                 print("STATE_OK_NOT_FOUND")
 
@@ -755,6 +771,8 @@ def getTokens(authinfo):
     return EMAIL, ACCESS_TOKEN, REFRESH_TOKEN
 
 # Update session file after getting spotify access tokens
+
+
 def updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
     setItem("name", '')
     setItem("spotify_access_token", '')
@@ -765,6 +783,8 @@ def updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
     print("Music Time: Access token Added !")
 
 # get userinfo from spotify
+
+
 def userMeInfo():
     url = SPOTIFY_API + '/v1/me'
     headers = {'Authorization': 'Bearer ' + getItem('spotify_access_token')}
@@ -779,6 +799,8 @@ def userMeInfo():
     return spotifyUserInfo
 
 # check user type premium/ non-premium
+
+
 def userTypeInfo():
     global spotifyuser
     global user_type
@@ -809,13 +831,15 @@ def getClientCredentials():
     get_JWT = requests.get(client_creds_url)
     jwt = get_JWT.json()['jwt']
     headers = {'content-type': 'application/json', 'Authorization': jwt}
-    get_client_creds_url = SOFTWARE_API + '/auth/spotify/clientInfo' 
-    get_client_creds = requests.get( get_client_creds_url, headers=headers)
+    get_client_creds_url = SOFTWARE_API + '/auth/spotify/clientInfo'
+    get_client_creds = requests.get(get_client_creds_url, headers=headers)
     clientId = get_client_creds.json()['clientId']
     clientSecret = get_client_creds.json()['clientSecret']
     return clientId, clientSecret
 
 # Refresh access token after expiry
+
+
 def refreshSpotifyToken():
     payload = {}
     obj = {}
@@ -828,7 +852,8 @@ def refreshSpotifyToken():
         auth_header = base64.b64encode(six.text_type(
             CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
         headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
-        response = requests.post(refresh_token_url, data=payload, headers=headers)
+        response = requests.post(
+            refresh_token_url, data=payload, headers=headers)
 
         if response.status_code == 200:
             obj = response.json()
@@ -843,6 +868,8 @@ def refreshSpotifyToken():
     return obj['access_token']
 
 # Clear the spotify tokens from session file
+
+
 def clearSpotifyTokens():
     setItem("name", '')
     setItem("spotify_access_token", '')
@@ -851,6 +878,8 @@ def clearSpotifyTokens():
     print("Music Time: Tokens Cleared !")
 
 # disconnecting spotify
+
+
 def disconnectSpotify():
     jwt = getItem("jwt")
     # print(">>@<<",jwt)

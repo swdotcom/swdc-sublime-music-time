@@ -23,7 +23,7 @@
                     },
                     {
                         "command": "submit_feedback",
-                        "caption": "Send feedback to cody@software.com"
+                        "caption": "Send Feedback to cody@software.com"
                     },
                     {
                         "command": "refresh_playlist",
@@ -34,11 +34,11 @@
                         "children": [
                                 {
                                     "command": "open_playlists",
-                                    "caption": "Open playlists"
+                                    "caption": "Open Playlists"
                                 },
                                 {
                                     "command": "open_songs",
-                                    "caption": "Open songs"
+                                    "caption": "Open Songs"
                                 },
                     {
                         "command": "sort_playlist",

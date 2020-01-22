@@ -7,13 +7,13 @@ import sys
 # sys.path.append('../')
 import sublime_plugin
 import sublime
+
+from ..Software import *
 from .SoftwareSettings import *
 from .SoftwareUtil import *
 # from SoftwareUtil import isMusicTime
-from ..Software import *
 # from .MusicCommandManager import *
 # from .MusicControlManager import *
-
 
 
 USER_AGENT = 'Music Time Sublime Plugin'
