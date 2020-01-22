@@ -7,6 +7,9 @@ from .lib.SoftwareMusic import *
 from .lib.SoftwareUtil import *
 from .lib.SoftwareHttp import *
 from .lib.Playlists import *
+from .lib.MusicCommandManager import *
+from .lib.MusicControlManager import *
+
 from threading import Thread, Timer, Event
 from package_control import events
 from queue import Queue
@@ -18,17 +21,20 @@ import json
 import os
 import sublime_plugin
 import sublime
+import subprocess
 import sys
 sys.path.append("..")
-# from .SoftwareHttp import *
-# from .lib.music.MusicManager import *
 
+SOFTWARE_API = "https://api.software.com"
+SPOTIFY_API = "https://api.spotify.com"
 
 ACCESS_TOKEN = ''
 REFRESH_TOKEN = ''
 EMAIL = ''
 DEFAULT_DURATION = 60
-user = ''
+user_type = ''
+user_id = ""
+
 # plugin_name = getItem("plugin")
 # print("PLUGIN name is ",plugin_name)
 PROJECT_DIR = None
@@ -36,20 +42,16 @@ PROJECT_DIR = None
 check_online_interval_sec = 60 * 10
 retry_counter = 0
 
+
 # payload trigger to store it for later.
-
-
 def post_json(json_data):
     # save the data to the offline data file
     storePayload(json_data)
-
+ 
     PluginData.reset_source_data()
 
-#
+
 # Background thread used to send data every minute.
-#
-
-
 class BackgroundWorker():
     def __init__(self, threads_count, target_func):
         self.queue = Queue(maxsize=0)
@@ -67,8 +69,6 @@ class BackgroundWorker():
             self.queue.task_done()
 
 # kpm payload data structure
-
-
 class PluginData():
     __slots__ = ('source', 'keystrokes', 'start', 'local_start',
                  'project', 'pluginId', 'version', 'os', 'timezone')
@@ -334,120 +334,63 @@ class GoToSoftware(sublime_plugin.TextCommand):
         else:
             return False
 
-# code_time_login command
-
-
-class CodeTimeLogin(sublime_plugin.TextCommand):
-    def run(self, edit):
-        launchLoginUrl()
-
-    def is_enabled(self):
-        loggedOn = getValue("logged_on", True)
-        online = getValue("online", True)
-        if (loggedOn is False and online is True):
-            return True
-        else:
-            return False
-
-# Command to launch the code time metrics "launch_code_time_metrics"
-
-
-class LaunchCodeTimeMetrics(sublime_plugin.TextCommand):
-    def run(self, edit):
-        launchCodeTimeMetrics()
-
-
-class LaunchCustomDashboard(sublime_plugin.WindowCommand):
-    def run(self):
-        d = datetime.datetime.now()
-        current_time = d.strftime("%m/%d/%Y")
-        t = d - datetime.timedelta(days=7)
-        time_ago = t.strftime("%m/%d/%Y")
-        # default range: last 7 days
-        default_range = str(time_ago) + ", " + str(current_time)
-        self.window.show_input_panel(
-            "Enter a start and end date (format: MM/DD/YYYY):", default_range, self.on_done, None, None)
-
-    def on_done(self, result):
-        setValue("date_range", result)
-        launchCustomDashboard()
-
 
 # connect spotify menu
 class ConnectSpotify(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
-            authinfo = getauthinfo()
+            authinfo = getAuthInfo()
             print("Music time: /auth/spotify/user: ", authinfo)
-            # print("CLIENT creds : ",get_credentials())
-            # CLIENT_ID, CLIENT_SECRET = get_credentials()
-            # print("############################\n", CLIENT_ID,"############################\n", CLIENT_SECRET)
-            EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = GetToken(authinfo)
-            Updatetokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN)
-            # setItem("name",EMAIL)
-            # setItem("spotify_access_token",ACCESS_TOKEN)
-            # setItem("spotify_refresh_token",REFRESH_TOKEN)
-            user = UserInfo()
-            print("Music Time: Usertype: ", user)
 
-            # if user == "premium" and isWindows():
+            EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
+            updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN)
+
+            user_type = userTypeInfo()
+            print("Music Time: Usertype: ", user_type)
+
+            # if user_type == "premium" and isWindows():
 
             message_dialog = sublime.message_dialog("Spotify Connected !")
-#             if isMac is True:
-            try:
-                os.system("open -a spotify")
-            except Exception as e:
-                print("Desktop player didn't opened")
-                pass
+
+            if isMac() is True and user_type == "non-premium":            
+                try:
+                    msg = subprocess.Popen(["open","-a","spotify"],stdout=subprocess.PIPE)
+                    if msg == "Unable to find application named 'spotify'":
+                        message_dialog = sublime.message_dialog("Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+                        showStatus("Connect Premium")
+                    else:
+                        print("getSpotifyTrackState",getSpotifyTrackState())
+                        print("getTrackInfo",getTrackInfo())
+
+                    # currentTrackInfo()
+                except Exception as e:
+                    print("Music Time: Desktop player didn't opened")
+                    message_dialog = sublime.message_dialog("Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+
             setValue("logged_on", True)
             showStatus("Spotify Connected")
-            # elif user == "premium" and isMac():
-
-            #     message_dialog = sublime.message_dialog("Spotify Connected !")
-            #     setValue("logged_on", True)
-            #     showStatus("Spotify Connected")
-            # elif user == "non-premium" and isMac():
-
-            #     message_dialog = sublime.message_dialog("Spotify Connected !")
-            #     setValue("logged_on", True)
-            #     showStatus("Spotify Connected")
-            # elif user == "non-premium" and isWindows():
-            #     ClearSpotifyTokens()
-            #     message_dialog = sublime.message_dialog(
-            #         "Please try to connect using Spotify Premium Account !")
-            #     showStatus("Connect Premium")
-            # else:
-            #     ClearSpotifyTokens()
-            #     message_dialog = sublime.message_dialog(
-            #         "Please try to connect using Spotify Premium Account !")
-            #     showStatus("Connect Premium")
-            # else:
+            print("USER_id:",user_id)
+            # getActiveDeviceInfo()
+            
         except Exception as E:
             print("Music Time: Unable to connect")
             message_dialog = sublime.message_dialog(
                 "Please try to connect using Spotify Premium Account !")
             showStatus("Connect Spotify")
-
+        getUserPlaylists()
+        getActiveDeviceInfo()
+        refreshStatusBar()
 
     def is_enabled(self):
         return (getValue("logged_on", True) is False)
 
-    # def is_enabled(self):
-    #     loggedOn = getValue("logged_on", True)
-    #     # online = getValue("online", True)
-    #     if loggedOn is True:
-    #         return False
-    #     else:
-    #         return True
 
 # Disconnect spotify
-
-
 class DisconnectSpotify(sublime_plugin.TextCommand):
     def run(self, edit):
         # disconnect = sublime.yes_no_cancel_dialog("Do want to Disconnect Spotify ?", "Yes", "No")
         # if disconnect == "yes":
-        Disconnectspotify()
+        disconnectSpotify()
         setValue("logged_on", False)
         showStatus("Connect Spotify")
         message_dialog = sublime.message_dialog("Disconnected Spotify !")
@@ -456,298 +399,169 @@ class DisconnectSpotify(sublime_plugin.TextCommand):
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
-    # def is_enabled(self):
-    #     loggedOn = getValue("logged_on", True)
 
-    #     return bool(loggedOn-1)
+# # Runs once instance per view (i.e. tab, or single file window)
+# class EventListener(sublime_plugin.EventListener):
+#     def on_load_async(self, view):
+#         fileName = view.file_name()
+#         if (fileName is None):
+#             fileName = "Untitled"
 
-# launch_music_time_metrics
-class LaunchMusicTimeMetrics(sublime_plugin.TextCommand):
-    def run(self, edit):
-        musictimedash()
-        pass
+#         active_data = PluginData.get_active_data(view)
+
+#         # get the file info to increment the open metric
+#         fileInfoData = PluginData.get_file_info_and_initialize_if_none(
+#             active_data, fileName)
+#         if fileInfoData is None:
+#             return
 
-#     def is_enabled(self):
-#         return (getValue("logged_on", True) is True)
+#         fileSize = view.size()
+#         fileInfoData['length'] = fileSize
 
-    def is_enabled(self):
-        loggedOn = getValue("logged_on", True)
-        # if getItem("spotify_access_token") is False and (loggedOn is False):
-        if loggedOn == True:
-            return True
-        else:
-            return False
+#         # get the number of lines
+#         lines = view.rowcol(fileSize)[0] + 1
+#         fileInfoData['lines'] = lines
 
+#         # we have the fileinfo, update the metric
+#         fileInfoData['open'] += 1
+#         log('Code Time: opened file %s' % fileName)
 
-# Slack connectivtiy
-class ConnectSlack(sublime_plugin.TextCommand):
-    def run(self, edit):
-        infoMsg = "Development in Progess."
-        clickAction = sublime.ok_cancel_dialog(infoMsg, "OK")
-        pass
+#         # show last status message
+#         redispayStatus()
+
+#     def on_close(self, view):
+#         fileName = view.file_name()
+#         if (fileName is None):
+#             fileName = "Untitled"
 
-    def is_enabled(self):
-        return (getValue("logged_on", True) is False)
+#         active_data = PluginData.get_active_data(view)
 
-
-class DisconnectSlack(sublime_plugin.TextCommand):
-    def run(self, edit):
-        infoMsg = "Slack Disconnected"
-        clickAction = sublime.ok_cancel_dialog(infoMsg, "OK")
-        pass
-
-    def is_enabled(self):
-        return (getValue("logged_on", True) is True)
-
-
-# Report an issue on github
-class SubmitIssueGithub(sublime_plugin.TextCommand):
-    def run(self, edit):
-        github_url = "https://github.com/swdotcom/music-time-sublime/issues"
-        webbrowser.open(github_url)
-
-# Submit feedback
-class SubmitFeedback(sublime_plugin.TextCommand):
-    def run(self, edit):
-        mailto = "mailto:cody@software.com"
-        webbrowser.open(mailto, new = 1)
-        pass
-
-
-class SoftwareTopForty(sublime_plugin.TextCommand):
-    def run(self, edit):
-        webbrowser.open("https://api.software.com/music/top40")
-
-    def is_enabled(self):
-        return (getValue("online", True) is True)
-
-
-class ToggleStatusBarMetrics(sublime_plugin.TextCommand):
-    def run(self, edit):
-        log("toggling status bar metrics")
-
-        showStatusVal = getValue("show_code_time_status", True)
-        if (showStatusVal):
-            setValue("show_code_time_status", False)
-        else:
-            setValue("show_code_time_status", True)
-
-        toggleStatus()
-
-# Mute Console message
-
-
-class HideConsoleMessage(sublime_plugin.TextCommand):
-    def run(self, edit):
-        log(plugin_name + ": Console Messages Disabled !")
-        # showStatus("Paused")
-        setValue("software_logging_on", False)
-
-    def is_enabled(self):
-        return (getValue("software_logging_on", True) is True)
-
-# Command to re-enable Console message
-
-
-class ShowConsoleMessage(sublime_plugin.TextCommand):
-    def run(self, edit):
-        log(plugin_name + ": Console Messages Enabled !")
-        # showStatus("Code Time")
-        setValue("software_logging_on", True)
-
-    def is_enabled(self):
-        return (getValue("software_logging_on", True) is False)
-
-# Command to pause kpm metrics
-
-
-class PauseKpmUpdatesCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        log("software kpm metrics paused")
-        showStatus("Paused")
-        setValue("software_telemetry_on", False)
-
-    def is_enabled(self):
-        return (getValue("software_telemetry_on", True) is True)
-
-# Command to re-enable kpm metrics
-
-class EnableKpmUpdatesCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        log(plugin_name + ": metrics enabled")
-        showStatus("Code Time")
-        setValue("software_telemetry_on", True)
-
-    def is_enabled(self):
-        return (getValue("software_telemetry_on", True) is False)
-
-
-# Runs once instance per view (i.e. tab, or single file window)
-
-class EventListener(sublime_plugin.EventListener):
-    def on_load_async(self, view):
-        fileName = view.file_name()
-        if (fileName is None):
-            fileName = "Untitled"
-
-        active_data = PluginData.get_active_data(view)
-
-        # get the file info to increment the open metric
-        fileInfoData = PluginData.get_file_info_and_initialize_if_none(
-            active_data, fileName)
-        if fileInfoData is None:
-            return
-
-        fileSize = view.size()
-        fileInfoData['length'] = fileSize
-
-        # get the number of lines
-        lines = view.rowcol(fileSize)[0] + 1
-        fileInfoData['lines'] = lines
-
-        # we have the fileinfo, update the metric
-        fileInfoData['open'] += 1
-        log('Code Time: opened file %s' % fileName)
-
-        # show last status message
-        redispayStatus()
-
-    def on_close(self, view):
-        fileName = view.file_name()
-        if (fileName is None):
-            fileName = "Untitled"
-
-        active_data = PluginData.get_active_data(view)
-
-        # get the file info to increment the close metric
-        fileInfoData = PluginData.get_file_info_and_initialize_if_none(
-            active_data, fileName)
-        if fileInfoData is None:
-            return
-
-        fileSize = view.size()
-        fileInfoData['length'] = fileSize
-
-        # get the number of lines
-        lines = view.rowcol(fileSize)[0] + 1
-        fileInfoData['lines'] = lines
-
-        # we have the fileInfo, update the metric
-        fileInfoData['close'] += 1
-        log('Code Time: closed file %s' % fileName)
-
-        # show last status message
-        redispayStatus()
-
-    def on_modified_async(self, view):
-        global PROJECT_DIR
-        # get active data will create the file info if it doesn't exist
-        active_data = PluginData.get_active_data(view)
-        if active_data is None:
-            return
-
-        # add the count for the file
-        fileName = view.file_name()
-
-        fileInfoData = {}
-
-        if (fileName is None):
-            fileName = "Untitled"
-
-        fileInfoData = PluginData.get_file_info_and_initialize_if_none(
-            active_data, fileName)
-
-        # If file is untitled then log that msg and set file open metrics to 1
-        if fileName == "Untitled":
-            # log(plugin_name + ": opened file untitled")
-            fileInfoData['open'] = 1
-        else:
-            pass
-
-        if fileInfoData is None:
-            return
-
-        fileSize = view.size()
-
-        #lines = 0
-        # rowcol gives 0-based line number, need to add one as on editor lines starts from 1
-        lines = view.rowcol(fileSize)[0] + 1
-
-        prevLines = fileInfoData['lines']
-        if (prevLines == 0):
-
-            if (PluginData.line_counts.get(fileName) is None):
-                PluginData.line_counts[fileName] = prevLines
-
-            prevLines = PluginData.line_counts[fileName]
-        elif (prevLines > 0):
-            fileInfoData['lines'] = prevLines
-
-        lineDiff = 0
-        if (prevLines > 0):
-            lineDiff = lines - prevLines
-            if (lineDiff > 0):
-                fileInfoData['linesAdded'] += lineDiff
-                log('Code Time: linesAdded incremented')
-            elif (lineDiff < 0):
-                fileInfoData['linesRemoved'] += abs(lineDiff)
-                log('Code Time: linesRemoved incremented')
-
-        fileInfoData['lines'] = lines
-
-        # subtract the current size of the file from what we had before
-        # we'll know whether it's a delete, copy+paste, or kpm.
-        currLen = fileInfoData['length']
-
-        charCountDiff = 0
-
-        if currLen > 0 or currLen == 0:
-            # currLen > 0 only worked for existing file, currlen==0 will work for new file
-            charCountDiff = fileSize - currLen
-
-        if (not fileInfoData["syntax"]):
-            syntax = view.settings().get('syntax')
-            # get the last occurance of the "/" then get the 1st occurance of the .sublime-syntax
-            # [language].sublime-syntax
-            # Packages/Python/Python.sublime-syntax
-            syntax = syntax[syntax.rfind('/') + 1:-len(".sublime-syntax")]
-            if (syntax):
-                fileInfoData["syntax"] = syntax
-
-        PROJECT_DIR = active_data.project['directory']
-
-        # getResourceInfo is a SoftwareUtil function
-        if (active_data.project.get("identifier") is None):
-            resourceInfoDict = getResourceInfo(PROJECT_DIR)
-            if (resourceInfoDict.get("identifier") is not None):
-                active_data.project['identifier'] = resourceInfoDict['identifier']
-                active_data.project['resource'] = resourceInfoDict
-
-        fileInfoData['length'] = fileSize
-
-        if lineDiff == 0 and charCountDiff > 8:
-            fileInfoData['paste'] += 1
-            log('Code Time: pasted incremented')
-        elif lineDiff == 0 and charCountDiff == -1:
-            fileInfoData['delete'] += 1
-            log('Code Time: delete incremented')
-        elif lineDiff == 0 and charCountDiff == 1:
-            fileInfoData['add'] += 1
-            log('Code Time: KPM incremented')
-
-        # increment the overall count
-        if (charCountDiff != 0 or lineDiff != 0):
-            active_data.keystrokes += 1
-
-        # update the netkeys and the keys
-        # "netkeys" = add - delete
-        fileInfoData['netkeys'] = fileInfoData['add'] - fileInfoData['delete']
+#         # get the file info to increment the close metric
+#         fileInfoData = PluginData.get_file_info_and_initialize_if_none(
+#             active_data, fileName)
+#         if fileInfoData is None:
+#             return
+
+#         fileSize = view.size()
+#         fileInfoData['length'] = fileSize
+
+#         # get the number of lines
+#         lines = view.rowcol(fileSize)[0] + 1
+#         fileInfoData['lines'] = lines
+
+#         # we have the fileInfo, update the metric
+#         fileInfoData['close'] += 1
+#         log('Code Time: closed file %s' % fileName)
+
+#         # show last status message
+#         redispayStatus()
+
+#     def on_modified_async(self, view):
+#         global PROJECT_DIR
+#         # get active data will create the file info if it doesn't exist
+#         active_data = PluginData.get_active_data(view)
+#         if active_data is None:
+#             return
+
+#         # add the count for the file
+#         fileName = view.file_name()
+
+#         fileInfoData = {}
+
+#         if (fileName is None):
+#             fileName = "Untitled"
+
+#         fileInfoData = PluginData.get_file_info_and_initialize_if_none(
+#             active_data, fileName)
+
+#         # If file is untitled then log that msg and set file open metrics to 1
+#         if fileName == "Untitled":
+#             # log(plugin_name + ": opened file untitled")
+#             fileInfoData['open'] = 1
+#         else:
+#             pass
+
+#         if fileInfoData is None:
+#             return
+
+#         fileSize = view.size()
+
+#         #lines = 0
+#         # rowcol gives 0-based line number, need to add one as on editor lines starts from 1
+#         lines = view.rowcol(fileSize)[0] + 1
+
+#         prevLines = fileInfoData['lines']
+#         if (prevLines == 0):
+
+#             if (PluginData.line_counts.get(fileName) is None):
+#                 PluginData.line_counts[fileName] = prevLines
+
+#             prevLines = PluginData.line_counts[fileName]
+#         elif (prevLines > 0):
+#             fileInfoData['lines'] = prevLines
+
+#         lineDiff = 0
+#         if (prevLines > 0):
+#             lineDiff = lines - prevLines
+#             if (lineDiff > 0):
+#                 fileInfoData['linesAdded'] += lineDiff
+#                 log('Code Time: linesAdded incremented')
+#             elif (lineDiff < 0):
+#                 fileInfoData['linesRemoved'] += abs(lineDiff)
+#                 log('Code Time: linesRemoved incremented')
+
+#         fileInfoData['lines'] = lines
+
+#         # subtract the current size of the file from what we had before
+#         # we'll know whether it's a delete, copy+paste, or kpm.
+#         currLen = fileInfoData['length']
+
+#         charCountDiff = 0
+
+#         if currLen > 0 or currLen == 0:
+#             # currLen > 0 only worked for existing file, currlen==0 will work for new file
+#             charCountDiff = fileSize - currLen
+
+#         if (not fileInfoData["syntax"]):
+#             syntax = view.settings().get('syntax')
+#             # get the last occurance of the "/" then get the 1st occurance of the .sublime-syntax
+#             # [language].sublime-syntax
+#             # Packages/Python/Python.sublime-syntax
+#             syntax = syntax[syntax.rfind('/') + 1:-len(".sublime-syntax")]
+#             if (syntax):
+#                 fileInfoData["syntax"] = syntax
+
+#         PROJECT_DIR = active_data.project['directory']
+
+#         # getResourceInfo is a SoftwareUtil function
+#         if (active_data.project.get("identifier") is None):
+#             resourceInfoDict = getResourceInfo(PROJECT_DIR)
+#             if (resourceInfoDict.get("identifier") is not None):
+#                 active_data.project['identifier'] = resourceInfoDict['identifier']
+#                 active_data.project['resource'] = resourceInfoDict
+
+#         fileInfoData['length'] = fileSize
+
+#         if lineDiff == 0 and charCountDiff > 8:
+#             fileInfoData['paste'] += 1
+#             log('Code Time: pasted incremented')
+#         elif lineDiff == 0 and charCountDiff == -1:
+#             fileInfoData['delete'] += 1
+#             log('Code Time: delete incremented')
+#         elif lineDiff == 0 and charCountDiff == 1:
+#             fileInfoData['add'] += 1
+#             log('Code Time: KPM incremented')
+
+#         # increment the overall count
+#         if (charCountDiff != 0 or lineDiff != 0):
+#             active_data.keystrokes += 1
+
+#         # update the netkeys and the keys
+#         # "netkeys" = add - delete
+#         fileInfoData['netkeys'] = fileInfoData['add'] - fileInfoData['delete']
 
 #
 # Iniates the plugin tasks once the it's loaded into Sublime.
-#
-
-
 def plugin_loaded():
     initializeUser()
 
@@ -758,6 +572,7 @@ def initializeUser():
     fileExists = softwareSessionFileExists()
     jwt = getItem("jwt")
     log("JWT VAL: %s" % jwt)
+    checkUserState()
     # we don't need to create the anonymous account on initializatino
     # if (fileExists is False or jwt is None):
     #     if (serverAvailable is False):
@@ -805,34 +620,6 @@ def initializePlugin(initializedAnonUser, serverAvailable):
     hourlyTimer.start()
 
     # initializeUserInfo(initializedAnonUser)
-
-
-# def initializeUserInfo(initializedAnonUser):
-    # getUserStatus()
-
-    # if (initializedAnonUser is True):
-    #     showLoginPrompt()
-    #     PluginData.send_initial_payload()
-
-    # sendInitHeartbeatTimer = Timer(15, sendInitializedHeartbeat)
-    # sendInitHeartbeatTimer.start()
-
-    # re-fetch user info in another 90 seconds
-    # checkUserAuthTimer = Timer(90, userStatusHandler)
-    # checkUserAuthTimer.start()
-
-
-# def userStatusHandler():
-#     getUserStatus()
-
-#     loggedOn = getValue("logged_on", True)
-#     if (loggedOn is True):
-#         # no need to fetch any longer
-#         return
-
-#     # re-fetch user info in another 10 minutes
-#     checkUserAuthTimer = Timer(60 * 10, userStatusHandler)
-#     checkUserAuthTimer.start()
 
 
 def plugin_unloaded():
@@ -884,3 +671,36 @@ def setOnlineStatus():
     # run the check in another 1 minute
     timer = Timer(60 * 1, setOnlineStatus)
     timer.start()
+
+
+def checkUserState():
+    try:
+        jwt = getItem("jwt")
+        headers = {'content-type': 'application/json', 'Authorization': jwt}
+        check_state_url= SOFTWARE_API + "/users/plugin/state"
+        resp = requests.get(check_state_url,headers=headers)
+        resp_data = resp.json()
+        if resp_data['state'] == "OK":
+            # setItem(resp_data['jwt'], jwt)
+            setValue("logged_on", True)
+            getUserPlaylists()
+            getActiveDeviceInfo()
+            refreshStatusBar()
+            print('logged_on:True','\nEmail:',resp_data['email'])
+        else:
+            setValue("logged_on", False)
+            print('logged_on:False')
+    except Exception as e:
+        # print('checkUserState',e)
+        print('logged_on:False')
+        setValue("logged_on", False)
+        pass
+
+
+def openDesktopPlayer():
+    msg = subprocess.Popen(["open","-a","spotify"],stdout=subprocess.PIPE)
+    print(msg)
+    if msg == "Unable to find application named 'spotify'":
+        return False
+    else:
+        return True

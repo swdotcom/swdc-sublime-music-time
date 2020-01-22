@@ -4,5 +4,6 @@
   {"keys": ["ctrl+alt+space"],"command":"pause_song"},
   {"keys": ["ctrl+alt+n"],"command":"next_song"},
   {"keys": ["ctrl+alt+b"],"command":"prev_song"},
-  {"keys": ["ctrl+alt+s"],"command":"open_spotify"}
+  {"keys": ["ctrl+alt+l"],"command":"open_playlists"},
+  {"keys": ["ctrl+alt+r"],"command":"refresh_playlist"},
 ]

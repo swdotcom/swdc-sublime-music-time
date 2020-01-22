@@ -18,20 +18,47 @@
                         "caption": "Disconnect Spotify"
                     },
                     {
-                        "command": "launch_music_time_metrics",
-                        "caption": "Music Time Dashboard"
-                    },
-                    {
-                        "command": "software_top_forty",
-                        "caption": "Software Top 40"
-                    },
-                    {
                         "command": "submit_issue_github",
                         "caption": "Submit an Issue on GitHub"
                     },
                     {
                         "command": "submit_feedback",
                         "caption": "Send feedback to cody@software.com"
+                    },
+                    {
+                        "command": "refresh_playlist",
+                        "caption": "Refresh Playlist"
+                    },
+                    {
+                        "caption": "My Playlists",
+                        "children": [
+                                {
+                                    "command": "open_playlists",
+                                    "caption": "Open playlists"
+                                },
+                                {
+                                    "command": "open_songs",
+                                    "caption": "Open songs"
+                                },
+                    {
+                        "command": "sort_playlist",
+                        "caption": "Sort Playlist A-Z"
+                    },
+                    {
+                        "command": "launch_music_time_metrics",
+                        "caption": "Music Time Dashboard"
+                    },
+                    {
+                        "command": "see_web_analytics",
+                        "caption": "See Web Analytics"
+                    },
+                    {
+                        "command": "generate_ai_playlist",
+                        "caption": "Generate My AI Playlist"
+                    },
+                    {
+                        "command": "refresh_ai_playlist",
+                        "caption": "Refresh My AI Playlist"
                     },
                     {
                         "command": "connect_slack",
@@ -41,32 +68,38 @@
                         "command": "disconnect_slack",
                         "caption": "Disonnect Slack"
                     },
-                    {
-                        "command": "open_playlists",
-                        "caption": "Open playlists"
+                            ]
+                    },
+
+                    {   "caption": "Songs Controls",
+                        "children": [
+                            {
+                                "command": "play_song",
+                                "caption": "Play"
+                            },
+                            {
+                                "command": "pause_song",
+                                "caption": "Pause"
+                            },
+                            {
+                                "command": "next_song",
+                                "caption": "Next"
+                            },
+                            {
+                                "command": "prev_song",
+                                "caption": "Previous"
+                            }
+
+                        ]
                     },
                     {
-                        "command": "open_songs",
-                        "caption": "Open songs"
-                    },
-                    {
-                        "command": "play_song",
-                        "caption": "Play"
-                    },
-                    {
-                        "command": "pause_song",
-                        "caption": "Pause"
-                    },
-                    {
-                        "command": "next_song",
-                        "caption": "Next"
-                    },
-                    {
-                        "command": "prev_song",
-                        "caption": "Previous"
+                        "command": "connection_status",
+                        "caption": "Connection Status"
                     }
-                ]
-            }
+
+                        ]
+                }
+            
         ]
     }
 ]

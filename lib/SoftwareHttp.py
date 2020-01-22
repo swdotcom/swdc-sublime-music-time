@@ -11,13 +11,10 @@ from .SoftwareSettings import *
 from .SoftwareUtil import *
 # from SoftwareUtil import isMusicTime
 from ..Software import *
+# from .MusicCommandManager import *
+# from .MusicControlManager import *
 
-# import SoftwareUtil as sd
-# import SoftwareUtil
-# from .SoftwareMusic import *
-# from .SoftwareRepo import *
-# from .SoftwareOffline import *
-# from .SoftwareSettings import *
+
 
 USER_AGENT = 'Music Time Sublime Plugin'
 lastMsg = ''
@@ -27,7 +24,8 @@ plugin = ''
 
 def httpLog(message):
     if (getValue("software_logging_on", True)):
-        print(message)
+        pass
+        # print(message)
 
 
 def redispayStatus():
@@ -35,14 +33,14 @@ def redispayStatus():
     showStatus(lastMsg)
 
 
-def toggleStatus():
-    global lastMsg
-    showStatusVal = getValue("show_code_time_status", True)
+# def toggleStatus():
+#     global lastMsg
+#     showStatusVal = getValue("show_code_time_status", True)
 
-    if (showStatusVal is True):
-        showStatus(lastMsg)
-    elif (ismusictime is True):
-        showStatus("🎧")
+#     if (showStatusVal is True):
+#         showStatus(lastMsg)
+#     elif (ismusictime is True):
+#         showStatus("🎧")
     # else:
     #     # show clock icon unicode
     #     currenttrackinfo()
@@ -62,10 +60,13 @@ def showStatus(msg):
         elif (ismusictime is True):
             if getValue("logged_on", True) is True:
                 msg = "Spotify Connected"
-            else:
-                msg = "Connect Spotify"
-        # else:
-        #     currenttrackinfo()
+        # elif getValue("logged_on", True) is True:
+        #     msg = "Spotify Connected"
+        # elif getValue("logged_on", False) is True:
+        #     msg = "Connect Spotify"
+        else:
+            pass
+            # currenttrackinfo()
 
         if (active_window is not None):
             for view in active_window.views():
@@ -121,9 +122,9 @@ def requestIt(method, api, payload, jwt):
         if (payload is None):
             payload = {}
             httpLog(
-                "Code Time: Requesting [" + method + ": " + api_endpoint + "" + api + "]")
+                "Music Time: Requesting [" + method + ": " + api_endpoint + "" + api + "]")
         else:
-            httpLog("Code Time: Sending [" + method + ": " + api_endpoint + "" +
+            httpLog("Music Time: Sending [" + method + ": " + api_endpoint + "" +
                     api + ", headers: " + json.dumps(headers) + "] payload: %s" % payload)
 
         # send the request
@@ -133,7 +134,7 @@ def requestIt(method, api, payload, jwt):
         # httpLog("Code Time: " + api_endpoint + "" + api + " Response (%d)" % response.status)
         return response
     except Exception as ex:
-        print("Code Time: " + api + " Network error: %s" % ex)
+        print("Music Time: " + api + " Network error: %s" % ex)
         return None
 
 
