@@ -138,13 +138,14 @@ def gatherMusicInfo():
 # Fetch Active device  and Devices(all device including inactive devices)
 def getActiveDeviceInfo():
     # print("{}".format(getItem('spotify_access_token')))
-    # global currentDeviceId
+    global DEVICES
     headers = {"Authorization": "Bearer {}".format(
         getItem('spotify_access_token'))}
     get_device_url = SPOTIFY_API + "/v1/me/player/devices"
     getdevs = requests.get(get_device_url, headers=headers)
 
     devices = getdevs.json()
+    DEVICES = []
     # print(devices)
     try:
         if devices['devices'] == [] and userTypeInfo() == "premium":
@@ -154,17 +155,17 @@ def getActiveDeviceInfo():
         else:
             for i in devices:
                 for j in range(len(devices['devices'])):
-                    DEVICES = []
+                    
                     # get devices name list to display in tree view
                     DEVICES.append(devices['devices'][j]['name'])
 
-                    if devices['devices'][j]['is_active'] == True:
+                    if devices['devices'][j]['is_active'] == True or devices['devices'][j]['type'] == "Computer":
                         ACTIVE_DEVICE['device_id'] = devices['devices'][j]['id']
                         ACTIVE_DEVICE['name'] = devices['devices'][j]['name']
                         print("Music Time: Active device found > ",
                               ACTIVE_DEVICE['name'])
 
-            DEVICES.append(devices['devices'][j]['name'])
+            # DEVICES.append(devices['devices'][j]['name'])
             print("ACTIVE_DEVICE", ACTIVE_DEVICE)
             print("DEVICES :", DEVICES)
             print("Music Time: Number of connected devices: ", len(DEVICES))
@@ -228,7 +229,7 @@ def currentTrackInfo():
             else:
                 # showStatus("Loading . . . ")
                 showStatus(
-                    "No Active device found. Please open Spotify player and play the music ")
+                    "Spotify Connected")
                 try:
                     refreshSpotifyToken()
                     currentTrackInfo()
@@ -272,3 +273,32 @@ def refreshDeviceStatus():
         showStatus("No device found . . . ")
         # showStatus("Connect Spotify")
         pass
+
+
+# Lambda function for checking user
+check_user = lambda : "Spotify Connected" if (userTypeInfo() == "premium") else ("Connect Premium" if (userTypeInfo() == "open") else "Connect Spotify")
+
+
+def myToolTip():
+    # global DEVICES
+    getActiveDeviceInfo()
+    header = "<h3>Music Time</h3>"
+    # connected = '<p><a href="show"><img src="res://Packages/swdc-sublime-music-time/spotify-icons-logos/spotify-icons-logos/icons/01_RGB/02_PNG/Spotify_Icon_RGB_Green.png" height="20" width="20">{}</a></p>'.format(check_user())
+    connected = '<p><b>{}</b></p>'.format(check_user())
+    listen_on = '<p><b>Listening on </b><i>{}</i></p>'.format(ACTIVE_DEVICE.get('name'))
+    print("DEVICES",DEVICES)
+    available_on = '<p><b>Available on </b><i>{}</i></p>'.format(','.join(DEVICES))
+    no_device_msg = '<p><i>No device found</i></p>'
+    close_msg = '(Press <b>Esc</b> to close)'
+
+    if len(ACTIVE_DEVICE.values()) != 0:
+        body = "<body>" + header + connected + listen_on + available_on + close_msg + "</body>"
+
+    elif len(DEVICES) == 0 and len(ACTIVE_DEVICE.values()) == 0:
+        body = "<body>" + header + connected + no_device_msg +  close_msg + "</body>"
+
+    else:
+        body = "<body>" + close_msg + header + connected + available_on + close_msg + "</body>"
+        
+    print(body)
+    return body

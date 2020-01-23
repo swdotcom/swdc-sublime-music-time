@@ -336,17 +336,18 @@ class ConnectSpotify(sublime_plugin.TextCommand):
             user_type = userTypeInfo()
             print("Music Time: Usertype: ", user_type)
 
-            # if user_type == "premium" and isWindows():
-
             message_dialog = sublime.message_dialog("Spotify Connected !")
 
+            # Condition for MAC users
             if isMac() is True and user_type == "non-premium":
                 try:
                     msg = subprocess.Popen(
                         ["open", "-a", "spotify"], stdout=subprocess.PIPE)
                     if msg == "Unable to find application named 'spotify'":
                         message_dialog = sublime.message_dialog(
-                            "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+                            "Desktop player didn't opened. Please check whether \
+                            Spotify Desktop player is installed correctly \
+                            or Connect using Premium")
                         showStatus("Connect Premium")
                     else:
                         print("getSpotifyTrackState", getSpotifyTrackState())
@@ -366,7 +367,7 @@ class ConnectSpotify(sublime_plugin.TextCommand):
         except Exception as E:
             print("Music Time: Unable to connect")
             message_dialog = sublime.message_dialog(
-                "Please try to connect using Spotify Premium Account !")
+                "Please try to connect after some time !")
             showStatus("Connect Spotify")
         getUserPlaylists()
         getActiveDeviceInfo()
@@ -391,168 +392,170 @@ class DisconnectSpotify(sublime_plugin.TextCommand):
         return (getValue("logged_on", True) is True)
 
 
-# # Runs once instance per view (i.e. tab, or single file window)
-# class EventListener(sublime_plugin.EventListener):
-#     def on_load_async(self, view):
-#         fileName = view.file_name()
-#         if (fileName is None):
-#             fileName = "Untitled"
+# Runs once instance per view (i.e. tab, or single file window)
+class EventListener(sublime_plugin.EventListener):
+    def on_load_async(self, view):
+        fileName = view.file_name()
+        if (fileName is None):
+            fileName = "Untitled"
 
-#         active_data = PluginData.get_active_data(view)
+        active_data = PluginData.get_active_data(view)
 
-#         # get the file info to increment the open metric
-#         fileInfoData = PluginData.get_file_info_and_initialize_if_none(
-#             active_data, fileName)
-#         if fileInfoData is None:
-#             return
+        # get the file info to increment the open metric
+        fileInfoData = PluginData.get_file_info_and_initialize_if_none(
+            active_data, fileName)
+        if fileInfoData is None:
+            return
 
-#         fileSize = view.size()
-#         fileInfoData['length'] = fileSize
+        fileSize = view.size()
+        fileInfoData['length'] = fileSize
 
-#         # get the number of lines
-#         lines = view.rowcol(fileSize)[0] + 1
-#         fileInfoData['lines'] = lines
+        # get the number of lines
+        lines = view.rowcol(fileSize)[0] + 1
+        fileInfoData['lines'] = lines
 
-#         # we have the fileinfo, update the metric
-#         fileInfoData['open'] += 1
-#         log('Code Time: opened file %s' % fileName)
+        # we have the fileinfo, update the metric
+        fileInfoData['open'] += 1
+        log('Code Time: opened file %s' % fileName)
 
-#         # show last status message
-#         redispayStatus()
+        # show last status message
+        redispayStatus()
 
-#     def on_close(self, view):
-#         fileName = view.file_name()
-#         if (fileName is None):
-#             fileName = "Untitled"
+    def on_close(self, view):
+        fileName = view.file_name()
+        if (fileName is None):
+            fileName = "Untitled"
 
-#         active_data = PluginData.get_active_data(view)
+        active_data = PluginData.get_active_data(view)
 
-#         # get the file info to increment the close metric
-#         fileInfoData = PluginData.get_file_info_and_initialize_if_none(
-#             active_data, fileName)
-#         if fileInfoData is None:
-#             return
+        # get the file info to increment the close metric
+        fileInfoData = PluginData.get_file_info_and_initialize_if_none(
+            active_data, fileName)
+        if fileInfoData is None:
+            return
 
-#         fileSize = view.size()
-#         fileInfoData['length'] = fileSize
+        fileSize = view.size()
+        fileInfoData['length'] = fileSize
 
-#         # get the number of lines
-#         lines = view.rowcol(fileSize)[0] + 1
-#         fileInfoData['lines'] = lines
+        # get the number of lines
+        lines = view.rowcol(fileSize)[0] + 1
+        fileInfoData['lines'] = lines
 
-#         # we have the fileInfo, update the metric
-#         fileInfoData['close'] += 1
-#         log('Code Time: closed file %s' % fileName)
+        # we have the fileInfo, update the metric
+        fileInfoData['close'] += 1
+        log('Code Time: closed file %s' % fileName)
 
-#         # show last status message
-#         redispayStatus()
+        # show last status message
+        redispayStatus()
 
-#     def on_modified_async(self, view):
-#         global PROJECT_DIR
-#         # get active data will create the file info if it doesn't exist
-#         active_data = PluginData.get_active_data(view)
-#         if active_data is None:
-#             return
+    def on_modified_async(self, view):
+        global PROJECT_DIR
+        # get active data will create the file info if it doesn't exist
+        active_data = PluginData.get_active_data(view)
+        if active_data is None:
+            return
 
-#         # add the count for the file
-#         fileName = view.file_name()
+        # add the count for the file
+        fileName = view.file_name()
 
-#         fileInfoData = {}
+        fileInfoData = {}
 
-#         if (fileName is None):
-#             fileName = "Untitled"
+        if (fileName is None):
+            fileName = "Untitled"
 
-#         fileInfoData = PluginData.get_file_info_and_initialize_if_none(
-#             active_data, fileName)
+        fileInfoData = PluginData.get_file_info_and_initialize_if_none(
+            active_data, fileName)
 
-#         # If file is untitled then log that msg and set file open metrics to 1
-#         if fileName == "Untitled":
-#             # log(plugin_name + ": opened file untitled")
-#             fileInfoData['open'] = 1
-#         else:
-#             pass
+        # If file is untitled then log that msg and set file open metrics to 1
+        if fileName == "Untitled":
+            # log(plugin_name + ": opened file untitled")
+            fileInfoData['open'] = 1
+        else:
+            pass
 
-#         if fileInfoData is None:
-#             return
+        if fileInfoData is None:
+            return
 
-#         fileSize = view.size()
+        fileSize = view.size()
 
-#         #lines = 0
-#         # rowcol gives 0-based line number, need to add one as on editor lines starts from 1
-#         lines = view.rowcol(fileSize)[0] + 1
+        #lines = 0
+        # rowcol gives 0-based line number, need to add one as on editor lines starts from 1
+        lines = view.rowcol(fileSize)[0] + 1
 
-#         prevLines = fileInfoData['lines']
-#         if (prevLines == 0):
+        prevLines = fileInfoData['lines']
+        if (prevLines == 0):
 
-#             if (PluginData.line_counts.get(fileName) is None):
-#                 PluginData.line_counts[fileName] = prevLines
+            if (PluginData.line_counts.get(fileName) is None):
+                PluginData.line_counts[fileName] = prevLines
 
-#             prevLines = PluginData.line_counts[fileName]
-#         elif (prevLines > 0):
-#             fileInfoData['lines'] = prevLines
+            prevLines = PluginData.line_counts[fileName]
+        elif (prevLines > 0):
+            fileInfoData['lines'] = prevLines
 
-#         lineDiff = 0
-#         if (prevLines > 0):
-#             lineDiff = lines - prevLines
-#             if (lineDiff > 0):
-#                 fileInfoData['linesAdded'] += lineDiff
-#                 log('Code Time: linesAdded incremented')
-#             elif (lineDiff < 0):
-#                 fileInfoData['linesRemoved'] += abs(lineDiff)
-#                 log('Code Time: linesRemoved incremented')
+        lineDiff = 0
+        if (prevLines > 0):
+            lineDiff = lines - prevLines
+            if (lineDiff > 0):
+                fileInfoData['linesAdded'] += lineDiff
+                log('Code Time: linesAdded incremented')
+            elif (lineDiff < 0):
+                fileInfoData['linesRemoved'] += abs(lineDiff)
+                log('Code Time: linesRemoved incremented')
 
-#         fileInfoData['lines'] = lines
+        fileInfoData['lines'] = lines
 
-#         # subtract the current size of the file from what we had before
-#         # we'll know whether it's a delete, copy+paste, or kpm.
-#         currLen = fileInfoData['length']
+        # subtract the current size of the file from what we had before
+        # we'll know whether it's a delete, copy+paste, or kpm.
+        currLen = fileInfoData['length']
 
-#         charCountDiff = 0
+        charCountDiff = 0
 
-#         if currLen > 0 or currLen == 0:
-#             # currLen > 0 only worked for existing file, currlen==0 will work for new file
-#             charCountDiff = fileSize - currLen
+        if currLen > 0 or currLen == 0:
+            # currLen > 0 only worked for existing file, currlen==0 will work for new file
+            charCountDiff = fileSize - currLen
 
-#         if (not fileInfoData["syntax"]):
-#             syntax = view.settings().get('syntax')
-#             # get the last occurance of the "/" then get the 1st occurance of the .sublime-syntax
-#             # [language].sublime-syntax
-#             # Packages/Python/Python.sublime-syntax
-#             syntax = syntax[syntax.rfind('/') + 1:-len(".sublime-syntax")]
-#             if (syntax):
-#                 fileInfoData["syntax"] = syntax
+        if (not fileInfoData["syntax"]):
+            syntax = view.settings().get('syntax')
+            # get the last occurance of the "/" then get the 1st occurance of the .sublime-syntax
+            # [language].sublime-syntax
+            # Packages/Python/Python.sublime-syntax
+            syntax = syntax[syntax.rfind('/') + 1:-len(".sublime-syntax")]
+            if (syntax):
+                fileInfoData["syntax"] = syntax
 
-#         PROJECT_DIR = active_data.project['directory']
+        PROJECT_DIR = active_data.project['directory']
 
-#         # getResourceInfo is a SoftwareUtil function
-#         if (active_data.project.get("identifier") is None):
-#             resourceInfoDict = getResourceInfo(PROJECT_DIR)
-#             if (resourceInfoDict.get("identifier") is not None):
-#                 active_data.project['identifier'] = resourceInfoDict['identifier']
-#                 active_data.project['resource'] = resourceInfoDict
+        # getResourceInfo is a SoftwareUtil function
+        if (active_data.project.get("identifier") is None):
+            resourceInfoDict = getResourceInfo(PROJECT_DIR)
+            if (resourceInfoDict.get("identifier") is not None):
+                active_data.project['identifier'] = resourceInfoDict['identifier']
+                active_data.project['resource'] = resourceInfoDict
 
-#         fileInfoData['length'] = fileSize
+        fileInfoData['length'] = fileSize
 
-#         if lineDiff == 0 and charCountDiff > 8:
-#             fileInfoData['paste'] += 1
-#             log('Code Time: pasted incremented')
-#         elif lineDiff == 0 and charCountDiff == -1:
-#             fileInfoData['delete'] += 1
-#             log('Code Time: delete incremented')
-#         elif lineDiff == 0 and charCountDiff == 1:
-#             fileInfoData['add'] += 1
-#             log('Code Time: KPM incremented')
+        if lineDiff == 0 and charCountDiff > 8:
+            fileInfoData['paste'] += 1
+            log('Code Time: pasted incremented')
+        elif lineDiff == 0 and charCountDiff == -1:
+            fileInfoData['delete'] += 1
+            log('Code Time: delete incremented')
+        elif lineDiff == 0 and charCountDiff == 1:
+            fileInfoData['add'] += 1
+            log('Code Time: KPM incremented')
 
-#         # increment the overall count
-#         if (charCountDiff != 0 or lineDiff != 0):
-#             active_data.keystrokes += 1
+        # increment the overall count
+        if (charCountDiff != 0 or lineDiff != 0):
+            active_data.keystrokes += 1
 
-#         # update the netkeys and the keys
-#         # "netkeys" = add - delete
-#         fileInfoData['netkeys'] = fileInfoData['add'] - fileInfoData['delete']
+        # update the netkeys and the keys
+        # "netkeys" = add - delete
+        fileInfoData['netkeys'] = fileInfoData['add'] - fileInfoData['delete']
 
 #
 # Iniates the plugin tasks once the it's loaded into Sublime.
+
+
 def plugin_loaded():
     initializeUser()
 
@@ -564,26 +567,6 @@ def initializeUser():
     jwt = getItem("jwt")
     log("JWT VAL: %s" % jwt)
     checkUserState()
-    # we don't need to create the anonymous account on initializatino
-    # if (fileExists is False or jwt is None):
-    #     if (serverAvailable is False):
-    #         if (retry_counter == 0):
-    #             showOfflinePrompt()
-    #         initializeUserTimer = Timer(
-    #             check_online_interval_sec, initializeUser)
-    #         initializeUserTimer.start()
-    #     else:
-    #         result = createAnonymousUser(serverAvailable)
-    #         if (result is None):
-    #             if (retry_counter == 0):
-    #                 showOfflinePrompt()
-    #             initializeUserTimer = Timer(
-    #                 check_online_interval_sec, initializeUser)
-    #             initializeUserTimer.start()
-    #         else:
-    #             initializePlugin(True, serverAvailable)
-    # else:
-    # initializePlugin(False, serverAvailable)
     initializePlugin(False, serverAvailable)
 
 
@@ -675,8 +658,8 @@ def checkUserState():
         if resp_data['state'] == "OK":
             # setItem(resp_data['jwt'], jwt)
             setValue("logged_on", True)
-            getUserPlaylists()
             getActiveDeviceInfo()
+            getUserPlaylists()
             refreshStatusBar()
             print('logged_on:True', '\nEmail:', resp_data['email'])
         else:

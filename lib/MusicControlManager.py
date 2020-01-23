@@ -84,7 +84,7 @@ def playSong():
         plays = requests.put(playstr, headers=headers)
         # print(plays.status_code)
         print("Web player Working | Playing :", plays.status_code, "|",plays.text)
-        currentTrackInfo()
+    currentTrackInfo()
 
 # Song's Controls: Pause
 def pauseSong():
@@ -100,7 +100,7 @@ def pauseSong():
         pausestr = SPOTIFY_API + "/v1/me/player/pause?" + ACTIVE_DEVICE.get('device_id')#getActiveDeviceInfo()#currentDeviceId
         pause = requests.put(pausestr, headers=headers)
         print("Web player Working | Paused ...", pause.status_code, "|",pause.text)
-        currentTrackInfo()
+    currentTrackInfo()
 
 # Song's Controls: Next
 def nextSong():
@@ -115,7 +115,7 @@ def nextSong():
         nxtstr = SPOTIFY_API + "/v1/me/player/next?" + ACTIVE_DEVICE.get('device_id')#getActiveDeviceInfo()#currentDeviceId
         nxt = requests.post(nxtstr, headers=headers)
         print("Web player Working | Next ...", nxt.status_code, "|",nxt.text)
-        currentTrackInfo()
+    currentTrackInfo()
 
 # Song's Controls: Previous
 def previousSong():
@@ -131,7 +131,7 @@ def previousSong():
         prev = requests.post(prevstr, headers=headers)
         print("Web player Working | previous ...", prev.status_code, "|",prev.text)
         # showStatus("▶️ "+currentTrackInfo()[0])# if currentTrackInfo()[1] is True else print("Paused",currentTrackInfo()[0])
-        currentTrackInfo()
+    currentTrackInfo()
 
 # Launch Spotify player
 def startPlayer():
