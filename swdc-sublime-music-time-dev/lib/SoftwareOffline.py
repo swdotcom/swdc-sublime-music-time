@@ -78,13 +78,13 @@ def updateStatusBarWithSummaryData():
     currentDayInfo = getCurrentDayTime(sessionSummaryData)
     averageDailyInfo = getAverageDailyTime(sessionSummaryData)
 
-    if ismusictime is False:
+    if isMusicTime is False:
         inFlowIcon = ""
-        if (currentDayInfo.get("data", 0) > averageDailyInfo.get("data", 0)) and ismusictime() != True:
+        if (currentDayInfo.get("data", 0) > averageDailyInfo.get("data", 0)) and isMusicTime() != True:
             inFlowIcon = "🚀"
 
         statusMsg = inFlowIcon + "" + currentDayInfo["formatted"]
-        if (averageDailyInfo.get("data", 0) > 0) and ismusictime() != True:
+        if (averageDailyInfo.get("data", 0) > 0) and isMusicTime() != True:
             statusMsg += " | " + averageDailyInfo["formatted"]
 
     elif getValue("logged_on", True) == True:
@@ -244,7 +244,7 @@ def fetchDailyKpmSessionInfo(forceRefresh):
         api = '/sessions/summary'
         response = requestIt("GET", api, None, getItem("jwt"))
 
-        if (response is not None and isResponsOk(response)):
+        if (response is not None and isResponseOk(response)):
             sessionSummaryData = json.loads(response.read().decode('utf-8'))
 
             # update the file

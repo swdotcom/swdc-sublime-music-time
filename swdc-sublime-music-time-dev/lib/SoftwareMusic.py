@@ -14,18 +14,15 @@ ACTIVE_DEVICE = {}
 DEVICES = []
 
 
-# To fetch and shoe music-time dashboard
-
-
+# To fetch and show music-time dashboard
 def getMusicTimedashboard():
-    # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI0MTYwLCJpYXQiOjE1NzYwNzI2NDZ9.96PjeOosPVsA4mfWwizhxJ5Skqy8Onvia8Oh-mQCHf8"
     jwt = getItem("jwt")
     headers = {'content-type': 'application/json', 'Authorization': jwt}
     dash_url = SOFTWARE_API + "/dashboard/music"
     # dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
     resp = requests.get(dash_url, headers=headers)
     if resp.status_code == 200:
-        print("Music Time: launch MusicTime.txt")
+        print("Music Time: launching MusicTime.txt")
     else:
         print('getMusicTimedashboard error\n', resp.text)
 
@@ -139,6 +136,9 @@ def gatherMusicInfo():
 def getActiveDeviceInfo():
     # print("{}".format(getItem('spotify_access_token')))
     global DEVICES
+    global playlist_id
+    global songs_tree
+
     headers = {"Authorization": "Bearer {}".format(
         getItem('spotify_access_token'))}
     get_device_url = SPOTIFY_API + "/v1/me/player/devices"
@@ -146,12 +146,19 @@ def getActiveDeviceInfo():
 
     devices = getdevs.json()
     DEVICES = []
-    # print(devices)
     try:
         if devices['devices'] == [] and userTypeInfo() == "premium":
-            url = "https://open.spotify.com/"
+            try:
+                url = "https://open.spotify.com/album/"+playlist_id+"?highlight=spotify:track:"+songs_tree
+            except:
+                # url = "https://open.spotify.com/track/"+songs_tree
+            # else:
+                url = "https://open.spotify.com/"
+            # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+            # if player:
             webbrowser.open(url)
-            print("Music Time: No active device found. Opening Spotify player")
+            # else:
+                # print("Music Time: No active device found.")
         else:
             for i in devices:
                 for j in range(len(devices['devices'])):
@@ -201,10 +208,6 @@ def currentTrackInfo():
             print("Music time: player not found", e)
             showStatus("Connect Premium")
 
-        # print("BEFORE",currentTrackInfo)
-        # refreshStatusBar()
-        # print("After",currentTrackInfo)
-
     else:
         try:
             headers = {"Authorization": "Bearer {}".format(
@@ -228,8 +231,7 @@ def currentTrackInfo():
 
             else:
                 # showStatus("Loading . . . ")
-                showStatus(
-                    "Spotify Connected")
+                showStatus("Spotify Connected")
                 try:
                     refreshSpotifyToken()
                     currentTrackInfo()
@@ -238,8 +240,7 @@ def currentTrackInfo():
 
         except Exception as e:
             print('Music Time: currentTrackInfo', e)
-            showStatus(
-                "No Active device found. Please open Spotify player and play the music ")
+            showStatus("Spotify Connected. No Active device found.")
             pass
     refreshStatusBar()
 
@@ -265,9 +266,6 @@ def refreshDeviceStatus():
     try:
         t = Timer(60, getActiveDeviceInfo)
         t.start()
-        # schedule.every(5).seconds.do(currentTrackInfo())
-        # while True:
-        #     schedule.run_pending()
     except Exception as E:
         print("Music Time: refreshStatusBar", E)
         showStatus("No device found . . . ")
@@ -281,13 +279,13 @@ check_user = lambda : "Spotify Connected" if (userTypeInfo() == "premium") else 
 
 def myToolTip():
     # global DEVICES
-    getActiveDeviceInfo()
+    # getActiveDeviceInfo()
     header = "<h3>Music Time</h3>"
     # connected = '<p><a href="show"><img src="res://Packages/swdc-sublime-music-time/spotify-icons-logos/spotify-icons-logos/icons/01_RGB/02_PNG/Spotify_Icon_RGB_Green.png" height="20" width="20">{}</a></p>'.format(check_user())
     connected = '<p><b>{}</b></p>'.format(check_user())
     listen_on = '<p><b>Listening on </b><i>{}</i></p>'.format(ACTIVE_DEVICE.get('name'))
-    print("DEVICES",DEVICES)
-    available_on = '<p><b>Available on </b><i>{}</i></p>'.format(','.join(DEVICES))
+    # print("DEVICES",DEVICES)
+    available_on = '<p><b>Connected on </b><i>{}</i></p>'.format(','.join(DEVICES))
     no_device_msg = '<p><i>No device found</i></p>'
     close_msg = '(Press <b>Esc</b> to close)'
 
@@ -298,7 +296,7 @@ def myToolTip():
         body = "<body>" + header + connected + no_device_msg +  close_msg + "</body>"
 
     else:
-        body = "<body>" + close_msg + header + connected + available_on + close_msg + "</body>"
+        body = "<body>" + header + connected + available_on + close_msg + "</body>"
         
     print(body)
     return body

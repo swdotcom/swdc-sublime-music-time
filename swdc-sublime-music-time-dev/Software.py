@@ -6,7 +6,6 @@ from .lib.Playlists import *
 from .lib.SoftwareHttp import *
 from .lib.SoftwareUtil import *
 from .lib.SoftwareMusic import *
-from .lib.SoftwareRepo import *
 from .lib.SoftwareOffline import *
 from .lib.SoftwareSettings import *
 
@@ -35,6 +34,9 @@ EMAIL = ''
 DEFAULT_DURATION = 60
 user_type = ''
 user_id = ""
+
+# playlist_info = {}
+# playlist_id = ''
 
 PROJECT_DIR = None
 
@@ -370,8 +372,8 @@ class ConnectSpotify(sublime_plugin.TextCommand):
                 "Please try to connect after some time !")
             showStatus("Connect Spotify")
         getUserPlaylists()
-        getActiveDeviceInfo()
-        refreshStatusBar()
+        # getActiveDeviceInfo()
+        # refreshStatusBar()
 
     def is_enabled(self):
         return (getValue("logged_on", True) is False)
@@ -573,7 +575,7 @@ def initializeUser():
 def initializePlugin(initializedAnonUser, serverAvailable):
     PACKAGE_NAME = __name__.split('.')[0]
     log('Music Time: Loaded v%s of package name: %s' % (VERSION, PACKAGE_NAME))
-    if (ismusictime() == False):
+    if (isMusicTime() == False):
         showStatus("Code Time")
     else:
         showStatus("Music Time")
@@ -658,9 +660,9 @@ def checkUserState():
         if resp_data['state'] == "OK":
             # setItem(resp_data['jwt'], jwt)
             setValue("logged_on", True)
-            getActiveDeviceInfo()
+            # getActiveDeviceInfo()
             getUserPlaylists()
-            refreshStatusBar()
+            # refreshStatusBar()
             print('logged_on:True', '\nEmail:', resp_data['email'])
         else:
             setValue("logged_on", False)

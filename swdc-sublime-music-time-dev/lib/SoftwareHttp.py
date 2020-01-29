@@ -33,21 +33,6 @@ def redispayStatus():
     showStatus(lastMsg)
 
 
-# def toggleStatus():
-#     global lastMsg
-#     showStatusVal = getValue("show_code_time_status", True)
-
-#     if (showStatusVal is True):
-#         showStatus(lastMsg)
-#     elif (ismusictime is True):
-#         showStatus("🎧")
-    # else:
-    #     # show clock icon unicode
-    #     currenttrackinfo()
-
-# update the status bar message
-
-
 def showStatus(msg):
     global lastMsg
     try:
@@ -57,13 +42,9 @@ def showStatus(msg):
 
         if (showStatusVal is False):
             msg = "⏱"
-        elif (ismusictime is True):
+        elif (isMusicTime is True):
             if getValue("logged_on", True) is True:
                 msg = "Spotify Connected"
-        # elif getValue("logged_on", True) is True:
-        #     msg = "Spotify Connected"
-        # elif getValue("logged_on", False) is True:
-        #     msg = "Connect Spotify"
         else:
             pass
             # currenttrackinfo()
@@ -76,7 +57,7 @@ def showStatus(msg):
         httpLog(msg)
 
 
-def isResponsOk(response):
+def isResponseOk(response):
     if (response is not None and int(response.status) < 300):
         return True
     return False
@@ -138,7 +119,7 @@ def requestIt(method, api, payload, jwt):
         return None
 
 
-def ismusictime():
+def isMusicTime():
     plugin = getValue("plugin", "music-time")
     # print(">><<",plugin)
     # plugin = getItem("plugin")

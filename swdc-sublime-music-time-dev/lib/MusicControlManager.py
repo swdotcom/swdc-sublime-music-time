@@ -17,55 +17,56 @@ from .SoftwareMusic import *
 # from .MusicCommandManager import *
 
 
-# Play song from playlist without playlist_id
-def playThisSong(currentDeviceId, track_id):
-    if isMac() == True and userTypeInfo() == "non-premium":
-        script = '''
-        osascript -e 'tell application "Spotify" to play track "spotify:track:{}"'
-        '''.format(track_id) 
-        os.system(script)
-        print("Played from desktop")
+# # Play song from playlist without playlist_id
+# def playThisSong(currentDeviceId, track_id):
+#     if isMac() == True and userTypeInfo() == "non-premium":
+#         script = '''
+#         osascript -e 'tell application "Spotify" to play track "spotify:track:{}"'
+#         '''.format(track_id) 
+#         os.system(script)
+#         print("Played from desktop")
 
-    else:    
-        headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-        data = {}
-        try:
-            print("track_id",track_id)
-            data = {"uris":["spotify:track:" + track_id]}
-            payload = json.dumps(data)
-            playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
-            plays = requests.put(playstr, headers=headers, data=payload)
-            print(plays.text)
-        except Exception as e:
-            print("playThisSong",e)
-    currentTrackInfo()
+#     else:    
+#         headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+#         data = {}
+#         try:
+#             print("track_id",track_id)
+#             data = {"uris":["spotify:track:" + track_id]}
+#             payload = json.dumps(data)
+#             playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
+#             plays = requests.put(playstr, headers=headers, data=payload)
+#             print(plays.text)
+#         except Exception as e:
+#             print("playThisSong",e)
+#     currentTrackInfo()
 
 
-# Play song from playlist using playlist_id and track_id
-def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
-    global playlist_id
-    playlist_id = playlistid
-    if isMac() == True and userTypeInfo() == "non-premium":
-        script = '''
-        osascript -e 'tell application "Spotify" to play track "spotify:track:{}" in context "spotify:playlist:{}"'
-        '''.format(track_id,playlist_id) 
-        os.system(script)
-        print("Played from desktop")
-        pass
+# # Play song from playlist using playlist_id and track_id
+# def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
+#     global playlist_id
+#     playlist_id = playlistid
+#     if isMac() == True and userTypeInfo() == "non-premium":
+#         script = '''
+#         osascript -e 'tell application "Spotify" to play track "spotify:track:{}" in context "spotify:playlist:{}"'
+#         '''.format(track_id,playlist_id) 
+#         os.system(script)
+#         print("Played from desktop")
+#         pass
 
-    else:
-        headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-        playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
-        data = {}
-        try:
-            data["context_uri"] = "spotify:playlist:"+ playlist_id
-            data['offset'] =  {"uri": "spotify:track:"+ track_id}
-            payload = json.dumps(data)
-            plays = requests.put(playstr, headers=headers, data=payload)
-            print(plays.text)
-        except Exception as e:
-            print("playSongFromPlaylist",e)
-    currentTrackInfo()
+#     else:
+#         headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+#         playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
+#         data = {}
+#         try:
+#             data["context_uri"] = "spotify:playlist:" + playlist_id
+#             data['offset'] =  {"uri": "spotify:track:" + track_id}
+#             payload = json.dumps(data)
+#             print(playSongFromPlaylist,payload)
+#             plays = requests.put(playstr, headers=headers, data=payload)
+#             print(plays.text)
+#         except Exception as e:
+#             print("playSongFromPlaylist",e)
+#     currentTrackInfo()
 
 
 # Song's Controls: Play

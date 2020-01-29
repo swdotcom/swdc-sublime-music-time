@@ -171,36 +171,13 @@ def getDashboardFile():
     file = getSoftwareDir(True)
     return os.path.join(file, 'MusicTime.txt')
 
-# # To fetch and shoe music-time dashboard
-
-
-# def getMusicTimedashboard():
-#     # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI0MTYwLCJpYXQiOjE1NzYwNzI2NDZ9.96PjeOosPVsA4mfWwizhxJ5Skqy8Onvia8Oh-mQCHf8"
-#     jwt = getItem("jwt")
-#     headers = {'content-type': 'application/json', 'Authorization': jwt}
-#     dash_url = SOFTWARE_API + "/dashboard/music"
-#     # dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
-#     resp = requests.get(dash_url, headers=headers)
-#     if resp.status_code == 200:
-#         print("Music Time: launch MusicTime.txt")
-#     else:
-#         print('getMusicTimedashboard error\n', resp.text)
-
-#     file = getDashboardFile()
-#     with open(file, 'w', encoding='utf-8') as f:
-#         f.write(resp.text)
-
-#     file = getDashboardFile()
-#     sublime.active_window().open_file(file)
-
 
 def getCustomDashboardFile():
     file = getSoftwareDir(True)
     return os.path.join(file, 'CustomDashboard.txt')
 
+
 # execute the applescript command
-
-
 def runCommand(cmd, args=[]):
     p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate(cmd)
@@ -382,7 +359,7 @@ def getResourceInfo(rootDir):
 def checkOnline():
     # non-authenticated ping, no need to set the Authorization header
     response = requestIt("GET", "/ping", None, getItem("jwt"))
-    if (isResponsOk(response)):
+    if (isResponseOk(response)):
         return True
     else:
         return False
@@ -507,7 +484,7 @@ def createAnonymousUser(serverAvailable):
         api = "/data/onboard"
         try:
             response = requestIt("POST", api, json.dumps(payload), appJwt)
-            if (response is not None and isResponsOk(response)):
+            if (response is not None and isResponseOk(response)):
                 try:
                     responseObj = json.loads(response.read().decode('utf-8'))
                     jwt = responseObj.get("jwt", None)
@@ -526,7 +503,7 @@ def getUser(serverAvailable):
     if (jwt and serverAvailable):
         api = "/users/me"
         response = requestIt("GET", api, None, jwt)
-        if (isResponsOk(response)):
+        if (isResponseOk(response)):
             try:
                 responseObj = json.loads(response.read().decode('utf-8'))
                 user = responseObj.get("data", None)
@@ -556,7 +533,7 @@ def isLoggedOn(serverAvailable):
         api = "/users/plugin/state"
         response = requestIt("GET", api, None, jwt)
 
-        responseOk = isResponsOk(response)
+        responseOk = isResponseOk(response)
         if (responseOk is True):
             try:
                 responseObj = json.loads(response.read().decode('utf-8'))
@@ -626,7 +603,7 @@ def sendHeartbeat(reason):
         try:
             response = requestIt("POST", api, json.dumps(payload), jwt)
 
-            if (response is not None and isResponsOk(response) is False):
+            if (response is not None and isResponseOk(response) is False):
                 log("Music Time: Unable to send heartbeat ping")
         except Exception as ex:
             log("Music Time: Unable to send heartbeat: %s" % ex)
