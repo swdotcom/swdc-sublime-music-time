@@ -8,6 +8,7 @@ import sys
 import sublime_plugin
 import sublime
 
+from ..Constants import *
 from ..Software import *
 from .SoftwareSettings import *
 from .SoftwareUtil import *
@@ -16,7 +17,6 @@ from .SoftwareUtil import *
 # from .MusicControlManager import *
 
 
-USER_AGENT = 'Music Time Sublime Plugin'
 lastMsg = ''
 windowView = None
 plugin = ''

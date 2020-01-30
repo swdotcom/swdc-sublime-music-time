@@ -8,6 +8,7 @@ import datetime
 import math
 import six
 
+from ..Constants import *
 from .SoftwareUtil import *
 from .SoftwareSettings import *
 # from .SoftwareMusic import *
@@ -16,15 +17,15 @@ from .SoftwareSettings import *
 # from .SoftwareSettings import *
 
 # Constants
-sessionSummaryData = None
-lastDayOfMonth = 0
-SERVICE_NOT_AVAIL = "Our service is temporarily unavailable.\n\nPlease try again later.\n"
-ONE_MINUTE_IN_SEC = 60
-SECONDS_PER_HOUR = 60 * 60
-LONG_THRESHOLD_HOURS = 12
-SHORT_THRESHOLD_HOURS = 4
-NO_TOKEN_THRESHOLD_HOURS = 2
-LOGIN_LABEL = "Log in"
+# sessionSummaryData = Constants.sessionSummaryData
+# lastDayOfMonth = Constants.lastDayOfMonth
+# SERVICE_NOT_AVAIL = Constants.SERVICE_NOT_AVAIL
+# ONE_MINUTE_IN_SEC = Constants.ONE_MINUTE_IN_SEC
+# SECONDS_PER_HOUR = Constants.SECONDS_PER_HOUR
+# LONG_THRESHOLD_HOURS = Constants.LONG_THRESHOLD_HOURS
+# SHORT_THRESHOLD_HOURS = Constants.SHORT_THRESHOLD_HOURS
+# NO_TOKEN_THRESHOLD_HOURS = Constants.NO_TOKEN_THRESHOLD_HOURS
+# LOGIN_LABEL = Constants.LOGIN_LABEL
 
 # init the session summary data
 

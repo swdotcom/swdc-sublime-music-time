@@ -18,6 +18,7 @@ import webbrowser
 from urllib.parse import quote_plus
 from subprocess import Popen, PIPE
 
+from ..Constants import *
 from .SoftwareHttp import *
 from .SoftwareSettings import *
 from ..Software import *
@@ -25,25 +26,29 @@ from ..Software import *
 # from .MusicControlManager import *
 # from .schedule import *
 
-SOFTWARE_API = "https://api.software.com"
-SPOTIFY_API = "https://api.spotify.com"
-
 # the plugin version
-VERSION = '0.0.3'
-PLUGIN_ID = 1
-DASHBOARD_LABEL_WIDTH = 25
-DASHBOARD_VALUE_WIDTH = 25
-MARKER_WIDTH = 4
+# VERSION = '0.0.3'
+# PLUGIN_ID = 1
+# VERSION = Constants.VERSION
+# PLUGIN_ID = Constants.PLUGIN_ID
+
+# SOFTWARE_API = Constants.SOFTWARE_API
+# SPOTIFY_API = Constants.SPOTIFY_API
+
+# DASHBOARD_LABEL_WIDTH = Constants.DASHBOARD_LABEL_WIDTH
+# DASHBOARD_VALUE_WIDTH = Constants.DASHBOARD_VALUE_WIDTH
+# MARKER_WIDTH = Constants.MARKER_WIDTH
+
+runningResourceCmd = False
+loggedInCacheState = False
+
 jwt = ''
 spotifyuser = {}
 sessionMap = {}
 user_id = ''
-runningResourceCmd = False
-loggedInCacheState = False
 timezone = ''
 CLIENT_ID = ''
 CLIENT_SECRET = ''
-# plugin = ''
 user_type = ""
 
 
@@ -873,7 +878,7 @@ def disconnectSpotify():
 
 
 def seeWebAnalytics():
-    url = "https://app.software.com/music"
+    url = SOFTWARE_URL + "/music"
     webbrowser.open(url)
     print("Music Time: Loading Music time Web Analytics ...")
     pass

@@ -10,6 +10,7 @@ import sublime
 from threading import Thread, Timer, Event
 import webbrowser
 
+from ..Constants import *
 from .MusicPlaylistProvider import *
 from .SoftwareMusic import *
 # from .SoftwareUtil import *
@@ -117,3 +118,12 @@ def nextTrack():
     osascript -e 'tell application "Spotify" to play (next track)'
     '''
     os.system(nxt)
+
+
+def openDesktopPlayer():
+    msg = subprocess.Popen(["open", "-a", "spotify"], stdout=subprocess.PIPE)
+    print(msg)
+    if msg == "Unable to find application named 'spotify'":
+        return False
+    else:
+        return True

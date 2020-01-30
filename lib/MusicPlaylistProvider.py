@@ -9,6 +9,7 @@ import sublime_plugin
 from threading import Thread, Timer, Event
 import webbrowser
 
+from ..Constants import *
 from .SoftwareUtil import *
 from .SoftwareHttp import *
 from ..Software import *
@@ -21,8 +22,8 @@ from .MusicControlManager import *
 current_playlist_name = "Running"
 current_song = "Diane Young"
 
-SOFTWARE_API = "https://api.software.com"
-SPOTIFY_API = "https://api.spotify.com"
+# SOFTWARE_API = "https://api.software.com"
+# SPOTIFY_API = "https://api.spotify.com"
 
 # ACTIVE_DEVICE = {}
 # DEVICES = []

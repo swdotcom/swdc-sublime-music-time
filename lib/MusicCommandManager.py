@@ -12,22 +12,21 @@ import webbrowser
 # from .SoftwareHttp import *
 # from .SoftwareMusic import *
 # from .MusicPlaylistProvider import *
+from ..Constants import *
 from .MusicControlManager import *
 
 
 # Report an issue on github
 class SubmitIssueGithub(sublime_plugin.TextCommand):
     def run(self, edit):
-        github_url = "https://github.com/swdotcom/music-time-sublime/issues"
-        webbrowser.open(github_url)
+        webbrowser.open(ST3_GITHUB_URL)
+        pass
+
 
 # Submit feedback
-
-
 class SubmitFeedback(sublime_plugin.TextCommand):
     def run(self, edit):
-        mailto = "mailto:cody@software.com"
-        webbrowser.open(mailto, new=1)
+        webbrowser.open(FEEDBACK_MAIL_ID, new=1)
         pass
 
 

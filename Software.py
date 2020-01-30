@@ -1,17 +1,5 @@
 # Copyright (c) 2019 by Software.com
 
-from .lib.MusicControlManager import *
-from .lib.MusicCommandManager import *
-from .lib.MusicPlaylistProvider import *
-from .lib.SoftwareHttp import *
-from .lib.SoftwareUtil import *
-from .lib.SoftwareMusic import *
-from .lib.SoftwareOffline import *
-from .lib.SoftwareSettings import *
-
-import webbrowser
-from threading import Thread, Timer, Event
-import time
 import datetime
 import json
 import os
@@ -23,23 +11,33 @@ import sublime
 import subprocess
 import sys
 sys.path.append("..")
+import time
+from threading import Thread, Timer, Event
+import webbrowser
 
+from .Constants import *
+from .lib.MusicControlManager import *
+from .lib.MusicCommandManager import *
+from .lib.MusicPlaylistProvider import *
+from .lib.SoftwareHttp import *
+from .lib.SoftwareUtil import *
+from .lib.SoftwareMusic import *
+from .lib.SoftwareOffline import *
+from .lib.SoftwareSettings import *
 
-SOFTWARE_API = "https://api.software.com"
-SPOTIFY_API = "https://api.spotify.com"
+# SOFTWARE_API = Constants.SOFTWARE_API
+# SPOTIFY_API = Constants.SPOTIFY_API
 
 ACCESS_TOKEN = ''
 REFRESH_TOKEN = ''
 EMAIL = ''
-DEFAULT_DURATION = 60
 user_type = ''
 user_id = ""
 
-
-PROJECT_DIR = None
-
-check_online_interval_sec = 60 * 10
-retry_counter = 0
+# DEFAULT_DURATION = 60
+# PROJECT_DIR = None
+# check_online_interval_sec = 60 * 10
+# retry_counter = 0
 
 
 # payload trigger to store it for later.
@@ -657,11 +655,14 @@ def checkUserState():
         resp_data = resp.json()
         if resp_data['state'] == "OK":
             # setItem(resp_data['jwt'], jwt)
-            setValue("logged_on", True)
+            setValue("logged_on", True) 
+            showStatus("Spotify Connected")
             # getActiveDeviceInfo()
             getUserPlaylists()
             # refreshStatusBar()
-            print('logged_on:True', '\nEmail:', resp_data['email'])
+            print('_'*40)
+            print(' * logged_on: True', '\n * Email:', resp_data['email'])
+            print('_'*40)
         else:
             setValue("logged_on", False)
             print('logged_on:False')
@@ -671,11 +672,3 @@ def checkUserState():
         setValue("logged_on", False)
         pass
 
-
-def openDesktopPlayer():
-    msg = subprocess.Popen(["open", "-a", "spotify"], stdout=subprocess.PIPE)
-    print(msg)
-    if msg == "Unable to find application named 'spotify'":
-        return False
-    else:
-        return True
