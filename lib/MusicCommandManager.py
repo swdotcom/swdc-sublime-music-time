@@ -11,7 +11,7 @@ import webbrowser
 # from .SoftwareUtil import *
 # from .SoftwareHttp import *
 # from .SoftwareMusic import *
-# from .Playlists import *
+# from .MusicPlaylistProvider import *
 from .MusicControlManager import *
 
 
@@ -30,9 +30,8 @@ class SubmitFeedback(sublime_plugin.TextCommand):
         webbrowser.open(mailto, new=1)
         pass
 
+
 # open musictime.txt/html file
-
-
 class LaunchMusicTimeMetrics(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
@@ -57,99 +56,6 @@ class SeeWebAnalytics(sublime_plugin.TextCommand):
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
-
-
-# class OpenPlaylistsCommand(sublime_plugin.TextCommand):
-#     def input(self, args):
-#         infoMsg = "Music Time: Playlists opened"
-#         print(infoMsg)
-#         return PlaylistInputHandler()
-
-#     def run(self, edit, playlists_tree):
-#         self.view.insert(edit, 0, playlists_tree)
-
-#     def is_enabled(self):
-#         return (getValue("logged_on", True) is True)
-
-
-# class OpenSongsCommand(sublime_plugin.TextCommand):
-#     def input(self, args):
-#         return SongInputHandler()
-
-#     def run(self, edit, songs_tree):
-#         self.view.insert(edit, 0, songs_tree)
-#         if playlist_id == None:
-#             print('*'*10,)
-#             playThisSong(ACTIVE_DEVICE.get('device_id'), songs_tree)
-#         else:
-#             print('#'*10,)
-#             playSongFromPlaylist(ACTIVE_DEVICE.get(
-#                 'device_id'), playlist_id, songs_tree)
-#         print("+"*20, songs_tree)
-
-#     def is_enabled(self):
-#         return (getValue("logged_on", True) is True)
-
-
-# class PlaylistInputHandler(sublime_plugin.ListInputHandler):
-#     def __init__(self):
-#         super(sublime_plugin.ListInputHandler, self).__init__()
-
-#     def name(self):
-#         return "playlists_tree"
-
-#     def initial_text(self):
-#         return None
-
-#     def placeholder(self):
-#         return "Select a playlist"
-
-#     def list_items(self):
-#         return getPlaylists()
-
-#     def confirm(self, value):
-#         global current_playlist_name
-#         global playlist_info
-#         print("playlist_info",playlist_info)
-#         # global playlist_id
-#         print("PlaylistInputHandler | confirm",value)
-#         current_playlist_name = value
-#         playlist_id = playlist_info.get(current_playlist_name)
-
-#         print("current_playlist_name:", current_playlist_name,
-#               "\nPlaylist_id", playlist_id)
-
-#     def next_input(self, args):
-#         return SongInputHandler()
-
-
-# class SongInputHandler(sublime_plugin.ListInputHandler):
-#     def __init__(self):
-#         super(sublime_plugin.ListInputHandler, self).__init__()
-
-#     def name(self):
-#         # print(SongInputHandler.name(self))
-#         return "songs_tree"
-
-#     def placeholder(self):
-#         return "Select a song"
-
-#     def list_items(self):
-#         global current_playlist_name
-#         return getSongsInPlaylist(current_playlist_name)
-
-#     def confirm(self, value):
-#         global current_song
-#         current_song = value
-#         print(current_song)
-#         if playlist_id == None:
-#             print('*'*10, 'playlist_id == None SongInputHandler')
-#             playThisSong(ACTIVE_DEVICE.get('device_id'), current_song)
-#         else:
-#             print('#'*10, 'else == None SongInputHandler')
-#             playSongFromPlaylist(ACTIVE_DEVICE.get(
-#                 'device_id'), playlist_id, current_song)
-#         print("="*20, current_song)
 
 
 # Play control in main menu

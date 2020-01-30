@@ -9,7 +9,7 @@ from .SoftwareUtil import *
 from ..Software import *
 # from .MusicControlManager import *
 
-currentTrackInfo = {}
+current_track_info = {}
 ACTIVE_DEVICE = {}
 DEVICES = []
 
@@ -34,7 +34,7 @@ def getMusicTimedashboard():
     sublime.active_window().open_file(file)
 
 def gatherMusicInfo():
-    global currentTrackInfo
+    global current_track_info
 
     # # get the music track playing
     # # the trackInfo should be a dictionary
@@ -279,7 +279,7 @@ check_user = lambda : "Spotify Connected" if (userTypeInfo() == "premium") else 
 
 def myToolTip():
     # global DEVICES
-    # getActiveDeviceInfo()
+    getActiveDeviceInfo()
     header = "<h3>Music Time</h3>"
     # connected = '<p><a href="show"><img src="res://Packages/swdc-sublime-music-time/spotify-icons-logos/spotify-icons-logos/icons/01_RGB/02_PNG/Spotify_Icon_RGB_Green.png" height="20" width="20">{}</a></p>'.format(check_user())
     connected = '<p><b>{}</b></p>'.format(check_user())
@@ -290,7 +290,7 @@ def myToolTip():
     close_msg = '(Press <b>Esc</b> to close)'
 
     if len(ACTIVE_DEVICE.values()) != 0:
-        body = "<body>" + header + connected + listen_on + available_on + close_msg + "</body>"
+        body = "<body>" + header + connected + listen_on + close_msg + "</body>"
 
     elif len(DEVICES) == 0 and len(ACTIVE_DEVICE.values()) == 0:
         body = "<body>" + header + connected + no_device_msg +  close_msg + "</body>"

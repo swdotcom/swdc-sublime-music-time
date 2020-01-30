@@ -2,7 +2,7 @@
 
 from .lib.MusicControlManager import *
 from .lib.MusicCommandManager import *
-from .lib.Playlists import *
+from .lib.MusicPlaylistProvider import *
 from .lib.SoftwareHttp import *
 from .lib.SoftwareUtil import *
 from .lib.SoftwareMusic import *
@@ -35,8 +35,6 @@ DEFAULT_DURATION = 60
 user_type = ''
 user_id = ""
 
-# playlist_info = {}
-# playlist_id = ''
 
 PROJECT_DIR = None
 

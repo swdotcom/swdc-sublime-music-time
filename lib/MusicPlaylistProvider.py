@@ -1,4 +1,8 @@
-
+'''
+ MusicPlaylistProvider.py will have all of the code to set up,
+ refresh the UI, manage actions like getting, adding tracks to,
+ and creating playlists.
+'''
 import requests
 import sublime
 import sublime_plugin
