@@ -1,4 +1,3 @@
-
 # Copyright (c) 2018 by Software.com
 
 import http
@@ -7,21 +6,16 @@ import sys
 # sys.path.append('../')
 import sublime_plugin
 import sublime
+
+from ..Constants import *
+from ..Software import *
 from .SoftwareSettings import *
 from .SoftwareUtil import *
 # from SoftwareUtil import isMusicTime
-from ..Software import *
-# from .schedule import *
+# from .MusicCommandManager import *
+# from .MusicControlManager import *
 
 
-# import SoftwareUtil as sd
-# import SoftwareUtil
-# from .SoftwareMusic import *
-# from .SoftwareRepo import *
-# from .SoftwareOffline import *
-# from .SoftwareSettings import *
-
-USER_AGENT = 'Music Time Sublime Plugin'
 lastMsg = ''
 windowView = None
 plugin = ''
@@ -30,26 +24,12 @@ plugin = ''
 def httpLog(message):
     if (getValue("software_logging_on", True)):
         print(message)
+        pass
 
 
 def redispayStatus():
     global lastMsg
     showStatus(lastMsg)
-
-
-def toggleStatus():
-    global lastMsg
-    showStatusVal = getValue("show_code_time_status", True)
-
-    if (showStatusVal is True):
-        showStatus(lastMsg)
-    elif (ismusictime is True):
-        showStatus("🎧")
-    # else:
-    #     # show clock icon unicode
-    #     currenttrackinfo()
-
-# update the status bar message
 
 
 def showStatus(msg):
@@ -61,13 +41,9 @@ def showStatus(msg):
 
         if (showStatusVal is False):
             msg = "⏱"
-        elif (ismusictime is True):
+        elif (isMusicTime is True):
             if getValue("logged_on", True) is True:
                 msg = "Spotify Connected"
-        # elif getValue("logged_on", True) is True:
-        #     msg = "Spotify Connected"
-        # elif getValue("logged_on", False) is True:
-        #     msg = "Connect Spotify"
         else:
             pass
             # currenttrackinfo()
@@ -80,7 +56,7 @@ def showStatus(msg):
         httpLog(msg)
 
 
-def isResponsOk(response):
+def isResponseOk(response):
     if (response is not None and int(response.status) < 300):
         return True
     return False
@@ -142,7 +118,7 @@ def requestIt(method, api, payload, jwt):
         return None
 
 
-def ismusictime():
+def isMusicTime():
     plugin = getValue("plugin", "music-time")
     # print(">><<",plugin)
     # plugin = getItem("plugin")

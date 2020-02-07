@@ -7,6 +7,8 @@ import time
 import datetime
 import math
 import six
+
+from ..Constants import *
 from .SoftwareUtil import *
 from .SoftwareSettings import *
 # from .SoftwareMusic import *
@@ -15,19 +17,18 @@ from .SoftwareSettings import *
 # from .SoftwareSettings import *
 
 # Constants
-sessionSummaryData = None
-lastDayOfMonth = 0
-SERVICE_NOT_AVAIL = "Our service is temporarily unavailable.\n\nPlease try again later.\n"
-ONE_MINUTE_IN_SEC = 60
-SECONDS_PER_HOUR = 60 * 60
-LONG_THRESHOLD_HOURS = 12
-SHORT_THRESHOLD_HOURS = 4
-NO_TOKEN_THRESHOLD_HOURS = 2
-LOGIN_LABEL = "Log in"
+# sessionSummaryData = Constants.sessionSummaryData
+# lastDayOfMonth = Constants.lastDayOfMonth
+# SERVICE_NOT_AVAIL = Constants.SERVICE_NOT_AVAIL
+# ONE_MINUTE_IN_SEC = Constants.ONE_MINUTE_IN_SEC
+# SECONDS_PER_HOUR = Constants.SECONDS_PER_HOUR
+# LONG_THRESHOLD_HOURS = Constants.LONG_THRESHOLD_HOURS
+# SHORT_THRESHOLD_HOURS = Constants.SHORT_THRESHOLD_HOURS
+# NO_TOKEN_THRESHOLD_HOURS = Constants.NO_TOKEN_THRESHOLD_HOURS
+# LOGIN_LABEL = Constants.LOGIN_LABEL
+
 
 # init the session summary data
-
-
 def initSessionSumaryData():
     global sessionSummaryData
     sessionSummaryData = {
@@ -38,18 +39,16 @@ def initSessionSumaryData():
         "liveshareMinutes": None
     }
 
+
 # get the session summary data
-
-
 def getSessionSummaryData():
     global sessionSummaryData
     if (sessionSummaryData is None):
         sessionSummaryData = getSessionSummaryFileAsJson()
     return sessionSummaryData
 
+
 # get the session summary file
-
-
 def getSessionSummaryFile():
     file = getSoftwareDir(True)
     return os.path.join(file, 'sessionSummary.json')
@@ -67,8 +66,6 @@ def incrementSessionSummaryData(minutes, keystrokes):
     sessionSummaryData["currentDayMinutes"] += minutes
     sessionSummaryData["currentDayKeystrokes"] += keystrokes
 
-#
-
 
 def updateStatusBarWithSummaryData():
     global sessionSummaryData
@@ -77,21 +74,21 @@ def updateStatusBarWithSummaryData():
     currentDayInfo = getCurrentDayTime(sessionSummaryData)
     averageDailyInfo = getAverageDailyTime(sessionSummaryData)
 
-    if ismusictime is False:
+    if isMusicTime is False:
         inFlowIcon = ""
-        if (currentDayInfo.get("data", 0) > averageDailyInfo.get("data", 0)) and ismusictime() != True:
+        if (currentDayInfo.get("data", 0) > averageDailyInfo.get("data", 0)) and isMusicTime() != True:
             inFlowIcon = "🚀"
 
         statusMsg = inFlowIcon + "" + currentDayInfo["formatted"]
-        if (averageDailyInfo.get("data", 0) > 0) and ismusictime() != True:
+        if (averageDailyInfo.get("data", 0) > 0) and isMusicTime() != True:
             statusMsg += " | " + averageDailyInfo["formatted"]
 
     elif getValue("logged_on", True) == True:
-        statusMsg = "🎧 Spotify connected"
+        statusMsg = "Spotify Connected"
 
     # for displaying current playback track
     else:
-        statusMsg = "🎧 Connect Spotify"
+        statusMsg = "Connect Spotify"
 
     showStatus(statusMsg)
 
@@ -125,8 +122,6 @@ def saveSessionSummaryToDisk(sessionSummaryData):
     sessionFile = getSessionSummaryFile()
     with open(sessionFile, 'w') as f:
         f.write(content)
-
-#
 
 
 def getSessionSummaryFileAsJson():
@@ -243,7 +238,7 @@ def fetchDailyKpmSessionInfo(forceRefresh):
         api = '/sessions/summary'
         response = requestIt("GET", api, None, getItem("jwt"))
 
-        if (response is not None and isResponsOk(response)):
+        if (response is not None and isResponseOk(response)):
             sessionSummaryData = json.loads(response.read().decode('utf-8'))
 
             # update the file

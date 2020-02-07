@@ -1,50 +1,50 @@
 # Copyright (c) 2019 by Software.com
 
-from .lib.SoftwareSettings import *
-from .lib.SoftwareOffline import *
-from .lib.SoftwareRepo import *
-from .lib.SoftwareMusic import *
-from .lib.SoftwareUtil import *
-from .lib.SoftwareHttp import *
-from .lib.Playlists import *
-from threading import Thread, Timer, Event
-from package_control import events
-from queue import Queue
-import requests
-import webbrowser
-import time
 import datetime
 import json
 import os
+from package_control import events
+from queue import Queue
+import requests
 import sublime_plugin
 import sublime
 import subprocess
 import sys
 sys.path.append("..")
-# from .SoftwareHttp import *
-# from .lib.music.MusicManager import *
+import time
+from threading import Thread, Timer, Event
+import webbrowser
 
+from .Constants import *
+from .lib.MusicControlManager import *
+from .lib.MusicCommandManager import *
+from .lib.MusicPlaylistProvider import *
+from .lib.SoftwareHttp import *
+from .lib.SoftwareUtil import *
+from .lib.SoftwareMusic import *
+from .lib.SoftwareOffline import *
+from .lib.SoftwareSettings import *
+
+# SOFTWARE_API = Constants.SOFTWARE_API
+# SPOTIFY_API = Constants.SPOTIFY_API
 
 ACCESS_TOKEN = ''
 REFRESH_TOKEN = ''
 EMAIL = ''
-DEFAULT_DURATION = 60
-user = ''
-user_id = ""
+user_type = ''
+spotifyUserId = ""
 
-# plugin_name = getItem("plugin")
-# print("PLUGIN name is ",plugin_name)
-PROJECT_DIR = None
-
-check_online_interval_sec = 60 * 10
-retry_counter = 0
+# DEFAULT_DURATION = 60
+# PROJECT_DIR = None
+# check_online_interval_sec = 60 * 10
+# retry_counter = 0
 
 
 # payload trigger to store it for later.
 def post_json(json_data):
     # save the data to the offline data file
     storePayload(json_data)
- 
+
     PluginData.reset_source_data()
 
 
@@ -321,154 +321,67 @@ class PluginData():
         PluginData.send_all_datas()
 
 
-class GoToSoftware(sublime_plugin.TextCommand):
-    def run(self, edit):
-        launchWebDashboardUrl()
-
-    def is_enabled(self):
-        loggedOn = getValue("logged_on", True)
-        online = getValue("online", True)
-        if (loggedOn is True and online is True):
-            return True
-        else:
-            return False
-
-# code_time_login command
-
-
-class CodeTimeLogin(sublime_plugin.TextCommand):
-    def run(self, edit):
-        launchLoginUrl()
-
-    def is_enabled(self):
-        loggedOn = getValue("logged_on", True)
-        online = getValue("online", True)
-        if (loggedOn is False and online is True):
-            return True
-        else:
-            return False
-
-# Command to launch the code time metrics "launch_code_time_metrics"
-
-
-class LaunchCodeTimeMetrics(sublime_plugin.TextCommand):
-    def run(self, edit):
-        launchCodeTimeMetrics()
-
-
-class LaunchCustomDashboard(sublime_plugin.WindowCommand):
-    def run(self):
-        d = datetime.datetime.now()
-        current_time = d.strftime("%m/%d/%Y")
-        t = d - datetime.timedelta(days=7)
-        time_ago = t.strftime("%m/%d/%Y")
-        # default range: last 7 days
-        default_range = str(time_ago) + ", " + str(current_time)
-        self.window.show_input_panel(
-            "Enter a start and end date (format: MM/DD/YYYY):", default_range, self.on_done, None, None)
-
-    def on_done(self, result):
-        setValue("date_range", result)
-        launchCustomDashboard()
-
-
 # connect spotify menu
 class ConnectSpotify(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
-            authinfo = getauthinfo()
+            authinfo = getAuthInfo()
             print("Music time: /auth/spotify/user: ", authinfo)
-            # print("CLIENT creds : ",get_credentials())
-            # CLIENT_ID, CLIENT_SECRET = get_credentials()
-            # print("############################\n", CLIENT_ID,"############################\n", CLIENT_SECRET)
-            EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = GetToken(authinfo)
-            Updatetokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN)
-            # setItem("name",EMAIL)
-            # setItem("spotify_access_token",ACCESS_TOKEN)
-            # setItem("spotify_refresh_token",REFRESH_TOKEN)
-            user = UserInfo()
-            print("Music Time: Usertype: ", user)
 
-            # if user == "premium" and isWindows():
+            EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
+            updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN)
+
+            user_type = userTypeInfo()
+            print("Music Time: Usertype: ", user_type)
 
             message_dialog = sublime.message_dialog("Spotify Connected !")
 
-            if isMac() is True and user == "non-premium":            
-                # if openDesktopplayer() is True:
-                #     print("getSpotifyTrackState",getSpotifyTrackState())
-                #     print("getTrackInfo",getTrackInfo())
-                # else:
-                #     message_dialog = sublime.message_dialog("Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
-
+            # Condition for MAC users
+            if isMac() is True and user_type == "non-premium":
                 try:
-                    msg = subprocess.Popen(["open","-a","spotify"],stdout=subprocess.PIPE)
+                    msg = subprocess.Popen(
+                        ["open", "-a", "spotify"], stdout=subprocess.PIPE)
                     if msg == "Unable to find application named 'spotify'":
-                        message_dialog = sublime.message_dialog("Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
-                        howStatus("Connect Premium")
+                        message_dialog = sublime.message_dialog(
+                            "Desktop player didn't opened. Please check whether \
+                            Spotify Desktop player is installed correctly \
+                            or Connect using Premium")
+                        showStatus("Connect Premium")
                     else:
-                        print("getSpotifyTrackState",getSpotifyTrackState())
-                        print("getTrackInfo",getTrackInfo())
+                        print("getSpotifyTrackState", getSpotifyTrackState())
+                        print("getTrackInfo", getTrackInfo())
 
-                    # currenttrackinfo()
+                    # currentTrackInfo()
                 except Exception as e:
                     print("Music Time: Desktop player didn't opened")
-                    message_dialog = sublime.message_dialog("Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+                    message_dialog = sublime.message_dialog(
+                        "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
 
             setValue("logged_on", True)
             showStatus("Spotify Connected")
-            print("USER_id:",user_id)
-            getActivedevice()
-            refreshstatusbar()
-            # print("IsPremium :",IsPremium)
-            # elif user == "premium" and isMac():
+            print("USER_id:", spotifyUserId)
+            # getActiveDeviceInfo()
 
-            #     message_dialog = sublime.message_dialog("Spotify Connected !")
-            #     setValue("logged_on", True)
-            #     showStatus("Spotify Connected")
-            # elif user == "non-premium" and isMac():
-
-            #     message_dialog = sublime.message_dialog("Spotify Connected !")
-            #     setValue("logged_on", True)
-            #     showStatus("Spotify Connected")
-            # elif user == "non-premium" and isWindows():
-            #     ClearSpotifyTokens()
-            #     message_dialog = sublime.message_dialog(
-            #         "Please try to connect using Spotify Premium Account !")
-            #     showStatus("Connect Premium")
-            # else:
-            #     ClearSpotifyTokens()
-            #     message_dialog = sublime.message_dialog(
-            #         "Please try to connect using Spotify Premium Account !")
-            #     showStatus("Connect Premium")
-            # else:
         except Exception as E:
             print("Music Time: Unable to connect")
             message_dialog = sublime.message_dialog(
-                "Please try to connect using Spotify Premium Account !")
+                "Please try to connect after some time !")
             showStatus("Connect Spotify")
+        checkAIPlaylistid()
         getUserPlaylists()
-        getActivedevice()
-
+        # getActiveDeviceInfo()
+        # refreshStatusBar()
 
     def is_enabled(self):
         return (getValue("logged_on", True) is False)
 
-    # def is_enabled(self):
-    #     loggedOn = getValue("logged_on", True)
-    #     # online = getValue("online", True)
-    #     if loggedOn is True:
-    #         return False
-    #     else:
-    #         return True
 
 # Disconnect spotify
-
-
 class DisconnectSpotify(sublime_plugin.TextCommand):
     def run(self, edit):
         # disconnect = sublime.yes_no_cancel_dialog("Do want to Disconnect Spotify ?", "Yes", "No")
         # if disconnect == "yes":
-        Disconnectspotify()
+        disconnectSpotify()
         setValue("logged_on", False)
         showStatus("Connect Spotify")
         message_dialog = sublime.message_dialog("Disconnected Spotify !")
@@ -477,121 +390,8 @@ class DisconnectSpotify(sublime_plugin.TextCommand):
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
-    # def is_enabled(self):
-    #     loggedOn = getValue("logged_on", True)
-
-    #     return bool(loggedOn-1)
-
-# # launch_music_time_metrics
-# class LaunchMusicTimeMetrics(sublime_plugin.TextCommand):
-#     def run(self, edit):
-#         data = getMusicTimedashboard()
-#         print(data)
-#         self.view.add_phantom("test", view.sel()[0], data, sublime.LAYOUT_BLOCK)
-#         # musictimedash()
-#         pass
-
-#     def is_enabled(self):
-#         return (getValue("logged_on", True) is True)
-
-
-# Slack connectivtiy
-class ConnectSlack(sublime_plugin.TextCommand):
-    def run(self, edit):
-        infoMsg = "Development in Progess."
-        clickAction = sublime.ok_cancel_dialog(infoMsg, "OK")
-        pass
-
-    def is_enabled(self):
-        return (getValue("logged_on", True) is False)
-
-
-class DisconnectSlack(sublime_plugin.TextCommand):
-    def run(self, edit):
-        infoMsg = "Slack Disconnected"
-        clickAction = sublime.ok_cancel_dialog(infoMsg, "OK")
-        pass
-
-    def is_enabled(self):
-        return (getValue("logged_on", True) is True)
-
-
-# Report an issue on github
-class SubmitIssueGithub(sublime_plugin.TextCommand):
-    def run(self, edit):
-        github_url = "https://github.com/swdotcom/music-time-sublime/issues"
-        webbrowser.open(github_url)
-
-# Submit feedback
-class SubmitFeedback(sublime_plugin.TextCommand):
-    def run(self, edit):
-        mailto = "mailto:cody@software.com"
-        webbrowser.open(mailto, new = 1)
-        pass
-
-
-class ToggleStatusBarMetrics(sublime_plugin.TextCommand):
-    def run(self, edit):
-        log("toggling status bar metrics")
-
-        showStatusVal = getValue("show_code_time_status", True)
-        if (showStatusVal):
-            setValue("show_code_time_status", False)
-        else:
-            setValue("show_code_time_status", True)
-
-        toggleStatus()
-
-# Mute Console message
-
-
-class HideConsoleMessage(sublime_plugin.TextCommand):
-    def run(self, edit):
-        log(plugin_name + ": Console Messages Disabled !")
-        # showStatus("Paused")
-        setValue("software_logging_on", False)
-
-    def is_enabled(self):
-        return (getValue("software_logging_on", True) is True)
-
-# Command to re-enable Console message
-
-
-class ShowConsoleMessage(sublime_plugin.TextCommand):
-    def run(self, edit):
-        log(plugin_name + ": Console Messages Enabled !")
-        # showStatus("Code Time")
-        setValue("software_logging_on", True)
-
-    def is_enabled(self):
-        return (getValue("software_logging_on", True) is False)
-
-# Command to pause kpm metrics
-
-
-class PauseKpmUpdatesCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        log("software kpm metrics paused")
-        showStatus("Paused")
-        setValue("software_telemetry_on", False)
-
-    def is_enabled(self):
-        return (getValue("software_telemetry_on", True) is True)
-
-# Command to re-enable kpm metrics
-
-class EnableKpmUpdatesCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        log(plugin_name + ": metrics enabled")
-        showStatus("Code Time")
-        setValue("software_telemetry_on", True)
-
-    def is_enabled(self):
-        return (getValue("software_telemetry_on", True) is False)
-
 
 # Runs once instance per view (i.e. tab, or single file window)
-
 class EventListener(sublime_plugin.EventListener):
     def on_load_async(self, view):
         fileName = view.file_name()
@@ -753,7 +553,6 @@ class EventListener(sublime_plugin.EventListener):
 
 #
 # Iniates the plugin tasks once the it's loaded into Sublime.
-#
 
 
 def plugin_loaded():
@@ -766,33 +565,14 @@ def initializeUser():
     fileExists = softwareSessionFileExists()
     jwt = getItem("jwt")
     log("JWT VAL: %s" % jwt)
-    checkuserstate()
-    # we don't need to create the anonymous account on initializatino
-    # if (fileExists is False or jwt is None):
-    #     if (serverAvailable is False):
-    #         if (retry_counter == 0):
-    #             showOfflinePrompt()
-    #         initializeUserTimer = Timer(
-    #             check_online_interval_sec, initializeUser)
-    #         initializeUserTimer.start()
-    #     else:
-    #         result = createAnonymousUser(serverAvailable)
-    #         if (result is None):
-    #             if (retry_counter == 0):
-    #                 showOfflinePrompt()
-    #             initializeUserTimer = Timer(
-    #                 check_online_interval_sec, initializeUser)
-    #             initializeUserTimer.start()
-    #         else:
-    #             initializePlugin(True, serverAvailable)
-    # else:
-        # initializePlugin(False, serverAvailable)
+    checkUserState()
     initializePlugin(False, serverAvailable)
+
 
 def initializePlugin(initializedAnonUser, serverAvailable):
     PACKAGE_NAME = __name__.split('.')[0]
     log('Music Time: Loaded v%s of package name: %s' % (VERSION, PACKAGE_NAME))
-    if (ismusictime() == False):
+    if (isMusicTime() == False):
         showStatus("Code Time")
     else:
         showStatus("Music Time")
@@ -814,34 +594,6 @@ def initializePlugin(initializedAnonUser, serverAvailable):
     hourlyTimer.start()
 
     # initializeUserInfo(initializedAnonUser)
-
-
-# def initializeUserInfo(initializedAnonUser):
-    # getUserStatus()
-
-    # if (initializedAnonUser is True):
-    #     showLoginPrompt()
-    #     PluginData.send_initial_payload()
-
-    # sendInitHeartbeatTimer = Timer(15, sendInitializedHeartbeat)
-    # sendInitHeartbeatTimer.start()
-
-    # re-fetch user info in another 90 seconds
-    # checkUserAuthTimer = Timer(90, userStatusHandler)
-    # checkUserAuthTimer.start()
-
-
-# def userStatusHandler():
-#     getUserStatus()
-
-#     loggedOn = getValue("logged_on", True)
-#     if (loggedOn is True):
-#         # no need to fetch any longer
-#         return
-
-#     # re-fetch user info in another 10 minutes
-#     checkUserAuthTimer = Timer(60 * 10, userStatusHandler)
-#     checkUserAuthTimer.start()
 
 
 def plugin_unloaded():
@@ -895,34 +647,34 @@ def setOnlineStatus():
     timer.start()
 
 
-def checkuserstate():
+def checkUserState():
     try:
         jwt = getItem("jwt")
         headers = {'content-type': 'application/json', 'Authorization': jwt}
-        check_state_url= "https://api.software.com/users/plugin/state"
-        resp = requests.get(check_state_url,headers=headers)
+        check_state_url = SOFTWARE_API + "/users/plugin/state"
+        resp = requests.get(check_state_url, headers=headers)
         resp_data = resp.json()
         if resp_data['state'] == "OK":
             # setItem(resp_data['jwt'], jwt)
-            setValue("logged_on", True)
+            setValue("logged_on", True) 
+            showStatus("Spotify Connected")
+            # getActiveDeviceInfo()
+            try:
+                checkAIPlaylistid()
+            except Exception as e:
+                print("checkAIPlaylistid",e)
+                pass
             getUserPlaylists()
-            getActivedevice()
-            refreshstatusbar()
-            print('logged_on:True','\nEmail:',resp_data['email'])
+            # refreshStatusBar()
+            print('_'*40)
+            print(' * logged_on: True', '\n * Email:', resp_data['email'])
+            print('_'*40)
         else:
             setValue("logged_on", False)
             print('logged_on:False')
     except Exception as e:
-        # print('checkuserstate',e)
+        # print('checkUserState',e)
         print('logged_on:False')
         setValue("logged_on", False)
         pass
 
-
-def openDesktopplayer():
-    msg = subprocess.Popen(["open","-a","spotify"],stdout=subprocess.PIPE)
-    print(msg)
-    if msg == "Unable to find application named 'spotify'":
-        return False
-    else:
-        return True
