@@ -136,8 +136,8 @@ def gatherMusicInfo():
 def getActiveDeviceInfo():
     # print("{}".format(getItem('spotify_access_token')))
     global DEVICES
-    global playlist_id
-    global songs_tree
+    # global playlist_id
+    # global current_song
 
     headers = {"Authorization": "Bearer {}".format(
         getItem('spotify_access_token'))}
@@ -148,12 +148,14 @@ def getActiveDeviceInfo():
     DEVICES = []
     try:
         if devices['devices'] == [] and userTypeInfo() == "premium":
-            try:
-                url = "https://open.spotify.com/album/"+playlist_id+"?highlight=spotify:track:"+songs_tree
-            except:
-                # url = "https://open.spotify.com/track/"+songs_tree
+            # try:
+            #     print("with playlist id ")
+            #     url = "https://open.spotify.com/album/"+playlist_id+"?highlight=spotify:track:"+current_song
+            # except:
+            #     print("without playlist id ")
+            #     url = "https://open.spotify.com/track/"+current_song
             # else:
-                url = "https://open.spotify.com/"
+            url = "https://open.spotify.com/"
             # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
             webbrowser.open(url)
             # else:
@@ -298,6 +300,7 @@ def getDeviceNames():
     
     return show_device
 
+
 # get active device name
 def activeDeviceName():
     headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
@@ -344,3 +347,35 @@ def myToolTip():
             # print("\n",body)
 
     return body
+
+
+# To open spotify  playlist/track web url
+def openTrackInWeb(playlist_ids,current_songs):
+    global playlist_id
+    playlist_id = playlist_ids
+    global current_song
+    current_song = current_songs
+
+    print("openTrackInWeb()\n","playlist_id :",playlist_id,"\ncurrent_song:",current_song,"\nACTIVE_DEVICE",ACTIVE_DEVICE)
+
+    if userTypeInfo() == "premium" and len(ACTIVE_DEVICE.values()) == 0:
+        
+        if len(current_song) > 0 and (playlist_id == "" or playlist_id == None):
+            print("without playlist id ")
+            url = "https://open.spotify.com/track/"+current_song
+
+        elif len(playlist_id) > 0 and len(current_song) > 0:
+            print("with playlist id ")
+            # https://open.spotify.com/playlist
+            url = "https://open.spotify.com/playlist/"+playlist_id+"?highlight=spotify:track:"+current_song
+
+        else:
+            url = "https://open.spotify.com/"
+        # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+        webbrowser.open(url)
+        time.sleep(5)
+
+    else:
+        args = "open -a Spotify"
+        os.system(args)
+        

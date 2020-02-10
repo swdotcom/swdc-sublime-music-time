@@ -19,8 +19,8 @@ from .MusicControlManager import *
 
 
 # global variables
-current_playlist_name = "Running"
-current_song = "Diane Young"
+current_playlist_name = "" 
+current_song = "" # Current track id
 
 AI_PLAYLIST_ID = ""
 
@@ -34,7 +34,7 @@ spotifyUserId = ""
 class OpenPlaylistsCommand(sublime_plugin.TextCommand):
     def input(self, args):
         infoMsg = "Music Time: Playlists opened"
-        print(infoMsg)
+        # print(infoMsg)
         return PlaylistInputHandler()
 
     def run(self, edit, playlists_tree):
@@ -49,18 +49,23 @@ class OpenSongsCommand(sublime_plugin.TextCommand):
         return SongInputHandler()
 
     def run(self, edit, songs_tree):
-        print('first',songs_tree)
+        # print('first',songs_tree)
         self.view.insert(edit, 0, songs_tree)
-        print('second',songs_tree)
-
-        # if len(ACTIVE_DEVICE.values()) != 0:
-        #     url = "https://open.spotify.com/album/"+playlist_id+"?highlight=spotify:track:"+songs_tree
-        #     webbrowser.open(url)
-        getActiveDeviceInfo()
+        # print('second',songs_tree)
         
         if playlist_id == None:
+            try:
+                openTrackInWeb(playlist_id,current_song)
+            except Exception as e:
+                print("OpenSongsCommand:run:openTrackInWeb",e)
+            getActiveDeviceInfo()
             playThisSong(ACTIVE_DEVICE.get('device_id'), songs_tree)
         else:
+            try:
+                openTrackInWeb(playlist_id,current_song)
+            except Exception as e:
+                print("OpenSongsCommand:run:openTrackInWeb",e)
+            getActiveDeviceInfo()
             playSongFromPlaylist(ACTIVE_DEVICE.get('device_id'), playlist_id,songs_tree)
         # print("+"*20,songs_tree)
 
@@ -113,16 +118,22 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
     def confirm(self, value):
         global current_song
         current_song = value
-        print(current_song)
-        # if len(ACTIVE_DEVICE.values()) != 0:
-        #     url = "https://open.spotify.com/album/"+playlist_id+"?highlight=spotify:track:"+songs_tree
-        #     webbrowser.open(url)
-
-        getActiveDeviceInfo()
+        print("current_song",current_song)
+        
         if playlist_id == None:
             print('#'*10,'playlist_id == None SongInputHandler')
+            try:
+                openTrackInWeb(playlist_id,current_song)
+            except Exception as e:
+                print("SongInputHandler:confirm:openTrackInWeb",e)
+            getActiveDeviceInfo()
             playThisSong(ACTIVE_DEVICE.get('device_id'), current_song)
         else:
+            try:
+                openTrackInWeb(playlist_id,current_song)
+            except Exception as e:
+                print("SongInputHandler:confirm:openTrackInWeb",e)
+            getActiveDeviceInfo()
             print('#'*10,'else == None SongInputHandler')
             playSongFromPlaylist(ACTIVE_DEVICE.get('device_id'), playlist_id,current_song)
 
