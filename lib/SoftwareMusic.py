@@ -33,6 +33,7 @@ def getMusicTimedashboard():
     file = getDashboardFile()
     sublime.active_window().open_file(file)
 
+
 def gatherMusicInfo():
     global current_track_info
 
@@ -148,22 +149,15 @@ def getActiveDeviceInfo():
     DEVICES = []
     try:
         if devices['devices'] == [] and userTypeInfo() == "premium":
-            # try:
-            #     print("with playlist id ")
-            #     url = "https://open.spotify.com/album/"+playlist_id+"?highlight=spotify:track:"+current_song
-            # except:
-            #     print("without playlist id ")
-            #     url = "https://open.spotify.com/track/"+current_song
-            # else:
             url = "https://open.spotify.com/"
             # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
             webbrowser.open(url)
             # else:
-                # print("Music Time: No active device found.")
+            # print("Music Time: No active device found.")
         else:
             for i in devices:
                 for j in range(len(devices['devices'])):
-                    
+
                     # get devices name list to display in tree view
                     DEVICES.append(devices['devices'][j]['name'])
 
@@ -178,7 +172,7 @@ def getActiveDeviceInfo():
             print("DEVICES :", DEVICES)
             print("Music Time: Number of connected devices: ", len(DEVICES))
             # print("ACTIVE_DEVICE",ACTIVE_DEVICE)
-            
+
     except Exception as E:
         print("Music Time: getActiveDeviceInfo", E)
 
@@ -261,8 +255,6 @@ def refreshStatusBar():
         pass
 
 # Continuous refresh devices
-
-
 def refreshDeviceStatus():
     try:
         t = Timer(60, getActiveDeviceInfo)
@@ -275,11 +267,15 @@ def refreshDeviceStatus():
 
 
 # Lambda function for checking user
-check_user = lambda : "Spotify Connected" if (userTypeInfo() == "premium") else ("Connect Premium" if (userTypeInfo() == "open") else "Connect Spotify")
+def check_user(): return "Spotify Connected" if (userTypeInfo() == "premium") else (
+    "Connect Premium" if (userTypeInfo() == "open") else "Connect Spotify")
 
 # to get all device names
+
+
 def getDeviceNames():
-    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+    headers = {"Authorization": "Bearer {}".format(
+        getItem('spotify_access_token'))}
     get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
     getdevs = requests.get(get_device_url, headers=headers)
     show_list = []
@@ -291,19 +287,19 @@ def getDeviceNames():
 
         show_device = ", ".join(show_list)
         if len(devices) == 0:
-            show_device = "Device not found" 
-        
+            show_device = "Device not found"
 
     else:
-        show_device = "Device status not found" 
+        show_device = "Device status not found"
         print(getdevs)
-    
+
     return show_device
 
 
 # get active device name
 def activeDeviceName():
-    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+    headers = {"Authorization": "Bearer {}".format(
+        getItem('spotify_access_token'))}
     get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
     getdevs = requests.get(get_device_url, headers=headers)
     name = ""
@@ -314,10 +310,12 @@ def activeDeviceName():
                 name = devices[i]['name']
     else:
         name = ""
-    
+
     return name
 
 # Show Active/connected/no device msg
+
+
 def myToolTip():
     # global DEVICES
     # getActiveDeviceInfo()
@@ -331,35 +329,36 @@ def myToolTip():
         listen_on = '<p><b>Listening on </b><i>{}</i></p>'.format(show_str)
         body = "<body>" + header + connected + listen_on + close_msg + "</body>"
         # print("\n",body)
-        
+
     else:
         if getDeviceNames() == "Device not found":
             show_str = getDeviceNames()
             # print(show_str)
             no_device_msg = '<p><i>No device found</i></p>'
-            body = "<body>" + header + connected + no_device_msg +  close_msg + "</body>"
+            body = "<body>" + header + connected + no_device_msg + close_msg + "</body>"
             # print("\n",body)
         else:
             show_str = getDeviceNames()
             # print(show_str)
-            available_on = '<p><b>Connected on </b><i>{}</i></p>'.format(show_str)
+            available_on = '<p><b>Connected on </b><i>{}</i></p>'.format(
+                show_str)
             body = "<body>" + header + connected + available_on + close_msg + "</body>"
-            # print("\n",body)
-
+    # print("\n",body)
     return body
 
 
-# To open spotify  playlist/track web url
-def openTrackInWeb(playlist_ids,current_songs):
+# To open spotify playlist/track web url
+def openTrackInWeb(playlist_ids, current_songs):
     global playlist_id
-    playlist_id = playlist_ids
     global current_song
+    playlist_id = playlist_ids
     current_song = current_songs
 
-    print("openTrackInWeb()\n","playlist_id :",playlist_id,"\ncurrent_song:",current_song,"\nACTIVE_DEVICE",ACTIVE_DEVICE)
+    print("openTrackInWeb()\n", "playlist_id :", playlist_id,
+          "\ncurrent_song:", current_song, "\nACTIVE_DEVICE", ACTIVE_DEVICE)
 
     if userTypeInfo() == "premium" and len(ACTIVE_DEVICE.values()) == 0:
-        
+
         if len(current_song) > 0 and (playlist_id == "" or playlist_id == None):
             print("without playlist id ")
             url = "https://open.spotify.com/track/"+current_song
@@ -367,7 +366,8 @@ def openTrackInWeb(playlist_ids,current_songs):
         elif len(playlist_id) > 0 and len(current_song) > 0:
             print("with playlist id ")
             # https://open.spotify.com/playlist
-            url = "https://open.spotify.com/playlist/"+playlist_id+"?highlight=spotify:track:"+current_song
+            url = "https://open.spotify.com/playlist/" + \
+                playlist_id+"?highlight=spotify:track:"+current_song
 
         else:
             url = "https://open.spotify.com/"
@@ -378,4 +378,3 @@ def openTrackInWeb(playlist_ids,current_songs):
     else:
         args = "open -a Spotify"
         os.system(args)
-        

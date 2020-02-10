@@ -136,15 +136,17 @@ class SortPlaylist(sublime_plugin.TextCommand):
 # Generate AI playlist
 class GenerateAIPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
-        try:
-            generateMyAIPlaylist()
-            getUserPlaylists()
-        except Exception as E:
-            print("generateMyAIPlaylist:", E)
+        player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+        # try:
+        #     generateMyAIPlaylist()
+        #     getUserPlaylists()
+        # except Exception as E:
+        #     print("generateMyAIPlaylist:", E)
         pass
     
     def is_enabled(self):
-            return (getValue("logged_on", True) is True)
+        return True
+            # return (getValue("logged_on", True) is True)
     #     # return (getValue("my_ai_playlist", True) is False)
     #     logged_on = getValue("logged_on", True)
     #     ai_playlist = getValue("my_ai_playlist", False)
@@ -160,16 +162,17 @@ class GenerateAIPlaylist(sublime_plugin.TextCommand):
 # Refresh AI playlist
 class RefreshAIPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
-        try:
-            refreshMyAIPlaylist()
-            getUserPlaylists()
+        player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+        # try:
+        #     refreshMyAIPlaylist()
+        #     getUserPlaylists()
 
-        except Exception as E:
-            print("RefreshPlaylist:", E)
-        pass
+        # except Exception as E:
+        #     print("RefreshPlaylist:", E)
+        # pass
 
-    def is_enabled(self):
-        pass
+    # def is_enabled(self):
+    #     pass
     #     return (getValue("my_ai_playlist", True) is True)
     #     # logged_on = getValue("logged_on", True)
     #     # ai_playlist = getValue("my_ai_playlist", False)

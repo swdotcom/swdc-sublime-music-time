@@ -369,6 +369,7 @@ class ConnectSpotify(sublime_plugin.TextCommand):
             showStatus("Connect Spotify")
         checkAIPlaylistid()
         getUserPlaylists()
+        autoRefreshPlaylist()
         # getActiveDeviceInfo()
         # refreshStatusBar()
 
@@ -665,6 +666,7 @@ def checkUserState():
                 print("checkAIPlaylistid",e)
                 pass
             getUserPlaylists()
+            autoRefreshPlaylist()
             # refreshStatusBar()
             print('_'*40)
             print(' * logged_on: True', '\n * Email:', resp_data['email'])

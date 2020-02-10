@@ -38,4 +38,3 @@ check_online_interval_sec = 60 * 10
 retry_counter = 0
 
 # 
-AI_PLAYLIST_NAME = "My AI Top 40"

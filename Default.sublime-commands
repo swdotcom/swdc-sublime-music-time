@@ -31,12 +31,5 @@
         "command": "open_songs",
         "caption": "Open songs"
     },
-    {
-        "command": "generate_ai_playlist",
-        "caption": "Generate My AI Playlist"
-    },
-    {
-        "command": "refresh_ai_playlist",
-        "caption": "Refresh My AI Playlist"
-    },                 
+              
 ]
