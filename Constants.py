@@ -10,6 +10,9 @@ SPOTIFY_REFRESH_API = "https://accounts.spotify.com/api/token"
 ST3_GITHUB_URL = "https://github.com/swdotcom/music-time-sublime/issues"
 FEEDBACK_MAIL_ID = "mailto:cody@software.com"
 
+# Software_headers = {'content-type': 'application/json', 'Authorization': jwt}
+# Spotify_headers = {"Authorization": "Bearer {}".format(access_token)}
+
 # SoftwareOffline.py
 sessionSummaryData = None
 lastDayOfMonth = 0
@@ -33,3 +36,5 @@ DEFAULT_DURATION = 60
 PROJECT_DIR = None
 check_online_interval_sec = 60 * 10
 retry_counter = 0
+
+# 

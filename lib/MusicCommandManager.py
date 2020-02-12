@@ -11,9 +11,22 @@ import webbrowser
 # from .SoftwareUtil import *
 # from .SoftwareHttp import *
 # from .SoftwareMusic import *
-# from .MusicPlaylistProvider import *
+from .MusicPlaylistProvider import *
 from ..Constants import *
 from .MusicControlManager import *
+from .SlackConnectionManager import *
+
+
+# Open Readme file 
+class ReadmePleaseCommand(sublime_plugin.WindowCommand):
+    def description(self):
+        """Quick access to packages README."""
+
+    def run(self):
+        info = ['swdc-sublime-music-time', 'README.md',
+                'Packages/swdc-sublime-music-time/README.md']
+        sublime.active_window().run_command("open_file", {
+            "file": "${packages}/%s/%s" % (info[0], info[1])})
 
 
 # Report an issue on github
@@ -61,7 +74,7 @@ class SeeWebAnalytics(sublime_plugin.TextCommand):
 class PlaySong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
-            self.view.show_popup(myToolTip())
+            # self.view.show_popup(myToolTip())
             playSong()
         except Exception as E:
             print("play", E)
@@ -74,7 +87,7 @@ class PlaySong(sublime_plugin.TextCommand):
 class PauseSong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
-            self.view.show_popup(myToolTip())
+            # self.view.show_popup(myToolTip())
             pauseSong()
         except Exception as E:
             print("pause", E)
@@ -87,7 +100,7 @@ class PauseSong(sublime_plugin.TextCommand):
 class NextSong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
-            self.view.show_popup(myToolTip())
+            # self.view.show_popup(myToolTip())
             nextSong()
         except Exception as E:
             print("next", E)
@@ -100,7 +113,7 @@ class NextSong(sublime_plugin.TextCommand):
 class PrevSong(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
-            self.view.show_popup(myToolTip())
+            # self.view.show_popup(myToolTip())
             previousSong()
         except Exception as E:
             print("prev", E)
@@ -135,28 +148,53 @@ class SortPlaylist(sublime_plugin.TextCommand):
 # Generate AI playlist
 class GenerateAIPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
-        try:
-            generateAIplaylist()
-        except Exception as E:
-            print("RefreshPlaylist:", E)
+        player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+        # try:
+        #     generateMyAIPlaylist()
+        #     getUserPlaylists()
+        # except Exception as E:
+        #     print("generateMyAIPlaylist:", E)
         pass
-
+    
     def is_enabled(self):
-        return (getValue("logged_on", True) is True)
+        return True
+            # return (getValue("logged_on", True) is True)
+    #     # return (getValue("my_ai_playlist", True) is False)
+    #     logged_on = getValue("logged_on", True)
+    #     ai_playlist = getValue("my_ai_playlist", False)
+
+    #     if logged_on is True and ai_playlist is False:
+    #         return True
+    #     elif logged_on is True and ai_playlist is True:
+    #         return False
+    #     elif logged_on is False:
+    #         return False 
+
 
 # Refresh AI playlist
-
-
 class RefreshAIPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
-        try:
-            refreshAIplaylist()
-        except Exception as E:
-            print("RefreshPlaylist:", E)
-        pass
+        player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+        # try:
+        #     refreshMyAIPlaylist()
+        #     getUserPlaylists()
 
-    def is_enabled(self):
-        return (getValue("logged_on", True) is True)
+        # except Exception as E:
+        #     print("RefreshPlaylist:", E)
+        # pass
+
+    # def is_enabled(self):
+    #     pass
+    #     return (getValue("my_ai_playlist", True) is True)
+    #     # logged_on = getValue("logged_on", True)
+    #     # ai_playlist = getValue("my_ai_playlist", False)
+
+    #     # if logged_on is True and ai_playlist is False:
+    #     #     return False
+    #     # elif logged_on is True and ai_playlist is True:
+    #     #     return True
+    #     # elif logged_on is False:
+    #     #     return False 
 
 
 class ConnectionStatus(sublime_plugin.TextCommand):
@@ -173,8 +211,10 @@ class ConnectionStatus(sublime_plugin.TextCommand):
 # Slack connectivtiy
 class ConnectSlack(sublime_plugin.TextCommand):
     def run(self, edit):
-        infoMsg = "Development in Progess."
-        clickAction = sublime.ok_cancel_dialog(infoMsg, "OK")
+        launchConnectSlack()
+        getSlackTokens()
+        # infoMsg = "Development in Progess."
+        # clickAction = sublime.ok_cancel_dialog(infoMsg, "OK")
         pass
 
     def is_enabled(self):

@@ -33,102 +33,103 @@ def getMusicTimedashboard():
     file = getDashboardFile()
     sublime.active_window().open_file(file)
 
+
 def gatherMusicInfo():
     global current_track_info
 
-    # # get the music track playing
-    # # the trackInfo should be a dictionary
-    # trackInfo = getTrackInfo()
-    # now = round(time.time())
-    # start = now
-    # local_start = now - time.timezone
+    # get the music track playing
+    # the trackInfo should be a dictionary
+    trackInfo = getTrackInfo()
+    now = round(time.time())
+    start = now
+    local_start = now - time.timezone
 
-    # # state = "nice" if is_nice else "not nice"
-    # currentTrackId = currentTrackInfo.get("id", None)
-    # trackId = trackInfo.get("id", None)
-    # trackType = trackInfo.get("type", None)
+    # state = "nice" if is_nice else "not nice"
+    currentTrackId = current_track_info.get("id", None)
+    trackId = trackInfo.get("id", None)
+    trackType = trackInfo.get("type", None)
 
-    # if (trackId is not None and trackType == "itunes"):
-    #     itunesTrackState = getItunesTrackState()
-    #     trackInfo["state"] = itunesTrackState
-    #     try:
-    #         # check if itunes is found, if not it'll raise a ValueError
-    #         idx = trackId.index("itunes")
-    #         if (idx == -1):
-    #             trackId = "itunes:track:" + str(trackId)
-    #             trackInfo["id"] = trackId
-    #     except ValueError:
-    #         # set the trackId to "itunes:track:"
-    #         trackId = "itunes:track:" + str(trackId)
-    #         trackInfo["id"] = trackId
-    # elif (trackId is not None and trackType == "spotify"):
-    #     spotifyTrackState = getSpotifyTrackState()
-    #     trackInfo["state"] = spotifyTrackState
+    if (trackId is not None and trackType == "itunes"):
+        itunesTrackState = getItunesTrackState()
+        trackInfo["state"] = itunesTrackState
+        try:
+            # check if itunes is found, if not it'll raise a ValueError
+            idx = trackId.index("itunes")
+            if (idx == -1):
+                trackId = "itunes:track:" + str(trackId)
+                trackInfo["id"] = trackId
+        except ValueError:
+            # set the trackId to "itunes:track:"
+            trackId = "itunes:track:" + str(trackId)
+            trackInfo["id"] = trackId
+    elif (trackId is not None and trackType == "spotify"):
+        spotifyTrackState = getSpotifyTrackState()
+        trackInfo["state"] = spotifyTrackState
 
-    # trackState = trackInfo.get("state", None)
-    # duration = trackInfo.get("duration", None)
+    trackState = trackInfo.get("state", None)
+    duration = trackInfo.get("duration", None)
 
-    # if (duration is not None):
-    #     duration_val = float(duration)
-    #     if (duration_val > 1000):
-    #         trackInfo["duration"] = duration_val / 1000
-    #     else:
-    #         trackInfo["duration"] = duration_val
+    if (duration is not None):
+        duration_val = float(duration)
+        if (duration_val > 1000):
+            trackInfo["duration"] = duration_val / 1000
+        else:
+            trackInfo["duration"] = duration_val
+    '''
+    conditions:
+    1) if the currentTrackInfo doesn't have data and trackInfo does
+       that means we should send it as a new song starting
+    2) if the currentTrackInfo has data and the trackInfo does
+       and has the same trackId, then don't send the payload
+    3) if the currentTrackInfo has data and the trackInfo has data
+       and doesn't have the same trackId then send a payload
+       to close the old song and send a payload to start the new song
+    '''
+    if (trackId is not None):
+        isPaused = False
 
-    # # conditions
-    # # 1) if the currentTrackInfo doesn't have data and trackInfo does
-    # #    that means we should send it as a new song starting
-    # # 2) if the currentTrackInfo has data and the trackInfo does
-    # #    and has the same trackId, then don't send the payload
-    # # 3) if the currentTrackInfo has data and the trackInfo has data
-    # #    and doesn't have the same trackId then send a payload
-    # #    to close the old song and send a payload to start the new song
+        if (trackState != "playing"):
+            isPaused = True
 
-    # if (trackId is not None):
-    #     isPaused = False
+        if (currentTrackId is not None and (currentTrackId != trackId or isPaused is True)):
+            # update the end time of the previous track and post it
+            current_track_info["end"] = start - 1
+            response = requestIt("POST", "/data/music",
+                                 json.dumps(current_track_info), getItem("jwt"))
+            if (response is None):
+                log("Code Time: error closing previous track")
+            # re-initialize the current track info to an empty object
+            current_track_info = {}
 
-    #     if (trackState != "playing"):
-    #         isPaused = True
+        if (isPaused is False and (currentTrackId is None or currentTrackId != trackId)):
+            # starting a new song
+            trackInfo["start"] = start
+            trackInfo["local_start"] = local_start
+            trackInfo["end"] = 0
+            response = requestIt("POST", "/data/music",
+                                 json.dumps(trackInfo), getItem("jwt"))
+            if (response is None):
+                log("Code Time: error sending new track")
 
-    #     if (currentTrackId is not None and (currentTrackId != trackId or isPaused is True)):
-    #         # update the end time of the previous track and post it
-    #         currentTrackInfo["end"] = start - 1
-    #         response = requestIt("POST", "/data/music",
-    #                              json.dumps(currentTrackInfo), getItem("jwt"))
-    #         if (response is None):
-    #             log("Code Time: error closing previous track")
-    #         # re-initialize the current track info to an empty object
-    #         currentTrackInfo = {}
+            # clone the trackInfo to the current_track_info
+            for key, value in trackInfo.items():
+                current_track_info[key] = value
+    else:
+        if (currentTrackId is not None):
+            # update the end time since there are no songs coming
+            # in and the previous one is stil available
+            current_track_info["end"] = start - 1
+            response = requestIt("POST", "/data/music",
+                                 json.dumps(current_track_info), getItem("jwt"))
+            if (response is None):
+                log("Code Time: error closing previous track")
 
-    #     if (isPaused is False and (currentTrackId is None or currentTrackId != trackId)):
-    #         # starting a new song
-    #         trackInfo["start"] = start
-    #         trackInfo["local_start"] = local_start
-    #         trackInfo["end"] = 0
-    #         response = requestIt("POST", "/data/music",
-    #                              json.dumps(trackInfo), getItem("jwt"))
-    #         if (response is None):
-    #             log("Code Time: error sending new track")
+        # re-initialize the current track info to an empty object
+        current_track_info = {}
 
-    #         # clone the trackInfo to the currentTrackInfo
-    #         for key, value in trackInfo.items():
-    #             currentTrackInfo[key] = value
-    # else:
-    #     if (currentTrackId is not None):
-    #         # update the end time since there are no songs coming
-    #         # in and the previous one is stil available
-    #         currentTrackInfo["end"] = start - 1
-    #         response = requestIt("POST", "/data/music",
-    #                              json.dumps(currentTrackInfo), getItem("jwt"))
-    #         if (response is None):
-    #             log("Code Time: error closing previous track")
-
-    #     # re-initialize the current track info to an empty object
-    #     currentTrackInfo = {}
-
-    # # fetch the daily kpm session info in 15 seconds
-    # gatherMusicInfoTimer = Timer(15, gatherMusicInfo)
-    # gatherMusicInfoTimer.start()
+    # fetch the daily kpm session info in 15 seconds
+    gatherMusicInfoTimer = Timer(15, gatherMusicInfo)
+    gatherMusicInfoTimer.start()
     pass
 
 
@@ -136,8 +137,8 @@ def gatherMusicInfo():
 def getActiveDeviceInfo():
     # print("{}".format(getItem('spotify_access_token')))
     global DEVICES
-    global playlist_id
-    global songs_tree
+    # global playlist_id
+    # global current_song
 
     headers = {"Authorization": "Bearer {}".format(
         getItem('spotify_access_token'))}
@@ -148,21 +149,16 @@ def getActiveDeviceInfo():
     DEVICES = []
     try:
         if devices['devices'] == [] and userTypeInfo() == "premium":
-            try:
-                url = "https://open.spotify.com/album/"+playlist_id+"?highlight=spotify:track:"+songs_tree
-            except:
-                # url = "https://open.spotify.com/track/"+songs_tree
-            # else:
-                url = "https://open.spotify.com/"
+            url = "https://open.spotify.com/"
             # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
-            # if player:
             webbrowser.open(url)
+            print("Music Time: Opening web player" )
             # else:
-                # print("Music Time: No active device found.")
+            # print("Music Time: No active device found.")
         else:
             for i in devices:
                 for j in range(len(devices['devices'])):
-                    
+
                     # get devices name list to display in tree view
                     DEVICES.append(devices['devices'][j]['name'])
 
@@ -238,9 +234,11 @@ def currentTrackInfo():
                 except KeyError:
                     showStatus("Connect Spotify")
 
-        except Exception as e:
-            print('Music Time: currentTrackInfo', e)
-            showStatus("Spotify Connected. No Active device found.")
+        # except Exception as e:
+        except requests.exceptions.ConnectionError:
+            print('Music Time: currentTrackInfo ConnectionError')
+            showStatus("Spotify Connected")
+            time.sleep(5)
             pass
     refreshStatusBar()
 
@@ -260,8 +258,6 @@ def refreshStatusBar():
         pass
 
 # Continuous refresh devices
-
-
 def refreshDeviceStatus():
     try:
         t = Timer(60, getActiveDeviceInfo)
@@ -274,29 +270,117 @@ def refreshDeviceStatus():
 
 
 # Lambda function for checking user
-check_user = lambda : "Spotify Connected" if (userTypeInfo() == "premium") else ("Connect Premium" if (userTypeInfo() == "open") else "Connect Spotify")
+def check_user(): return "Spotify Connected" if (userTypeInfo() == "premium") else (
+    "Connect Premium" if (userTypeInfo() == "open") else "Connect Spotify")
+
+# to get all device names
+
+
+def getDeviceNames():
+    headers = {"Authorization": "Bearer {}".format(
+        getItem('spotify_access_token'))}
+    get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
+    getdevs = requests.get(get_device_url, headers=headers)
+    show_list = []
+    if getdevs.status_code == 200:
+        devices = getdevs.json()['devices']
+        show_list = []
+        for i in range(len(devices)):
+            show_list.append(devices[i]['name'])
+
+        show_device = ", ".join(show_list)
+        if len(devices) == 0:
+            show_device = "Device not found"
+
+    else:
+        show_device = "Device status not found"
+        print(getdevs)
+
+    return show_device
+
+
+# get active device name
+def activeDeviceName():
+    headers = {"Authorization": "Bearer {}".format(
+        getItem('spotify_access_token'))}
+    get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
+    getdevs = requests.get(get_device_url, headers=headers)
+    name = ""
+    if getdevs.status_code == 200:
+        devices = getdevs.json()['devices']
+        for i in range(len(devices)):
+            if devices[i]['is_active'] == True:
+                name = devices[i]['name']
+    else:
+        name = ""
+
+    return name
+
+# Show Active/connected/no device msg
 
 
 def myToolTip():
     # global DEVICES
-    getActiveDeviceInfo()
+    # getActiveDeviceInfo()
     header = "<h3>Music Time</h3>"
-    # connected = '<p><a href="show"><img src="res://Packages/swdc-sublime-music-time/spotify-icons-logos/spotify-icons-logos/icons/01_RGB/02_PNG/Spotify_Icon_RGB_Green.png" height="20" width="20">{}</a></p>'.format(check_user())
     connected = '<p><b>{}</b></p>'.format(check_user())
-    listen_on = '<p><b>Listening on </b><i>{}</i></p>'.format(ACTIVE_DEVICE.get('name'))
-    # print("DEVICES",DEVICES)
-    available_on = '<p><b>Connected on </b><i>{}</i></p>'.format(','.join(DEVICES))
-    no_device_msg = '<p><i>No device found</i></p>'
     close_msg = '(Press <b>Esc</b> to close)'
 
-    if len(ACTIVE_DEVICE.values()) != 0:
+    if len(activeDeviceName()) > 0:
+        show_str = activeDeviceName()
+        # print(show_str)
+        listen_on = '<p><b>Listening on </b><i>{}</i></p>'.format(show_str)
         body = "<body>" + header + connected + listen_on + close_msg + "</body>"
-
-    elif len(DEVICES) == 0 and len(ACTIVE_DEVICE.values()) == 0:
-        body = "<body>" + header + connected + no_device_msg +  close_msg + "</body>"
+        # print("\n",body)
 
     else:
-        body = "<body>" + header + connected + available_on + close_msg + "</body>"
-        
-    print(body)
+        if getDeviceNames() == "Device not found":
+            show_str = getDeviceNames()
+            # print(show_str)
+            no_device_msg = '<p><i>No device found</i></p>'
+            body = "<body>" + header + connected + no_device_msg + close_msg + "</body>"
+            # print("\n",body)
+        else:
+            show_str = getDeviceNames()
+            # print(show_str)
+            available_on = '<p><b>Connected on </b><i>{}</i></p>'.format(
+                show_str)
+            body = "<body>" + header + connected + available_on + close_msg + "</body>"
+    # print("\n",body)
     return body
+
+
+# To open spotify playlist/track web url
+def openTrackInWeb(playlist_ids, current_songs):
+    global playlist_id
+    global current_song
+    playlist_id = playlist_ids
+    current_song = current_songs
+
+    print("openTrackInWeb()\n", "playlist_id :", playlist_id,
+          "\ncurrent_song:", current_song, "\nACTIVE_DEVICE", ACTIVE_DEVICE)
+
+    if userTypeInfo() == "premium" and len(ACTIVE_DEVICE.values()) == 0:
+
+        if len(current_song) > 0 and (playlist_id == "" or playlist_id == None):
+            print("without playlist id ")
+            url = "https://open.spotify.com/track/"+current_song
+
+        elif len(playlist_id) > 0 and len(current_song) > 0:
+            print("with playlist id ")
+            # https://open.spotify.com/playlist
+            url = "https://open.spotify.com/playlist/" + \
+                playlist_id+"?highlight=spotify:track:"+current_song
+
+        else:
+            url = "https://open.spotify.com/"
+        # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+        webbrowser.open(url)
+        time.sleep(5)
+
+    else:
+        if userTypeInfo() != "premium":
+            args = "open -a Spotify"
+            os.system(args)
+        else:
+            pass

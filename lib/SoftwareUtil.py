@@ -45,7 +45,7 @@ loggedInCacheState = False
 jwt = ''
 spotifyuser = {}
 sessionMap = {}
-user_id = ''
+spotifyUserId = ''
 timezone = ''
 CLIENT_ID = ''
 CLIENT_SECRET = ''
@@ -369,17 +369,50 @@ def checkOnline():
     else:
         return False
 
+'''PrashJD's method '''
+# def refetchUserStatusLazily(tryCountUntilFoundUser):
+#     time.sleep(5)
+#     statusHandler(tryCountUntilFoundUser)
 
+
+# def statusHandler(tryCountUntilFoundUser):
+#     currentUserStatus = getUserStatus()
+#     loggedInUser = currentUserStatus.get("loggedInUser", None)
+#     if (loggedInUser is False):
+#         if tryCountUntilFoundUser <= 0:
+#             tryCountUntilFoundUser -= 1
+#             refetchUserStatusLazily(tryCountUntilFoundUser)
+#     if (loggedInUser is True):
+#         message_dialog = sublime.message_dialog("Spotify Connected !")
+#         print("Connected")
 def refetchUserStatusLazily(tryCountUntilFoundUser):
     currentUserStatus = getUserStatus()
+    # print("currentUserStatus\n",currentUserStatus)
     loggedInUser = currentUserStatus.get("loggedInUser", None)
+    # loggedInUser = currentUserStatus["loggedInUser"]
+
+    # print("loggedInUser : ",loggedInUser)
+    
+    # t = Timer(10, refetchUserStatusLazily, [tryCountUntilFoundUser])
     if (loggedInUser is not None or tryCountUntilFoundUser <= 0):
-        return
+        return 
+    #     s = "user found"
+    #     print(s,tryCountUntilFoundUser)
+    #     # t.cancel()
+    # else:
+    #     s = "user not found"
+    #     print(s,tryCountUntilFoundUser)
 
     # start the time
     tryCountUntilFoundUser -= 1
     t = Timer(10, refetchUserStatusLazily, [tryCountUntilFoundUser])
     t.start()
+    # Once we got user terminate this thread
+    # currentUserStatus = getUserStatus()
+    # loggedInUser = currentUserStatus.get("loggedInUser", None)
+    # if (loggedInUser is True):
+    #     t.cancel()
+    #     print("User log-in completed !")
 
 
 def launchLoginUrl():
@@ -520,7 +553,7 @@ def getUser(serverAvailable):
 
 def validateEmail(email):
     match = re.findall('\S+@\S+', email)
-    if match:
+    if match:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
         return True
     return False
 
@@ -542,19 +575,36 @@ def isLoggedOn(serverAvailable):
         if (responseOk is True):
             try:
                 responseObj = json.loads(response.read().decode('utf-8'))
+                # message_dialog = sublime.message_dialog(str(responseObj))
+                print("responseObj",responseObj)
+                time.sleep(5)
 
                 state = responseObj.get("state", None)
                 if (state is not None and state == "OK"):
-                    email = responseObj.get("emai", None)
+                    email = responseObj.get("email", None)
                     setItem("name", email)
                     pluginJwt = responseObj.get("jwt", None)
                     if (pluginJwt is not None and pluginJwt != jwt):
                         setItem("jwt", pluginJwt)
+                        message_dialog = sublime.message_dialog("Spotify Connected !")
+
+                        for i in range(len(responseObj['user']['auths'])):
+                            if responseObj['user']['auths'][i]['type'] == "spotify":
+                                ACCESS_TOKEN = responseObj['user']['auths'][i]['access_token']
+                                REFRESH_TOKEN = responseObj['user']['auths'][i]['refresh_token']
+
+                                setItem("spotify_access_token", ACCESS_TOKEN)
+                                setItem("spotify_refresh_token", REFRESH_TOKEN)
+                                print("Music Time: Access token Added !")
 
                     # state is ok, return True
                     return True
                 elif (state is not None and state == "NOT_FOUND"):
                     setItem("jwt", None)
+                    setItem("name", '')
+                    setItem("spotify_access_token", '')
+                    setItem("spotify_refresh_token", '')
+                    # message_dialog = sublime.message_dialog("Spotify Connected !")
 
             except Exception as ex:
                 log("Code Time: Unable to retrieve logged on response: %s" % ex)
@@ -678,31 +728,32 @@ def getDashboardDataDisplay(widthLen, data):
 
 # launch browser to get user permissions
 def launchSpotifyLoginUrl():
-    global jwt
-    # api_endpoint = getValue("software_api_endpoint", "api.software.com")
-#     jwt = getItem("jwt")
-    try:
-        spotify_url = SOFTWARE_API + "/auth/spotify?token=" + \
-            jwt + "&mac=" + str(isMac()).lower()
-        print("Music Time: ", spotify_url)
-        webbrowser.open(spotify_url)
-    except Exception as e:
-        print("Music Time: Try to connect after some time.", e)
-        message_dialog = sublime.message_dialog(
-            "Please try to connect Spotify after some time. !")
+    # global jwt
 
-# get user authentication data
-
-
-def getAuthInfo():
-    global jwt
     jwt = requests.get(SOFTWARE_API + '/data/apptoken?token=' +
                        str(round(time.time()))).json()['jwt']
-    print("getAuthInfo JWT ^^^^^^", jwt)
+    print("got jwt",jwt)
     setItem("jwt", jwt)
-    headers = {'content-type': 'application/json', 'Authorization': jwt}
+    # api_endpoint = getValue("software_api_endpoint", "api.software.com")
+#     jwt = getItem("jwt")
+    spotify_url = SOFTWARE_API + "/auth/spotify?token=" + \
+        jwt + "&mac=" + str(isMac()).lower()
+    print("Music Time: ", spotify_url)
+    webbrowser.open(spotify_url)
+    # time.sleep(15)
+    # except Exception as e:
+    #     print("Music Time: Try to connect after some time.", e)
+    #     message_dialog = sublime.message_dialog(
+    #         "Please try to connect Spotify after some time. !")
+    refetchUserStatusLazily(5)
+
+
+# get user authentication data
+def getAuthInfo():
+    global jwt
     launchSpotifyLoginUrl()
-    time.sleep(30)
+    
+    headers = {'content-type': 'application/json', 'Authorization': jwt}
     user_state_url = SOFTWARE_API + "/users/plugin/state"
     getauth = requests.get(user_state_url, headers=headers)
     if getauth.status_code == 200:
@@ -785,11 +836,11 @@ def userMeInfo():
 def userTypeInfo():
     global spotifyuser
     global user_type
-    global user_id
+    global spotifyUserId
     try:
         spotifyuser = userMeInfo()
         # print("Music Time : User Info \n", spotifyuser)
-        user_id = spotifyuser.get("id")
+        spotifyUserId = spotifyuser.get("id")
 
         if spotifyuser['product'] == "premium":
             user_type = "premium"
@@ -808,9 +859,12 @@ def userTypeInfo():
 
 # get spotify client credentials
 def getClientCredentials():
-    client_creds_url = SOFTWARE_API + '/data/apptoken?token=30000'
-    get_JWT = requests.get(client_creds_url)
-    jwt = get_JWT.json()['jwt']
+    jwt = getItem("jwt")
+    if jwt is None or jwt == "":
+        client_creds_url = SOFTWARE_API + '/data/apptoken?token=30000'
+        get_JWT = requests.get(client_creds_url)
+        jwt = get_JWT.json()['jwt']
+
     headers = {'content-type': 'application/json', 'Authorization': jwt}
     get_client_creds_url = SOFTWARE_API + '/auth/spotify/clientInfo'
     get_client_creds = requests.get(get_client_creds_url, headers=headers)
@@ -822,6 +876,7 @@ def getClientCredentials():
 
 
 def refreshSpotifyToken():
+    jwt = getItem("jwt")
     payload = {}
     obj = {}
     try:
@@ -840,17 +895,22 @@ def refreshSpotifyToken():
             obj = response.json()
 
             setItem("spotify_access_token", obj['access_token'])
+            setItem("spotify_refresh_token", spotify_refresh_token)
+            setItem("jwt", jwt)
+            print("Music Time : Spotify Access token updated !")
+            # loggedOn = isLoggedOn(serverAvailable)
     except Exception as e:
         print("Music Time : Refresh token not found !", e)
+        setItem("jwt", jwt)
+
+
+def autoRefreshAccessToken():
 
     t = Timer(60*59, refreshSpotifyToken)
     t.start()
 
-    return obj['access_token']
 
 # Clear the spotify tokens from session file
-
-
 def clearSpotifyTokens():
     setItem("name", '')
     setItem("spotify_access_token", '')
@@ -858,9 +918,8 @@ def clearSpotifyTokens():
     setItem("jwt", '')
     print("Music Time: Tokens Cleared !")
 
-# disconnecting spotify
 
-
+# Disconnecting spotify and clearing all tokens
 def disconnectSpotify():
     jwt = getItem("jwt")
     # print(">>@<<",jwt)

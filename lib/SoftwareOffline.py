@@ -27,9 +27,8 @@ from .SoftwareSettings import *
 # NO_TOKEN_THRESHOLD_HOURS = Constants.NO_TOKEN_THRESHOLD_HOURS
 # LOGIN_LABEL = Constants.LOGIN_LABEL
 
+
 # init the session summary data
-
-
 def initSessionSumaryData():
     global sessionSummaryData
     sessionSummaryData = {
@@ -40,18 +39,16 @@ def initSessionSumaryData():
         "liveshareMinutes": None
     }
 
+
 # get the session summary data
-
-
 def getSessionSummaryData():
     global sessionSummaryData
     if (sessionSummaryData is None):
         sessionSummaryData = getSessionSummaryFileAsJson()
     return sessionSummaryData
 
+
 # get the session summary file
-
-
 def getSessionSummaryFile():
     file = getSoftwareDir(True)
     return os.path.join(file, 'sessionSummary.json')
@@ -68,8 +65,6 @@ def incrementSessionSummaryData(minutes, keystrokes):
         sessionSummaryData = getSessionSummaryFileAsJson()
     sessionSummaryData["currentDayMinutes"] += minutes
     sessionSummaryData["currentDayKeystrokes"] += keystrokes
-
-#
 
 
 def updateStatusBarWithSummaryData():
@@ -89,11 +84,11 @@ def updateStatusBarWithSummaryData():
             statusMsg += " | " + averageDailyInfo["formatted"]
 
     elif getValue("logged_on", True) == True:
-        statusMsg = "🎧 Spotify connected"
+        statusMsg = "Spotify Connected"
 
     # for displaying current playback track
     else:
-        statusMsg = "🎧 Connect Spotify"
+        statusMsg = "Connect Spotify"
 
     showStatus(statusMsg)
 
@@ -127,8 +122,6 @@ def saveSessionSummaryToDisk(sessionSummaryData):
     sessionFile = getSessionSummaryFile()
     with open(sessionFile, 'w') as f:
         f.write(content)
-
-#
 
 
 def getSessionSummaryFileAsJson():

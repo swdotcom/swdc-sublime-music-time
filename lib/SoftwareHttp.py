@@ -1,4 +1,3 @@
-
 # Copyright (c) 2018 by Software.com
 
 import http
@@ -24,8 +23,8 @@ plugin = ''
 
 def httpLog(message):
     if (getValue("software_logging_on", True)):
+        print(message)
         pass
-        # print(message)
 
 
 def redispayStatus():

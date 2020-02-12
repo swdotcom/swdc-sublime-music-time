@@ -18,6 +18,10 @@
                         "caption": "Disconnect Spotify"
                     },
                     {
+                        "caption": "Learn More ...",
+                        "command": "readme_please"
+                    },
+                    {
                         "command": "submit_issue_github",
                         "caption": "Submit an Issue on GitHub"
                     },
@@ -54,11 +58,11 @@
                             },
                             {
                                 "command": "generate_ai_playlist",
-                                "caption": "Generate My AI Playlist"
+                                "caption": "Generate AI Playlist"
                             },
                             {
                                 "command": "refresh_ai_playlist",
-                                "caption": "Refresh My AI Playlist"
+                                "caption": "Refresh AI Playlist"
                             },
                             {
                                 "command": "connect_slack",
