@@ -8,5 +8,6 @@
     "software_telemetry_on": true,
     "software_dashboard_url": "https://app.software.com",
     "plugin": "music-time",
-    "my_ai_playlist": false,
+    "ai_playlist": false,
+    "slack_loggedon": false
 }

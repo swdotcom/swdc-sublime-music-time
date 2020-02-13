@@ -702,7 +702,7 @@ def getAuthInfo():
     setItem("jwt", jwt)
     headers = {'content-type': 'application/json', 'Authorization': jwt}
     launchSpotifyLoginUrl()
-    time.sleep(30)
+    time.sleep(20)
     user_state_url = SOFTWARE_API + "/users/plugin/state"
     getauth = requests.get(user_state_url, headers=headers)
     if getauth.status_code == 200:
@@ -808,9 +808,15 @@ def userTypeInfo():
 
 # get spotify client credentials
 def getClientCredentials():
-    client_creds_url = SOFTWARE_API + '/data/apptoken?token=30000'
-    get_JWT = requests.get(client_creds_url)
-    jwt = get_JWT.json()['jwt']
+    jwt = getItem("jwt")
+    if jwt is None or jwt == "":
+        client_creds_url = SOFTWARE_API + '/data/apptoken?token=30000'
+        get_JWT = requests.get(client_creds_url)
+        jwt = get_JWT.json()['jwt']
+
+    # client_creds_url = SOFTWARE_API + '/data/apptoken?token=30000'
+    # get_JWT = requests.get(client_creds_url)
+    # jwt = get_JWT.json()['jwt']
     headers = {'content-type': 'application/json', 'Authorization': jwt}
     get_client_creds_url = SOFTWARE_API + '/auth/spotify/clientInfo'
     get_client_creds = requests.get(get_client_creds_url, headers=headers)
@@ -822,35 +828,42 @@ def getClientCredentials():
 
 
 def refreshSpotifyToken():
+    jwt = getItem("jwt")
     payload = {}
     obj = {}
-    try:
-        spotify_refresh_token = getItem("spotify_refresh_token")
-        payload['grant_type'] = 'refresh_token'
-        payload['refresh_token'] = spotify_refresh_token
-        refresh_token_url = "https://accounts.spotify.com/api/token"
-        CLIENT_ID, CLIENT_SECRET = getClientCredentials()
-        auth_header = base64.b64encode(six.text_type(
-            CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
-        headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
-        response = requests.post(
-            refresh_token_url, data=payload, headers=headers)
+    # try:
+    spotify_refresh_token = getItem("spotify_refresh_token")
+    payload['grant_type'] = 'refresh_token'
+    payload['refresh_token'] = spotify_refresh_token
+    refresh_token_url = "https://accounts.spotify.com/api/token"
+    CLIENT_ID, CLIENT_SECRET = getClientCredentials()
+    auth_header = base64.b64encode(six.text_type(
+        CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
+    headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
+    response = requests.post(
+        refresh_token_url, data=payload, headers=headers)
 
-        if response.status_code == 200:
-            obj = response.json()
+    if response.status_code == 200:
+        obj = response.json()
 
-            setItem("spotify_access_token", obj['access_token'])
-    except Exception as e:
-        print("Music Time : Refresh token not found !", e)
+        setItem("spotify_access_token", obj['access_token'])
+        setItem("spotify_refresh_token", spotify_refresh_token)
+        setItem("jwt", jwt)
+        print("Music Time : Spotify Access token updated !",str(time.localtime()[3:6]))
 
+    else:
+# except Exception as e:
+        print("Music Time : Refresh token not found !", response)
+        setItem("jwt", jwt)
+        setItem("spotify_refresh_token", spotify_refresh_token)
+
+
+def autoRefreshAccessToken():
     t = Timer(60*59, refreshSpotifyToken)
     t.start()
 
-    # return obj['access_token']
 
 # Clear the spotify tokens from session file
-
-
 def clearSpotifyTokens():
     setItem("name", '')
     setItem("spotify_access_token", '')

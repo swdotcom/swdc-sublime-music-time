@@ -17,6 +17,20 @@ from .MusicControlManager import *
 from .SlackConnectionManager import *
 
 
+
+# Open Readme file 
+class ReadmePleaseCommand(sublime_plugin.WindowCommand):
+    def description(self):
+        """Quick access to packages README."""
+
+    def run(self):
+        # Static values
+        info = ['swdc-sublime-music-time', 'README.md',
+                'Packages/swdc-sublime-music-time/README.md']
+        sublime.active_window().run_command("open_file", {
+            "file": "${packages}/%s/%s" % (info[0], info[1])})
+
+
 # Report an issue on github
 class SubmitIssueGithub(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -115,6 +129,7 @@ class RefreshPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
             getUserPlaylists()
+            message_dialog = sublime.message_dialog("Playlists Refreshed !")
         except Exception as E:
             print("Music Time: RefreshPlaylist:", E)
 
@@ -133,10 +148,38 @@ class SortPlaylist(sublime_plugin.TextCommand):
         return (getValue("logged_on", True) is True)
 
 
-# Generate AI playlist
-class GenerateAIPlaylist(sublime_plugin.TextCommand):
+class RefreshAiPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
-        player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+        print("Music Time: Refreshing My AI Playlist !")
+        try:
+            refreshMyAIPlaylist()
+            getUserPlaylists()
+        except Exception as E:
+            print("RefreshPlaylist:", E)
+        pass
+        # setValue("ai_playlist", False)
+
+    def is_enabled(self):
+        return (getValue("ai_playlist", True) is True)
+
+# Command to re-enable Console message
+class GenerateAiPlaylist(sublime_plugin.TextCommand):
+    def run(self, edit):
+        print("Music Time: Generating My AI Playlist !")
+        try:
+            generateMyAIPlaylist()
+            getUserPlaylists()
+        except Exception as E:
+            print("generateMyAIPlaylist:", E)
+        setValue("ai_playlist", True)
+
+    def is_enabled(self):
+        return (getValue("ai_playlist", True) is False)
+
+# Generate AI playlist
+# class GenerateAIPlaylist(sublime_plugin.TextCommand):
+#     def run(self, edit):
+#         player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
         # try:
         #     generateMyAIPlaylist()
         #     getUserPlaylists()
@@ -144,12 +187,12 @@ class GenerateAIPlaylist(sublime_plugin.TextCommand):
         #     print("generateMyAIPlaylist:", E)
         pass
     
-    def is_enabled(self):
-        return True
+    # def is_enabled(self):
+        # return True
             # return (getValue("logged_on", True) is True)
-    #     # return (getValue("my_ai_playlist", True) is False)
+    #     # return (getValue("ai_playlist", True) is False)
     #     logged_on = getValue("logged_on", True)
-    #     ai_playlist = getValue("my_ai_playlist", False)
+    #     ai_playlist = getValue("ai_playlist", False)
 
     #     if logged_on is True and ai_playlist is False:
     #         return True
@@ -160,9 +203,9 @@ class GenerateAIPlaylist(sublime_plugin.TextCommand):
 
 
 # Refresh AI playlist
-class RefreshAIPlaylist(sublime_plugin.TextCommand):
-    def run(self, edit):
-        player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+# class RefreshAIPlaylist(sublime_plugin.TextCommand):
+    # def run(self, edit):
+        # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
         # try:
         #     refreshMyAIPlaylist()
         #     getUserPlaylists()
@@ -173,9 +216,9 @@ class RefreshAIPlaylist(sublime_plugin.TextCommand):
 
     # def is_enabled(self):
     #     pass
-    #     return (getValue("my_ai_playlist", True) is True)
+    #     return (getValue("ai_playlist", True) is True)
     #     # logged_on = getValue("logged_on", True)
-    #     # ai_playlist = getValue("my_ai_playlist", False)
+    #     # ai_playlist = getValue("ai_playlist", False)
 
     #     # if logged_on is True and ai_playlist is False:
     #     #     return False
@@ -206,7 +249,7 @@ class ConnectSlack(sublime_plugin.TextCommand):
         pass
 
     def is_enabled(self):
-        return (getValue("logged_on", True) is False)
+        return (getValue("slack_loggedon", True) is False)
 
 
 class DisconnectSlack(sublime_plugin.TextCommand):
@@ -216,4 +259,7 @@ class DisconnectSlack(sublime_plugin.TextCommand):
         pass
 
     def is_enabled(self):
-        return (getValue("logged_on", True) is True)
+        return (getValue("slack_loggedon", True) is True)
+
+
+

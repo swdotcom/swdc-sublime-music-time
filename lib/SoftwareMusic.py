@@ -7,6 +7,7 @@ import time
 from .SoftwareHttp import *
 from .SoftwareUtil import *
 from ..Software import *
+
 # from .MusicControlManager import *
 
 current_track_info = {}
@@ -145,9 +146,11 @@ def getActiveDeviceInfo():
     get_device_url = SPOTIFY_API + "/v1/me/player/devices"
     getdevs = requests.get(get_device_url, headers=headers)
 
-    devices = getdevs.json()
-    DEVICES = []
-    try:
+    if getdevs.status_code == 200:
+
+        devices = getdevs.json()
+        DEVICES = []
+        # try:
         if devices['devices'] == [] and userTypeInfo() == "premium":
             url = "https://open.spotify.com/"
             # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
@@ -172,11 +175,13 @@ def getActiveDeviceInfo():
             print("DEVICES :", DEVICES)
             print("Music Time: Number of connected devices: ", len(DEVICES))
             # print("ACTIVE_DEVICE",ACTIVE_DEVICE)
+    elif getdevs.status_code == 401:
+        refreshSpotifyToken()
 
-    except Exception as E:
-        print("Music Time: getActiveDeviceInfo", E)
+        # except Exception as E:
+        #     print("Music Time: getActiveDeviceInfo", E)
 
-    refreshDeviceStatus()
+    # refreshDeviceStatus()
 
 
 def currentTrackInfo():
@@ -224,7 +229,7 @@ def currentTrackInfo():
                                " on "+ACTIVE_DEVICE.get('name'))
                     # print("Paused "+trackinfo)
 
-            else:
+            elif track.status_code == 401:
                 # showStatus("Loading . . . ")
                 showStatus("Spotify Connected")
                 try:
@@ -233,9 +238,13 @@ def currentTrackInfo():
                 except KeyError:
                     showStatus("Connect Spotify")
 
-        except Exception as e:
-            print('Music Time: currentTrackInfo', e)
-            showStatus("Spotify Connected. No Active device found.")
+        # except Exception as e:
+        #     print('Music Time: currentTrackInfo', e)
+        #     showStatus("Spotify Connected. No Active device found.")
+        except requests.exceptions.ConnectionError:
+            print('Music Time: currentTrackInfo ConnectionError')
+            showStatus("Spotify Connected")
+            time.sleep(5)
             pass
     refreshStatusBar()
 
@@ -255,15 +264,15 @@ def refreshStatusBar():
         pass
 
 # Continuous refresh devices
-def refreshDeviceStatus():
-    try:
-        t = Timer(60, getActiveDeviceInfo)
-        t.start()
-    except Exception as E:
-        print("Music Time: refreshStatusBar", E)
-        showStatus("No device found . . . ")
-        # showStatus("Connect Spotify")
-        pass
+# def refreshDeviceStatus():
+#     try:
+#         t = Timer(60, getActiveDeviceInfo)
+#         t.start()
+#     except Exception as E:
+#         print("Music Time: refreshStatusBar", E)
+#         showStatus("No device found . . . ")
+#         # showStatus("Connect Spotify")
+#         pass
 
 
 # Lambda function for checking user
@@ -354,27 +363,29 @@ def openTrackInWeb(playlist_ids, current_songs):
     playlist_id = playlist_ids
     current_song = current_songs
 
-    print("openTrackInWeb()\n", "playlist_id :", playlist_id,
+    print("open Track In Web", "\nplaylist_id :", playlist_id,
           "\ncurrent_song:", current_song, "\nACTIVE_DEVICE", ACTIVE_DEVICE)
 
     if userTypeInfo() == "premium" and len(ACTIVE_DEVICE.values()) == 0:
 
         if len(current_song) > 0 and (playlist_id == "" or playlist_id == None):
             print("without playlist id ")
-            url = "https://open.spotify.com/track/"+current_song
+            url = SPOTIFY_WEB_PLAYER + "/track/" + current_song
 
         elif len(playlist_id) > 0 and len(current_song) > 0:
             print("with playlist id ")
             # https://open.spotify.com/playlist
-            url = "https://open.spotify.com/playlist/" + \
-                playlist_id+"?highlight=spotify:track:"+current_song
+            url = SPOTIFY_WEB_PLAYER + "/playlist/" + \
+                playlist_id + "?highlight=spotify:track:" + current_song
 
         else:
-            url = "https://open.spotify.com/"
+            url = SPOTIFY_WEB_PLAYER
         # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
         webbrowser.open(url)
         time.sleep(5)
 
-    else:
+    elif userTypeInfo() != "premium":
         args = "open -a Spotify"
         os.system(args)
+    else:
+        pass

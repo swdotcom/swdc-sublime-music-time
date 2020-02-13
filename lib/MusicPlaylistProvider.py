@@ -210,7 +210,7 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
             data["context_uri"] = "spotify:playlist:" + playlist_id
             data['offset'] = {"uri": "spotify:track:" + track_id}
             payload = json.dumps(data)
-            print(playSongFromPlaylist, payload)
+            print("playSongFromPlaylist", payload)
             plays = requests.put(playstr, headers=headers, data=payload)
             print(plays.text)
         except Exception as e:
@@ -333,43 +333,39 @@ def getUserPlaylists():
     playlist_data.append(
         {'id': '000', 'name': 'Liked songs', 'songs': getLikedSongs()})
     print("GOT playlist data :\n", playlist_data)
+    # message_dialog = sublime.message_dialog("Playlists Refreshed !")
 
-
-# Refresh playlist automatically
-def autoRefreshPlaylist():
-    try:
-        t = Timer(10, getUserPlaylists)
-        t.start()
-        print("Music Time: Playlist Refreshed !")
-
-    except Exception as E:
-        print("Music Time: getUserPlaylists", E)
-        pass
 
 
 # Check AI playlist exist or not
 def checkAIPlaylistid():
     global AI_PLAYLIST_ID
     global AI_PLAYLIST_NAME
-    global playlist_info
+    # global playlist_info
+    spotifyUserId = userMeInfo().get('id')
+
     # Check for ai_playlist in software backend
     url = "https://api.software.com" + "/music/playlist/generated"
     # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTE0Nzc1LCJpYXQiOjE1NjgwMDg1Mjh9.h-2i2SRK3kWSojBkJ3JXUztWFdErUotAz9wk7JHw1H4"
     jwt = getItem("jwt")
     headers0 = {'content-type': 'application/json', 'Authorization': jwt}
     get_ai_playlistid = requests.get(url, headers=headers0)
+    # print("get_ai_playlistid:",get_ai_playlistid.text)
     if get_ai_playlistid.status_code == 200:
         get_ai_playlistid_data = get_ai_playlistid.json()
         print("get_ai_playlistid_data\n", get_ai_playlistid_data)
         if len(get_ai_playlistid_data) > 0:
             backend_ai_playlistid = get_ai_playlistid_data[0]['playlist_id']
-            # playlist_info = {}
-            # playlist_info = getUserPlaylistInfo(spotifyUserId)
+            print("backend_ai_playlistid : ",backend_ai_playlistid)
+
+            playlist_info = {}
+            playlist_info = getUserPlaylistInfo(spotifyUserId)
             print("checkAIPlaylistid >> playlist_info : ", playlist_info)
+
             # if playlist id in backend then check whether it exist in user playlist or not
             check_playlistid = []  # key = Playlist_name , value = Playlist_id
-            check_playlistid = [
-                key for key, value in playlist_info.items() if value == backend_ai_playlistid]
+            check_playlistid = [key for key, value in playlist_info.items() if value == backend_ai_playlistid]
+
             if len(check_playlistid) == 0:
                 print("Ai playlist not found")
                 # Delete backend ai playlistid
@@ -384,8 +380,8 @@ def checkAIPlaylistid():
                 if delete_ai_playlistid.status_code == 200:
                     print("Deleted ai playlistid: ", delete_ai_playlistid.text)
                     # Enable Generate AI button
-                    setValue("my_ai_playlist", False)
-                    print("setValue(my_ai_playlist, False)")
+                    setValue("ai_playlist", False)
+                    print("setValue(ai_playlist, False)")
                     print("Deleted old one. Generate new one")
                 else:
                     print("unable to delete playlistid",
@@ -399,34 +395,37 @@ def checkAIPlaylistid():
                 AI_PLAYLIST_ID = backend_ai_playlistid
                 print("AI_PLAYLIST_ID :", AI_PLAYLIST_ID)
                 # Enable Refresh AI button
-                setValue("my_ai_playlist", True)
+                setValue("ai_playlist", True)
 
         else:
+
             AI_PLAYLIST_ID = ""
             # Enable Generate AI button
-            print(getValue("my_ai_playlist", False))
-            setValue("my_ai_playlist", False)
-            print("Generate new one")
-            print(setValue("my_ai_playlist", False))
+            print(getValue("ai_playlist", False))
+            setValue("ai_playlist", False)
+            print("AI playlist not found in backend. Generate new one")
             pass
     else:
-        print("Try later")
+        print("AI Playlist not checked. Try later")
 
 
 # Generate My AI Playlist
 def generateMyAIPlaylist():
     global AI_PLAYLIST_ID
-    global spotifyUserId
+    spotifyUserId = userMeInfo().get('id')
     create_playlist_url = "https://api.spotify.com/v1/users/" + \
         spotifyUserId + "/playlists"
     headers = {"Authorization": "Bearer {}".format(
         getItem('spotify_access_token'))}
     data = {"name": AI_PLAYLIST_NAME, "public": True, "description": ""}
     json_data = json.dumps(data)
+    print("json_data :", json_data,"\nheaders :",headers,"\ncreate_playlist_url :",create_playlist_url)
     create_my_ai_playlist = requests.post(
         create_playlist_url, headers=headers, data=json_data)
+    print("create_my_ai_playlist :", create_my_ai_playlist.text)
+
     if create_my_ai_playlist.status_code >= 200:
-        print("create_my_ai_playlist :", create_my_ai_playlist)
+        # print("create_my_ai_playlist :", create_my_ai_playlist)
         response = create_my_ai_playlist.json()
         AI_PLAYLIST_ID = response['id']
 
@@ -463,7 +462,8 @@ def generateMyAIPlaylist():
                     send_uris_url, headers=headers, data=json_data)
                 if post_uris.status_code >= 200:
                     print("post_uris", post_uris)
-                    setValue("my_ai_playlist", True)
+                    setValue("ai_playlist", True)
+                    message_dialog = sublime.message_dialog("AI playlist Generated !")
 
                 else:
                     print("post_uris failed", post_uris)
@@ -472,10 +472,10 @@ def generateMyAIPlaylist():
                 print("get_recommends failed", get_recommends)
                 pass
         else:
-            print("update_playlist", update_playlist)
+            print("update_playlist", update_playlist.text)
             pass
     else:
-        print("create_my_ai_playlist", create_my_ai_playlist)
+        print("create_my_ai_playlist", create_my_ai_playlist.text)
         pass
 
 
@@ -502,10 +502,10 @@ def refreshMyAIPlaylist():
         uris_data = {"uris": uris_list}
         json_data = json.dumps(uris_data)
         wipe_uris = requests.put(
-            refresh_backend_url, headers=headers1, data=json_data)
+            refresh_backend_url, headers=headers, data=json_data)
 
         if wipe_uris.status_code >= 200:
-            print("wipe_uris", wipe_uris)
+            # print("wipe_uris", wipe_uris)
             software_recommend = "https://api.software.com/music/recommendations?limit=40"
             jwt = getItem("jwt")
             # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTE0Nzc1LCJpYXQiOjE1NjgwMDg1Mjh9.h-2i2SRK3kWSojBkJ3JXUztWFdErUotAz9wk7JHw1H4"
@@ -526,7 +526,8 @@ def refreshMyAIPlaylist():
 
                 if post_uris.status_code >= 200:
                     print("AI playlist refreshed !")
-                    setValue("my_ai_playlist", True)
+                    setValue("ai_playlist", True)
+                    message_dialog = sublime.message_dialog("AI playlist Refreshed !")
                 else:
                     print("Unable to to refresh\n", post_uris)
                     pass

@@ -32,7 +32,7 @@ ACCESS_TOKEN = ''
 REFRESH_TOKEN = ''
 EMAIL = ''
 user_type = ''
-spotifyUserId = ""
+spotifyUserId = ''
 
 # DEFAULT_DURATION = 60
 # PROJECT_DIR = None
@@ -369,7 +369,7 @@ class ConnectSpotify(sublime_plugin.TextCommand):
             showStatus("Connect Spotify")
         checkAIPlaylistid()
         getUserPlaylists()
-        autoRefreshPlaylist()
+        # autoRefreshPlaylist()
         # getActiveDeviceInfo()
         # refreshStatusBar()
 
@@ -649,6 +649,7 @@ def setOnlineStatus():
 
 
 def checkUserState():
+    global spotifyUserId
     try:
         jwt = getItem("jwt")
         headers = {'content-type': 'application/json', 'Authorization': jwt}
@@ -656,17 +657,23 @@ def checkUserState():
         resp = requests.get(check_state_url, headers=headers)
         resp_data = resp.json()
         if resp_data['state'] == "OK":
-            # setItem(resp_data['jwt'], jwt)
+            for i in range(len(resp_data['user']['auths'])):
+                if resp_data['user']['auths'][i]['type'] == "spotify":
+                    spotifyUserId = resp_data['user']['auths'][i]['authId']
+            
+            print("spotifyUserId",spotifyUserId)
+            
             setValue("logged_on", True) 
             showStatus("Spotify Connected")
             # getActiveDeviceInfo()
+            # getUserPlaylists()
             try:
                 checkAIPlaylistid()
             except Exception as e:
                 print("checkAIPlaylistid",e)
                 pass
             getUserPlaylists()
-            autoRefreshPlaylist()
+            autoRefreshAccessToken()
             # refreshStatusBar()
             print('_'*40)
             print(' * logged_on: True', '\n * Email:', resp_data['email'])

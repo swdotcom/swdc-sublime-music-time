@@ -18,6 +18,10 @@
                         "caption": "Disconnect Spotify"
                     },
                     {
+                        "caption": "Learn More ",
+                        "command": "readme_please"
+                    },
+                    {
                         "command": "submit_issue_github",
                         "caption": "Submit an Issue on GitHub"
                     },
@@ -94,8 +98,7 @@
                     {
                         "command": "connection_status",
                         "caption": "Connection Status"
-                    }
-
+                    },
                         ]
                 }
             

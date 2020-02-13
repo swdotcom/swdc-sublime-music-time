@@ -5,4 +5,5 @@
   {"keys": ["ctrl+alt+b"],"command":"prev_song"},
   {"keys": ["ctrl+alt+l"],"command":"open_playlists"},
   {"keys": ["ctrl+alt+r"],"command":"refresh_playlist"},
+  {"keys": ["ctrl+alt+c"],"command":"connection_status"},
 ]
