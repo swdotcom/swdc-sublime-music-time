@@ -58,11 +58,11 @@
                             },
                             {
                                 "command": "generate_ai_playlist",
-                                "caption": "Generate AI Playlist"
+                                "caption": "Generate My AI Playlist"
                             },
                             {
                                 "command": "refresh_ai_playlist",
-                                "caption": "Refresh AI Playlist"
+                                "caption": "Refresh My AI Playlist"
                             },
                             {
                                 "command": "connect_slack",

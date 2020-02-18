@@ -23,7 +23,6 @@ def launchConnectSlack():
 #     webbrowser.open(endpoint)
     
     
-    
 # connectSlack(jwt)
 def getSlackTokens():
 
