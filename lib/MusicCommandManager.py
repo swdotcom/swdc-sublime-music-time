@@ -301,21 +301,37 @@ class ConnectSlack(sublime_plugin.TextCommand):
         launchConnectSlack()
         getSlackTokens()
         # infoMsg = "Development in Progess."
-        # clickAction = sublime.ok_cancel_dialog(infoMsg, "OK")
+        # clickAction = sublime.message_dialog(infoMsg)
         pass
 
     def is_enabled(self):
-        return (getValue("slack_loggedon", True) is False)
+        logged_on = getValue("logged_on", True)
+        try:
+            if logged_on is False:
+                return False
+            else:
+                return (getValue("slack_logged_on", True) is False)
+        except Exception as e:
+            print("ConnectSlack",e)
+        
 
 
 class DisconnectSlack(sublime_plugin.TextCommand):
     def run(self, edit):
+        disconnectSlack()
         infoMsg = "Slack Disconnected"
-        clickAction = sublime.ok_cancel_dialog(infoMsg, "OK")
+        clickAction = sublime.message_dialog(infoMsg)
         pass
 
     def is_enabled(self):
-        return (getValue("slack_loggedon", True) is True)
+        logged_on = getValue("logged_on", True)
+        try:
+            if logged_on is False:
+                return False
+            else:
+                return (getValue("slack_logged_on", True) is True)
+        except Exception as e:
+            print("DisConnectSlack",e)
 
 
 

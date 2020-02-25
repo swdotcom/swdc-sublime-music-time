@@ -660,6 +660,12 @@ def checkUserState():
             for i in range(len(resp_data['user']['auths'])):
                 if resp_data['user']['auths'][i]['type'] == "spotify":
                     spotifyUserId = resp_data['user']['auths'][i]['authId']
+
+                if resp_data['user']['auths'][i]['type'] == "slack":
+                    setValue("slack_logged_on", True)
+                    slack = True
+                else:
+                    setValue("slack_logged_on", False)
             
             print("spotifyUserId",spotifyUserId)
             
@@ -676,7 +682,7 @@ def checkUserState():
             autoRefreshAccessToken()
             # refreshStatusBar()
             print('_'*40)
-            print(' * logged_on: True', '\n * Email:', resp_data['email'])
+            print(' * logged_on: True', '\n * Email:', resp_data['email'],"\n * Slack:",slack)
             print('_'*40)
         else:
             setValue("logged_on", False)

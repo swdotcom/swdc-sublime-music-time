@@ -309,11 +309,13 @@ def getUserPlaylists():
         print("Music Time: getuserPlaylistinfoerror", e)
 
     if sortby == "time":
+        # Sort by latest
         # playlist_names = list(playlist_info.keys())
         sortPlaylistByLatest()
         print("sortby:sortPlaylistByLatest:",sortby)
 
     else:
+        # sort by A-Z
         playlist_data = []
         for k, v in playlist_info.items():
             if "Software" in k:

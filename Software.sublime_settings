@@ -9,5 +9,5 @@
     "software_dashboard_url": "https://app.software.com",
     "plugin": "music-time",
     "ai_playlist": false,
-    "slack_loggedon": false
+    "slack_logged_on": false,
 }
