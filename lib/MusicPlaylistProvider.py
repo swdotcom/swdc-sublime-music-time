@@ -30,6 +30,9 @@ playlist_id = ''
 
 playlist_data = []
 spotifyUserId = ""
+playlist_names = []
+
+sortby = "time" # or "az"
 
 
 class OpenPlaylistsCommand(sublime_plugin.TextCommand):
@@ -241,6 +244,7 @@ def getLikedSongs():
 
 # GET playlist name and ids ro view
 def getUserPlaylistInfo(spotifyUserId):
+    global playlist_names
     headers = {"Authorization": "Bearer {}".format(
         getItem('spotify_access_token'))}
     playlist_track = SPOTIFY_API + "/v1/users/" + spotifyUserId + "/playlists"
@@ -250,11 +254,16 @@ def getUserPlaylistInfo(spotifyUserId):
             playlistname = playlist.json()
             names = []
             ids = []
-            playlist = []
+            playlist = {}
+            playlist_names = []
             for i in playlistname['items']:
+
                 names.append(i['name'])
                 ids.append(i['id'])
                 playlist = dict(zip(names, ids))
+
+        playlist_names = list(names)
+        print("In def playlist_names",playlist_names)
     except Exception as e:
         print("getUserPlaylistInfo err", e)
 
@@ -283,41 +292,11 @@ def getTracks(playlist_id):
 
 
 # Populate playlist data include playlists name/ids and tracks name/ids
-def getSortedUserPlaylists():
-    # global playlist_info
-    spotifyUserId = userMeInfo().get('id')
-    print("spotifyUserId: ", spotifyUserId)
-    global playlist_data
-    playlist_data = []
-    '''
-    playlist data should be in this form
-    data = [{"id": 1, "name": "Playlist_name","track_list": [
-            ('Tokyo Drifting', '3AHqaOkEFKZ6zEHdiplIv7'),
-            ('Alan Silvestri', '0pHcFONMGTN8g18jbz6lJu')] } ]
-    '''
-    try:
-        playlist_info = getUserPlaylistInfo(spotifyUserId)
-    except Exception as e:
-        print("Music Time: getuserPlaylistinfoerror", e)
-
-    sorted_playlist = dict(
-        sorted(playlist_info.items(), key=lambda playlist_info: playlist_info[0]))
-    print(sorted_playlist)
-
-    for k, v in sorted_playlist.items():
-        playlist_data.append({'id': v, 'name': k, 'songs': getTracks(v)})
-    playlist_data.append(
-        {'id': '000', 'name': 'Liked songs', 'songs': getLikedSongs()})
-    print("GOT playlist data :\n", playlist_data)
-
-
-# Populate playlist data include playlists name/ids and tracks name/ids
 def getUserPlaylists():
     global playlist_info
     spotifyUserId = userMeInfo().get('id')
     print("spotifyUserId: ", spotifyUserId)
     global playlist_data
-    playlist_data = []
     '''
     playlist data should be in this form
     data = [{"id": 1, "name": "Running", "songs": [('Tokyo Drifting (with Denzel Curry)', '3AHqaOkEFKZ6zEHdiplIv7'),
@@ -325,16 +304,112 @@ def getUserPlaylists():
     '''
     try:
         playlist_info = getUserPlaylistInfo(spotifyUserId)
-        print("List of Playlists: ", playlist_info)
+        print("List of Playlists: ", playlist_info) 
     except Exception as e:
         print("Music Time: getuserPlaylistinfoerror", e)
-    for k, v in playlist_info.items():
-        playlist_data.append({'id': v, 'name': k, 'songs': getTracks(v)})
-    playlist_data.append(
-        {'id': '000', 'name': 'Liked songs', 'songs': getLikedSongs()})
-    print("GOT playlist data :\n", playlist_data)
-    # message_dialog = sublime.message_dialog("Playlists Refreshed !")
 
+    if sortby == "time":
+        # playlist_names = list(playlist_info.keys())
+        sortPlaylistByLatest()
+        print("sortby:sortPlaylistByLatest:",sortby)
+
+    else:
+        playlist_data = []
+        for k, v in playlist_info.items():
+            if "Software" in k:
+                playlist_data.append({'id': v, 'name': k, 'playlistTypeId': 1 ,'songs': getTracks(v)})
+                # print("got software",k," ",v)
+
+            elif v == AI_PLAYLIST_ID or k == AI_PLAYLIST_NAME:
+                playlist_data.append({'id': v, 'name': k, 'playlistTypeId': 2 ,'songs': getTracks(v)})
+                # print("got AI playlist",k," ",v)
+
+            else:
+                playlist_data.append({'id': v, 'name': k, 'playlistTypeId': 4,'songs': getTracks(v)})
+                # print("got user playlist",k," ",v)
+        playlist_data.append({'id': '000', 'name': 'Liked songs', 'playlistTypeId': 3, 'songs': getLikedSongs()})
+        print("got liked songs")
+        print("No of playlist :",len(playlist_data))
+        try:
+            sortPlaylistByAz()
+        except Exception as e:
+            print("sortPlaylistByAz",e)
+        print("sortby:sortPlaylistByAz:",sortby)
+    
+
+# Sort by latest code
+def sortPlaylistByLatest():
+    global playlist_data
+    global playlist_names
+    global sortby
+    sortby = "time"
+
+    print("got inside loop: playlist_names",playlist_names)
+    sec_one = [] # Software top 40 and AI playlist
+    sec_two = ["Liked songs"] # Liked songs
+    sec_three = [] # user playlist
+    for k in playlist_names:
+        if k == "Software Top 40":
+            sec_one.append(k)
+        elif k == "My AI Top 40":
+            sec_one.append(k)
+        else:
+            sec_three.append(k)
+
+    if len(sec_one) == 2:    
+        # Swapping (1)Software top 40 (2)AI playlist
+        sec_one[0],sec_one[1] = sec_one[1],sec_one[0]
+    # Final list with (1)Software top 40 (2)AI playlist (3)Liked songs (4)user playlist
+    final_list = sec_one + sec_two + sec_three
+
+    playlist_data = []
+    for i in final_list:
+        
+        if i == "Software Top 40":
+    #         playlist_data[0] = {'id':playlist_info.get(i),'name':i,'playlistTypeId': 1,'songs': getTracks(playlist_info.get(i))}
+            playlist_data.append({'id':playlist_info.get(i),'name':i,'playlistTypeId': 1,'songs': getTracks(playlist_info.get(i))})
+        elif i == "My AI Top 40" or i == AI_PLAYLIST_NAME:
+    #         playlist_data[1] = {'id':playlist_info.get(i),'name':i,'playlistTypeId': 1,'songs': getTracks(playlist_info.get(i))}
+            playlist_data.append({'id':playlist_info.get(i),'name':i,'playlistTypeId': 2,'songs': getTracks(playlist_info.get(i))})
+        elif i == "Liked songs":
+    #         playlist_data[2] = {'id':playlist_info.get(i),'name':i,'playlistTypeId': 3,'songs': getLikedSongs()}
+            playlist_data.append({'id':playlist_info.get(i),'name':i,'playlistTypeId': 3,'songs': getLikedSongs()})
+        else:
+            playlist_data.append({'id':playlist_info.get(i),'name':i,'playlistTypeId': 4,'songs': getTracks(playlist_info.get(i))})
+            
+    # final_playlist = sec_one + sec_three
+    for k in playlist_data:
+        print(k['name'],"|",k['playlistTypeId'])
+
+
+# Sort by A-Z code
+def sortPlaylistByAz():
+    global playlist_data
+    global sortby
+    sortby = "az"
+
+    # section 1 for Software top 40, My AI, Likedsongs
+    playlist_section_one = []
+    playlist_section_two = []
+    for i in playlist_data:
+        if i['playlistTypeId'] < 4:
+            playlist_section_one.append(i)
+        else:
+            if i['playlistTypeId'] == 4:
+                playlist_section_two.append(i)
+
+    playlist_section_one = sorted(playlist_section_one, key = lambda i: i['playlistTypeId'])
+
+    # sorting by playlist name
+    playlist_section_two = sorted(playlist_section_two, key = lambda i: i['name'])
+
+    # Final sorted playlist in A-z
+    playlist_data = playlist_section_one + playlist_section_two
+    print("sortby",sortby)
+    for i in playlist_data:
+        print(i['name'],"|",i['playlistTypeId'])
+    # print(playlist_data)
+    # return AZSortedplaylist
 
 
 # Check AI playlist exist or not

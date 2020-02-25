@@ -34,6 +34,19 @@
                         "caption": "Refresh Playlist"
                     },
                     {
+                        "caption": "Sort Playlist",
+                        "children":[
+                            {
+                                "command": "sort_az",
+                                "caption": "Sort A-Z"
+                            },
+                            {   
+                                "command": "sort_latest",
+                                "caption": "Sort by latest"
+                            },
+                        ]
+                    },
+                    {
                         "caption": "My Playlists",
                         "children": [
                             {
@@ -43,10 +56,6 @@
                             {
                                 "command": "open_songs",
                                 "caption": "Open Songs"
-                            },
-                            {
-                                "command": "sort_playlist",
-                                "caption": "Sort Playlist A-Z"
                             },
                             {
                                 "command": "launch_music_time_metrics",

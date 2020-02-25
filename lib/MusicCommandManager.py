@@ -138,15 +138,27 @@ class RefreshPlaylist(sublime_plugin.TextCommand):
         return (getValue("logged_on", True) is True)
 
 
-class SortPlaylist(sublime_plugin.TextCommand):
+class SortAz(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
-            getSortedUserPlaylists()
+            sortPlaylistByAz()
+            message_dialog = sublime.message_dialog("Playlists Sorted by A-Z !")
         except Exception as e:
-            print("Music Time: SortPlaylist", e)
+            print("Music Time: sortPlaylistByAz", e)
 
     def is_enabled(self):
-        logged_on = getValue("logged_on", True)
+        return (getValue("logged_on", True) is True)
+
+class SortLatest(sublime_plugin.TextCommand):
+    def run(self, edit):
+        try:
+            sortPlaylistByLatest()
+            message_dialog = sublime.message_dialog("Playlists Sorted by Latest !")
+        except Exception as e:
+            print("Music Time: sortPlaylistbyLatest", e)
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
 
 
 class RefreshAiPlaylist(sublime_plugin.TextCommand):
