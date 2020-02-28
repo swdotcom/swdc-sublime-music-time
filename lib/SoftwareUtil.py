@@ -849,11 +849,11 @@ def refreshSpotifyToken():
         setItem("spotify_access_token", obj['access_token'])
         setItem("spotify_refresh_token", spotify_refresh_token)
         setItem("jwt", jwt)
-        print("Music Time : Spotify Access token updated !",str(time.localtime()[3:6]))
+        print("Music Time: Spotify Access token updated !",str(time.localtime()[3:6]))
 
     else:
 # except Exception as e:
-        print("Music Time : Refresh token not found !", response)
+        print("Music Time: Refresh token not found !", response)
         setItem("jwt", jwt)
         setItem("spotify_refresh_token", spotify_refresh_token)
 
@@ -885,6 +885,7 @@ def disconnectSpotify():
             print("Music Time: Spotify Disconnected !")
 
     except Exception as e:
+        
         print("Music Time: Disconnection error !\n", e)
         pass
     clearSpotifyTokens()

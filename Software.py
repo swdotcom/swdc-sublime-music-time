@@ -24,6 +24,7 @@ from .lib.SoftwareUtil import *
 from .lib.SoftwareMusic import *
 from .lib.SoftwareOffline import *
 from .lib.SoftwareSettings import *
+from .lib.SocialShareManager import *
 
 # SOFTWARE_API = Constants.SOFTWARE_API
 # SPOTIFY_API = Constants.SPOTIFY_API
@@ -33,6 +34,7 @@ REFRESH_TOKEN = ''
 EMAIL = ''
 user_type = ''
 spotifyUserId = ''
+slack = False
 
 # DEFAULT_DURATION = 60
 # PROJECT_DIR = None
@@ -645,11 +647,12 @@ def setOnlineStatus():
 
     # run the check in another 1 minute
     timer = Timer(60 * 1, setOnlineStatus)
-    timer.start()
+    timer.start()  
 
 
 def checkUserState():
     global spotifyUserId
+    global slack
     try:
         jwt = getItem("jwt")
         headers = {'content-type': 'application/json', 'Authorization': jwt}
@@ -688,8 +691,9 @@ def checkUserState():
             setValue("logged_on", False)
             print('logged_on:False')
     except Exception as e:
-        # print('checkUserState',e)
+        print('checkUserState',e)
         print('logged_on:False')
         setValue("logged_on", False)
         pass
+
 

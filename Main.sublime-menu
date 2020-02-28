@@ -42,7 +42,7 @@
                             },
                             {   
                                 "command": "sort_latest",
-                                "caption": "Sort by latest"
+                                "caption": "Sort by Latest"
                             },
                         ]
                     },
@@ -79,8 +79,13 @@
                             },
                             {
                                 "command": "disconnect_slack",
-                                "caption": "Disonnect Slack"
+                                "caption": "Disconnect Slack"
                             },
+                            {
+                                "command": "share_song",
+                                "caption": "Share Song"
+                            },
+
                         ]
                     },
                     {   "caption": "Songs Controls",
@@ -108,6 +113,7 @@
                         "command": "connection_status",
                         "caption": "Connection Status"
                     },
+
                         ]
                 }
             

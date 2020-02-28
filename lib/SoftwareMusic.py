@@ -7,13 +7,15 @@ import time
 from .SoftwareHttp import *
 from .SoftwareUtil import *
 from ..Software import *
-
-# from .MusicControlManager import *
+from .MusicPlaylistProvider import *
+# from .SocialShareManager import current_track_id
 
 current_track_info = {}
 ACTIVE_DEVICE = {}
 DEVICES = []
+Liked_songs_ids = []
 
+current_track_id = ""
 
 # To fetch and show music-time dashboard
 def getMusicTimedashboard():
@@ -183,10 +185,39 @@ def getActiveDeviceInfo():
 
     # refreshDeviceStatus()
 
+# Function to check whether current track is liked or not
+check_liked_songs = lambda x :"  ❤️" if (x in Liked_songs_ids) else " "
+
+
+def getLikedSongs():
+    global Liked_songs_ids
+    headers = {"Authorization": "Bearer {}".format(
+        getItem('spotify_access_token'))}
+    playlist_track = SPOTIFY_API + "/v1/me/tracks"
+    tracklist = requests.get(playlist_track, headers=headers)
+    if tracklist.status_code == 200:
+        track_list = tracklist.json()
+        ids = []
+        names = []
+        tracks = {}
+        for i in track_list['items']:
+            ids.append(i['track']['id'])
+            names.append(i['track']['name'])
+            tracks = tuple(zip(names, ids))
+        Liked_songs_ids = ids
+        # print("Liked_songs_ids",Liked_songs_ids)
+        return Liked_songs_ids
+    else:
+        return []
+
+# Liked_songs_ids = getLikedSongs()
 
 def currentTrackInfo():
     trackstate = ''
     trackinfo = ''
+    Liked_songs_ids = getLikedSongs()
+
+    # global current_track_id
     # try:
     if isMac() == True and userTypeInfo() == "non-premium":
         '''For MAC user get info from desktop player'''
@@ -194,6 +225,7 @@ def currentTrackInfo():
         try:
             trackstate = getSpotifyTrackState()
             trackinfo = getTrackInfo()["name"]
+
         # getTrackInfo {'duration': '268210', 'state': 'playing', 'name': 'Dhaga Dhaga', \
         # 'artist': 'harsh wavre', 'genre': '', 'type': 'spotify', 'id': 'spotify:track:79TKZDxCWEonklGmC5WbDC'}
             if trackstate == "playing":
@@ -219,14 +251,19 @@ def currentTrackInfo():
             if track.status_code == 200:
                 trackinfo = track.json()['item']['name']
                 trackstate = track.json()['is_playing']
-                # print(trackinfo,"|",trackstate)
+                track_id = track.json()['item']['id']
+                # current_track_id = track_id
+                # print("current_track_id",current_track_id)
+                isLiked = check_liked_songs(track_id)
+                # print("Liked_songs_ids:",Liked_songs_ids,"\nisLiked:",isLiked) 
+
                 if trackstate == True:
                     showStatus("Now Playing "+str(trackinfo) +
-                               " on "+ACTIVE_DEVICE.get('name'))
+                               " on "+ACTIVE_DEVICE.get('name') + isLiked)
                     # print("Playing "+trackinfo)
                 else:
                     showStatus("Paused "+str(trackinfo) +
-                               " on "+ACTIVE_DEVICE.get('name'))
+                               " on "+ACTIVE_DEVICE.get('name') + isLiked)
                     # print("Paused "+trackinfo)
 
             elif track.status_code == 401:
@@ -275,7 +312,7 @@ def refreshStatusBar():
 #         pass
 
 
-# Lambda function for checking user
+#  function for checking user
 def check_user(): return "Spotify Connected" if (userTypeInfo() == "premium") else (
     "Connect Premium" if (userTypeInfo() == "open") else "Connect Spotify")
 
@@ -389,3 +426,70 @@ def openTrackInWeb(playlist_ids, current_songs):
         os.system(args)
     else:
         pass
+
+
+existingtrack = {}
+playingtrack = {}
+
+def isValidExistingTrack():
+    if existingtrackid is True:
+        return True
+    return False
+
+
+def isValidTrack():
+    if playingtrackid is True:
+        return True
+    return False
+
+
+def isNewTrack():
+    if existingtrackid != playingtrackid:
+        return True 
+    return False
+
+
+def trackIsdone(playingrack):
+    if playingtrack["progress_ms"] == None:
+        return False
+    
+    playingTrackId = playingtrack["id"]
+
+    if playingTrackId and playingtrack["progress_ms"] > 0:
+        hasProgress = True
+    else:
+        hasProgress = False
+    # return hasProgress
+
+    if playingTrackId is not None or (playingtrack["state"] != TrackStatus['playing'] ):
+        isPausedOrNotPlaying = True
+    isPausedOrNotPlaying = False
+    # return isPausedOrNotPlaying
+
+    if isPausedOrNotPlaying is True and hasProgress is not None:
+        return true
+    return false
+
+
+def trackIsLongPaused(playingTrack):
+    if playingTrack["progress_ms"] == None:
+        return False
+    
+    if playingTrack:
+        if playingTrack["id"] is not None:
+            playingTrackId = playingTrack["id"]
+        else:
+            playingTrackId = None
+
+    pauseThreshold = 60 * 5
+
+    pass
+
+
+def isEndInRange(playingTrack):
+    if playingTrack is None or playingTrack['id'] is None:
+        return False
+    
+    buffer_val = playingTrack['duration_ms'] * 0.07
+    if (playingTrack['duration_ms'] - buffer_val) <= playingTrack['duration_ms']:
+        return True

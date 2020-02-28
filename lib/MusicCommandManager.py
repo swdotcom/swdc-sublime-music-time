@@ -300,9 +300,8 @@ class ConnectSlack(sublime_plugin.TextCommand):
     def run(self, edit):
         launchConnectSlack()
         getSlackTokens()
-        # infoMsg = "Development in Progess."
-        # clickAction = sublime.message_dialog(infoMsg)
-        pass
+        infoMsg = "Successfully connected to Slack."
+        clickAction = sublime.message_dialog(infoMsg)
 
     def is_enabled(self):
         logged_on = getValue("logged_on", True)
@@ -319,7 +318,7 @@ class ConnectSlack(sublime_plugin.TextCommand):
 class DisconnectSlack(sublime_plugin.TextCommand):
     def run(self, edit):
         disconnectSlack()
-        infoMsg = "Slack Disconnected"
+        infoMsg = "Successfully disconnected your Slack connection."
         clickAction = sublime.message_dialog(infoMsg)
         pass
 
@@ -334,4 +333,14 @@ class DisconnectSlack(sublime_plugin.TextCommand):
             print("DisConnectSlack",e)
 
 
+class ShareOnFacebook(sublime_plugin.TextCommand):
+    def run(self, edit):
+        pass
+        # try:
+        #     pass
+        #     # message_dialog = sublime.message_dialog("Playlists Refreshed !")
+        # except Exception as E:
+        #     print("Music Time: ShareOnFacebook:", E)
 
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)

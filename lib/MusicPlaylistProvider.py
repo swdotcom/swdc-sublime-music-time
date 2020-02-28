@@ -57,6 +57,7 @@ class OpenSongsCommand(sublime_plugin.TextCommand):
         self.view.insert(edit, 0, songs_tree)
         # print('second',songs_tree)
 
+        print("current_song",current_song)
         if playlist_id == None:
             try:
                 openTrackInWeb(playlist_id, current_song)
@@ -223,6 +224,7 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
 
 # fetch liked songs tracks
 def getLikedSongs():
+    global Liked_songs_ids
     headers = {"Authorization": "Bearer {}".format(
         getItem('spotify_access_token'))}
     playlist_track = SPOTIFY_API + "/v1/me/tracks"
@@ -236,6 +238,8 @@ def getLikedSongs():
             ids.append(i['track']['id'])
             names.append(i['track']['name'])
             tracks = tuple(zip(names, ids))
+        Liked_songs_ids = ids
+        print("Liked_songs_ids",Liked_songs_ids)
     else:
         tracks = list('No song found',)
 #             tracks = dict(zip(names,ids))
