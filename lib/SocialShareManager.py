@@ -223,9 +223,11 @@ class ShareSong(sublime_plugin.WindowCommand):
 
                 else: 
                     '''Copy link to clipboard'''
-                    track_url = "https://open.spotify.com/album/"+ current_track_id
+                    track_url = "https://open.spotify.com/track/"+ current_track_id
                     sublime.set_clipboard(track_url)
                     print(track_url)
+                    message_dialog = sublime.message_dialog("Spotify track link copied to clipboard.")
+                    
         else:
             '''If no current track found'''
             message_dialog = sublime.message_dialog("No track found. Please play some track before sharing.")
