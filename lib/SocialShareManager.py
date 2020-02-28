@@ -229,3 +229,6 @@ class ShareSong(sublime_plugin.WindowCommand):
         else:
             '''If no current track found'''
             message_dialog = sublime.message_dialog("No track found. Please play some track before sharing.")
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
