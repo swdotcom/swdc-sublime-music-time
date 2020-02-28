@@ -221,12 +221,15 @@ class ShareSong(sublime_plugin.WindowCommand):
                     webbrowser.open(whatsapp_shareUrl)
                     print("Whatsapp: ",whatsapp_shareUrl)
 
-                else: 
+                elif share_id == "Copy Song Link": 
                     '''Copy link to clipboard'''
                     track_url = "https://open.spotify.com/track/"+ current_track_id
                     sublime.set_clipboard(track_url)
                     print(track_url)
                     message_dialog = sublime.message_dialog("Spotify track link copied to clipboard.")
+
+                else:
+                    pass
                     
         else:
             '''If no current track found'''

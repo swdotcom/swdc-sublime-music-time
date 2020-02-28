@@ -30,25 +30,34 @@
                         "caption": "Send Feedback to cody@software.com"
                     },
                     {
-                        "command": "refresh_playlist",
-                        "caption": "Refresh Playlist"
+                        "command": "launch_music_time_metrics",
+                        "caption": "Music Time Dashboard"
                     },
                     {
-                        "caption": "Sort Playlist",
-                        "children":[
-                            {
-                                "command": "sort_az",
-                                "caption": "Sort A-Z"
-                            },
-                            {   
-                                "command": "sort_latest",
-                                "caption": "Sort by Latest"
-                            },
-                        ]
+                        "command": "see_web_analytics",
+                        "caption": "See Web Analytics"
                     },
+
                     {
                         "caption": "My Playlists",
                         "children": [
+                            {
+                                "command": "refresh_playlist",
+                                "caption": "Refresh Playlist"
+                            },
+                            {
+                                "caption": "Sort Playlist",
+                                "children":[
+                                    {
+                                        "command": "sort_az",
+                                        "caption": "Sort A-Z"
+                                    },
+                                    {   
+                                        "command": "sort_latest",
+                                        "caption": "Sort by Latest"
+                                    },
+                                ]
+                            },
                             {
                                 "command": "open_playlists",
                                 "caption": "Open Playlists"
@@ -57,14 +66,7 @@
                                 "command": "open_songs",
                                 "caption": "Open Songs"
                             },
-                            {
-                                "command": "launch_music_time_metrics",
-                                "caption": "Music Time Dashboard"
-                            },
-                            {
-                                "command": "see_web_analytics",
-                                "caption": "See Web Analytics"
-                            },
+
                             {
                                 "command": "generate_ai_playlist",
                                 "caption": "Generate My AI Playlist"
