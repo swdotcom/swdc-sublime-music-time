@@ -180,11 +180,27 @@ def playThisSong(currentDeviceId, track_id):
     else:
         headers = {"Authorization": "Bearer {}".format(
             getItem('spotify_access_token'))}
+        print(Liked_songs_ids) 
+        uris_list = []
+        for song_id in Liked_songs_ids:
+            uris_list.append("spotify:track:"+song_id)
+        print("uris_list",uris_list)
+
+        track_index = uris_list.index("spotify:track:" + track_id)
+        print("track_index",track_index)
+        '''
+        {"uris": ["spotify:track:1rZwgdUwUYBqEphd4CXynL", "spotify:track:6Q8mqjuz8xqdoUjhZQDfY7",
+        "spotify:track:1aDklx1GaBqHFowCzz63wU", "spotify:track:4oaU0fMSg3n9kqOwmLPVhH",
+        "spotify:track:4WZizdGrBVSZCES0q2XDwu", "spotify:track:0l1i3nJ4aDMk0inxnvzYTz"],
+        "offset": {"position": 2}}
+        '''
         data = {}
         try:
             print("track_id", track_id)
-            data = {"uris": ["spotify:track:" + track_id]}
+            # data = {"uris": ["spotify:track:" + track_id]}
+            data = { "uris": uris_list, "offset": {"position": track_index} }# {"position": 5}
             payload = json.dumps(data)
+            print("payload",payload)
             playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
             plays = requests.put(playstr, headers=headers, data=payload)
             print(plays.text)

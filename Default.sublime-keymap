@@ -7,4 +7,5 @@
   {"keys": ["ctrl+alt+r"],"command":"refresh_playlist"},
   {"keys": ["ctrl+alt+c"],"command":"connection_status"},
   {"keys": ["ctrl+alt+s"],"command":"share_song"},
+  {"keys": ["ctrl+alt+o"],"command":"like_unlike_song"},
 ]

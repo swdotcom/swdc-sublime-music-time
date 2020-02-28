@@ -252,7 +252,7 @@ def currentTrackInfo():
                 trackinfo = track.json()['item']['name']
                 trackstate = track.json()['is_playing']
                 track_id = track.json()['item']['id']
-                # current_track_id = track_id
+                current_track_id = track_id
                 # print("current_track_id",current_track_id)
                 isLiked = check_liked_songs(track_id)
                 # print("Liked_songs_ids:",Liked_songs_ids,"\nisLiked:",isLiked) 

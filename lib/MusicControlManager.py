@@ -13,6 +13,7 @@ import webbrowser
 from ..Constants import *
 from .MusicPlaylistProvider import *
 from .SoftwareMusic import *
+from .SocialShareManager import *
 # from .SoftwareUtil import *
 # from ..Software import *
 # from .MusicCommandManager import *
@@ -127,3 +128,102 @@ def openDesktopPlayer():
         return False
     else:
         return True
+
+
+def likeSong(track_id):
+    try:
+
+        like_url = "https://api.spotify.com/v1/me/tracks"
+        headers1 = {'Authorization': 'Bearer {}'.format(getItem('spotify_access_token'))}
+
+        payload_data1 = {'ids': [track_id]}
+        print("payload_data1",payload_data1)
+        payload1 = json.dumps(payload_data1)
+        print("payload1",payload1)
+
+        put_like_url = requests.put(like_url, headers=headers1, data=payload1)
+        print("put_like_url",put_like_url)
+        if put_like_url.status_code == 200:
+            
+            #  call the software API PUT `/music/liked/track/${trackId}?type=${type}` with a payload of 
+            swdc_like_url = "https://api.software.com/music/liked/track/"+ track_id +"?type=spotify"
+            jwt = getItem("jwt")
+            headers0 = {'content-type': 'application/json', 'Authorization': jwt}
+
+            payload_data2 = {"liked": True}
+            print("payload_data2",payload_data2)
+            payload2 = json.dumps(payload_data2)
+            print("payload2",payload2)
+
+            swdc_put_like_url = requests.put(swdc_like_url, headers=headers0, data=payload2)
+            print("swdc_put_like_url",swdc_put_like_url.text)
+            if swdc_put_like_url.status_code == 200:
+                print("Music Time: Song Liked !")
+        #     else:
+        #         print("Try later",swdc_put_like_url.json())
+        # else:
+        #     print("Unable to like track at this moment",put_like_url.json())
+    except Exception as e:
+        print("Likesong",e)
+
+
+def unLikeSong(track_id):
+    try:
+        unlike_url = "https://api.spotify.com/v1/me/tracks"
+        headers1 = {'Authorization': 'Bearer {}'.format(getItem('spotify_access_token'))}
+
+        payload_data1 = {'ids': [track_id]}
+        print("payload_data1",payload_data1)
+        payload1 = json.dumps(payload_data1)
+        print("payload1",payload1)
+
+        put_unlike_url = requests.delete(unlike_url, headers=headers1, data=payload1)
+        print("put_unlike_url",put_unlike_url)
+        if put_unlike_url.status_code == 200:
+            #  call the software API PUT `/music/liked/track/${trackId}?type=${type}` with a payload of 
+            swdc_unlike_url = "https://api.software.com/music/liked/track/"+ track_id +"?type=spotify"
+            jwt = getItem("jwt")
+            headers0 = {'content-type': 'application/json', 'Authorization': jwt}
+
+            payload_data2 = {"liked": False}
+            print("payload_data2",payload_data2)
+            payload2 = json.dumps(payload_data2)
+            print("payload2",payload2)
+
+            swdc_put_unlike_url = requests.put(swdc_unlike_url, headers=headers0, data=payload2)
+            print("swdc_put_unlike_url",swdc_put_unlike_url.text)
+            if swdc_put_unlike_url.status_code == 200:
+                print("Music Time: Song Unliked !")
+        #     else:
+        #         print("Try later",swdc_put_unlike_url.json())
+        # else:
+        #     print("Unable to unlike track at this moment",put_unlike_url.json())
+    except Exception as e:
+        print("unLikesong",e)
+
+
+def checkLikedSong():
+    track_id = getSpotifyTrackId()
+    Liked_songs_ids = getLikedSongs()
+    # print("Liked_songs_ids",Liked_songs_ids)
+    if track_id:
+        if track_id in Liked_songs_ids:
+            print("Unliking a Song ",track_id)
+            unLikeSong(track_id)
+        else:
+            print("Liking a Song ",track_id)
+            likeSong(track_id)
+    else:
+        message_dialog = sublime.message_dialog("No song currently being played.\nPlease play a song from playlist.")
+
+
+class LikeUnlikeSong(sublime_plugin.TextCommand):
+    def run(self, edit):
+        try:
+            checkLikedSong()
+        except Exception as E:
+            print("checkLikedSong:", E)
+        pass
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
