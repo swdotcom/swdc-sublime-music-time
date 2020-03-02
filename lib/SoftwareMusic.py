@@ -186,7 +186,7 @@ def getActiveDeviceInfo():
     # refreshDeviceStatus()
 
 # Function to check whether current track is liked or not
-check_liked_songs = lambda x :"  ❤️" if (x in Liked_songs_ids) else " "
+check_liked_songs = lambda x :"  ❤️" if (x in Liked_songs_ids) else "  "
 
 
 def getLikedSongs():
@@ -216,6 +216,7 @@ def currentTrackInfo():
     trackstate = ''
     trackinfo = ''
     Liked_songs_ids = getLikedSongs()
+    # print("Liked_songs_ids",Liked_songs_ids)
 
     # global current_track_id
     # try:
@@ -225,16 +226,19 @@ def currentTrackInfo():
         try:
             trackstate = getSpotifyTrackState()
             trackinfo = getTrackInfo()["name"]
+            # print("trackinfo>>>>",getTrackInfo())
+            track_id = getTrackInfo()['id'][14:]
+            isLiked = check_liked_songs(track_id)
 
         # getTrackInfo {'duration': '268210', 'state': 'playing', 'name': 'Dhaga Dhaga', \
         # 'artist': 'harsh wavre', 'genre': '', 'type': 'spotify', 'id': 'spotify:track:79TKZDxCWEonklGmC5WbDC'}
             if trackstate == "playing":
                 showStatus("Now Playing "+str(trackinfo) +
-                           " on " + ACTIVE_DEVICE.get('name'))
+                           " on " + ACTIVE_DEVICE.get('name') + isLiked)
                 # print("Playing "+trackinfo)
             else:
                 showStatus("Paused "+str(trackinfo) +
-                           " on " + ACTIVE_DEVICE.get('name'))
+                           " on " + ACTIVE_DEVICE.get('name') + isLiked)
                 # print("Paused "+trackinfo)
         except Exception as e:
             print("Music time: player not found", e)

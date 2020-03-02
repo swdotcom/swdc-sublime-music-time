@@ -213,6 +213,7 @@ def checkLikedSong():
         else:
             print("Liking a Song ",track_id)
             likeSong(track_id)
+        getUserPlaylists()
     else:
         message_dialog = sublime.message_dialog("No song currently being played.\nPlease play a song from playlist.")
 
