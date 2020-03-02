@@ -138,8 +138,9 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
             print('#'*10, 'playlist_id == None SongInputHandler')
             try:
                 openTrackInWeb(playlist_id, current_song)
-            except Exception as e:
+            except Exception as TypeError: #e
                 print("SongInputHandler:confirm:openTrackInWeb", e)
+                message_dialog = sublime.message_dialog("Song not found")
             getActiveDeviceInfo()
             playThisSong(ACTIVE_DEVICE.get('device_id'), current_song)
         else:
@@ -151,6 +152,7 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
             print('#'*10, 'else == None SongInputHandler')
             playSongFromPlaylist(ACTIVE_DEVICE.get(
                 'device_id'), playlist_id, current_song)
+
 
 
 def getPlaylists():
@@ -257,7 +259,7 @@ def getLikedSongs():
         Liked_songs_ids = ids
         print("Liked_songs_ids",Liked_songs_ids)
     else:
-        tracks = list('No song found',)
+        tracks = []
 #             tracks = dict(zip(names,ids))
     return list(tracks)
 
@@ -349,8 +351,12 @@ def getUserPlaylists():
             else:
                 playlist_data.append({'id': v, 'name': k, 'playlistTypeId': 4,'songs': getTracks(v)})
                 # print("got user playlist",k," ",v)
-        playlist_data.append({'id': '000', 'name': 'Liked songs', 'playlistTypeId': 3, 'songs': getLikedSongs()})
-        print("got liked songs")
+        
+        liked_songs = getLikedSongs()
+        if liked_songs != []:
+            playlist_data.append({'id': '000', 'name': 'Liked songs', 'playlistTypeId': 3, 'songs': liked_songs})
+            print("got liked songs")
+        print("No liked songs")
         print("No of playlist :",len(playlist_data))
         try:
             sortPlaylistByAz()
@@ -368,7 +374,7 @@ def sortPlaylistByLatest():
 
     print("got inside loop: playlist_names",playlist_names)
     sec_one = [] # Software top 40 and AI playlist
-    sec_two = ["Liked songs"] # Liked songs
+
     sec_three = [] # user playlist
     for k in playlist_names:
         if k == "Software Top 40":
@@ -381,8 +387,15 @@ def sortPlaylistByLatest():
     if len(sec_one) == 2:    
         # Swapping (1)Software top 40 (2)AI playlist
         sec_one[0],sec_one[1] = sec_one[1],sec_one[0]
-    # Final list with (1)Software top 40 (2)AI playlist (3)Liked songs (4)user playlist
-    final_list = sec_one + sec_two + sec_three
+    
+    liked_songs = getLikedSongs()
+    if liked_songs != []:
+        sec_two = ["Liked songs"] # Liked songs
+        # Final list with (1)Software top 40 (2)AI playlist (3)Liked songs (4)user playlist
+        final_list = sec_one + sec_two + sec_three
+    else:
+        final_list = sec_one + sec_three
+
 
     playlist_data = []
     for i in final_list:
@@ -395,7 +408,7 @@ def sortPlaylistByLatest():
             playlist_data.append({'id':playlist_info.get(i),'name':i,'playlistTypeId': 2,'songs': getTracks(playlist_info.get(i))})
         elif i == "Liked songs":
     #         playlist_data[2] = {'id':playlist_info.get(i),'name':i,'playlistTypeId': 3,'songs': getLikedSongs()}
-            playlist_data.append({'id':playlist_info.get(i),'name':i,'playlistTypeId': 3,'songs': getLikedSongs()})
+            playlist_data.append({'id':playlist_info.get(i),'name':i,'playlistTypeId': 3,'songs': liked_songs})
         else:
             playlist_data.append({'id':playlist_info.get(i),'name':i,'playlistTypeId': 4,'songs': getTracks(playlist_info.get(i))})
             

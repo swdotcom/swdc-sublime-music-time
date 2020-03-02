@@ -119,6 +119,10 @@
                         "command": "connection_status",
                         "caption": "Connection Status"
                     },
+                    {
+                        "command": "select_player",
+                        "caption": "Select player"
+                    }
 
                         ]
                 }

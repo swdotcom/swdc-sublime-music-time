@@ -283,6 +283,10 @@ class GenerateAiPlaylist(sublime_plugin.TextCommand):
 
 class ConnectionStatus(sublime_plugin.TextCommand):
     def run(self, edit):
+        # try:
+        #     SelectPlayer(self,)
+        # except Exception as e:
+        #     print(e)
         self.view.show_popup(myToolTip(),) # max_width=300, max_height=1000
     
     def navigate(self,href):

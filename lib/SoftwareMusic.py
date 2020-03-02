@@ -8,7 +8,7 @@ from .SoftwareHttp import *
 from .SoftwareUtil import *
 from ..Software import *
 from .MusicPlaylistProvider import *
-# from .SocialShareManager import current_track_id
+from .SoftwareMusic import *
 
 current_track_info = {}
 ACTIVE_DEVICE = {}
@@ -186,10 +186,10 @@ def getActiveDeviceInfo():
     # refreshDeviceStatus()
 
 # Function to check whether current track is liked or not
-check_liked_songs = lambda x :"  ❤️" if (x in Liked_songs_ids) else "  "
+check_liked_songs = lambda x :"  ❤️" if (x in Liked_songs_ids) else " "
 
 
-def getLikedSongs():
+def getLikedSongsIds():
     global Liked_songs_ids
     headers = {"Authorization": "Bearer {}".format(
         getItem('spotify_access_token'))}
@@ -215,8 +215,7 @@ def getLikedSongs():
 def currentTrackInfo():
     trackstate = ''
     trackinfo = ''
-    Liked_songs_ids = getLikedSongs()
-    # print("Liked_songs_ids",Liked_songs_ids)
+    Liked_songs_ids = getLikedSongsIds()
 
     # global current_track_id
     # try:
@@ -226,7 +225,6 @@ def currentTrackInfo():
         try:
             trackstate = getSpotifyTrackState()
             trackinfo = getTrackInfo()["name"]
-            # print("trackinfo>>>>",getTrackInfo())
             track_id = getTrackInfo()['id'][14:]
             isLiked = check_liked_songs(track_id)
 
@@ -428,10 +426,52 @@ def openTrackInWeb(playlist_ids, current_songs):
     elif userTypeInfo() != "premium":
         args = "open -a Spotify"
         os.system(args)
+    
+    # elif current_song is None:
+    #     message_dialog = sublime.message_dialog("Songs not found")
+    #     pass
+
     else:
         pass
 
+# ---------------------------------------------------plug292
 
+class SelectPlayer(sublime_plugin.WindowCommand):
+
+    def run(self):
+        player = ["Launch Web Player", "Launch Desktop Player"]
+        self.window.show_quick_panel(player, lambda id: self.on_done(id, player))
+
+    def on_done(self, id, player):
+        if id >= 0 and player[id] == "Launch Web Player":
+            webbrowser.open("https://open.spotify.com/")
+
+        else:
+            # open desktop
+            result = subprocess.Popen("cmd /c spotify.exe", shell=True,
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output,error = result.communicate()
+
+            if len(error) is not 0:
+                print("Spotify not found in C")
+                result = subprocess.Popen("%APPDATA%/Spotify/Spotify.exe", shell=True,
+                                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                output,error = result.communicate()
+                if len(error) is not 0:
+                    print("Desktop player not found. Opening Web player. \nError:",error)
+            
+            
+
+
+
+
+
+
+
+
+
+#----------------------------------------------plug57
 existingtrack = {}
 playingtrack = {}
 
