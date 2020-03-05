@@ -1,61 +1,61 @@
 # Copyright (c) 2018 by Software.com
-from threading import Thread, Timer, Event
-import os
-import six
-import json
-import time
+import base64
 import datetime
+import json
+import os
+import platform
+import requests
+import re
+import six
 import socket
 import sublime_plugin
 import sublime
-import requests
-import base64
 import sys
-import uuid
-import platform
-import re
+from threading import Thread, Timer, Event
+import time
 import uuid
 import webbrowser
 from urllib.parse import quote_plus
 from subprocess import Popen, PIPE
+
+from ..Constants import *
 from .SoftwareHttp import *
 from .SoftwareSettings import *
 from ..Software import *
+# from .MusicCommandManager import *
+# from .MusicControlManager import *
+# from .schedule import *
 
 # the plugin version
-VERSION = '0.9.4'
-PLUGIN_ID = 1
-DASHBOARD_LABEL_WIDTH = 25
-DASHBOARD_VALUE_WIDTH = 25
-MARKER_WIDTH = 4
-jwt = ''
-spotifyuser = {}
-sessionMap = {}
+# VERSION = '0.0.3'
+# PLUGIN_ID = 1
+# VERSION = Constants.VERSION
+# PLUGIN_ID = Constants.PLUGIN_ID
+
+# SOFTWARE_API = Constants.SOFTWARE_API
+# SPOTIFY_API = Constants.SPOTIFY_API
+
+# DASHBOARD_LABEL_WIDTH = Constants.DASHBOARD_LABEL_WIDTH
+# DASHBOARD_VALUE_WIDTH = Constants.DASHBOARD_VALUE_WIDTH
+# MARKER_WIDTH = Constants.MARKER_WIDTH
 
 runningResourceCmd = False
 loggedInCacheState = False
+
+jwt = ''
+spotifyuser = {}
+sessionMap = {}
+spotifyUserId = ''
 timezone = ''
 CLIENT_ID = ''
 CLIENT_SECRET = ''
-# plugin = ''
-
-
-# def isMusicTime():
-#     plugin = getValue("plugin","music-time")
-#     # print(">><<",plugin)
-#     # plugin = getItem("plugin")
-#     if plugin == "music-time":
-#         return True
-#     else:
-#         return False
+user_type = ""
 
 
 # log the message.
 def log(message):
     if (getValue("software_logging_on", True)):
         print(message)
-
-# .
 
 
 def getUrlEndpoint():
@@ -174,16 +174,15 @@ def getSoftwareDir(autoCreate):
 
 def getDashboardFile():
     file = getSoftwareDir(True)
-    return os.path.join(file, 'CodeTime.txt')
+    return os.path.join(file, 'MusicTime.txt')
 
 
 def getCustomDashboardFile():
     file = getSoftwareDir(True)
     return os.path.join(file, 'CustomDashboard.txt')
 
+
 # execute the applescript command
-
-
 def runCommand(cmd, args=[]):
     p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate(cmd)
@@ -199,7 +198,7 @@ def getItunesTrackState():
         result = runCommand(cmd, ['osascript', '-'])
         return result
     except Exception as e:
-        log("Code Time: error getting track state: %s " % e)
+        log("Music Time: error getting track state: %s " % e)
         # no music found playing
         return "stopped"
 
@@ -213,7 +212,7 @@ def getSpotifyTrackState():
         result = runCommand(cmd, ['osascript', '-'])
         return result
     except Exception as e:
-        log("Code Time: error getting track state: %s " % e)
+        log("Music Time: error getting track state: %s " % e)
         # no music found playing
         return "stopped"
 
@@ -243,7 +242,7 @@ def getMacTrackInfo():
     script = '''
         on buildItunesRecord(appState)
             tell application "iTunes"
-                set track_artist to artist of current track
+                set track_artist to artist of current track 
                 set track_name to name of current track
                 set track_genre to genre of current track
                 set track_id to database ID of current track
@@ -312,7 +311,7 @@ def getMacTrackInfo():
         else:
             return {}
     except Exception as e:
-        log("Code Time: error getting track: %s " % e)
+        log("Music Time: error getting track: %s " % e)
         # no music found playing
         return {}
 
@@ -365,7 +364,7 @@ def getResourceInfo(rootDir):
 def checkOnline():
     # non-authenticated ping, no need to set the Authorization header
     response = requestIt("GET", "/ping", None, getItem("jwt"))
-    if (isResponsOk(response)):
+    if (isResponseOk(response)):
         return True
     else:
         return False
@@ -490,7 +489,7 @@ def createAnonymousUser(serverAvailable):
         api = "/data/onboard"
         try:
             response = requestIt("POST", api, json.dumps(payload), appJwt)
-            if (response is not None and isResponsOk(response)):
+            if (response is not None and isResponseOk(response)):
                 try:
                     responseObj = json.loads(response.read().decode('utf-8'))
                     jwt = responseObj.get("jwt", None)
@@ -509,7 +508,7 @@ def getUser(serverAvailable):
     if (jwt and serverAvailable):
         api = "/users/me"
         response = requestIt("GET", api, None, jwt)
-        if (isResponsOk(response)):
+        if (isResponseOk(response)):
             try:
                 responseObj = json.loads(response.read().decode('utf-8'))
                 user = responseObj.get("data", None)
@@ -539,7 +538,7 @@ def isLoggedOn(serverAvailable):
         api = "/users/plugin/state"
         response = requestIt("GET", api, None, jwt)
 
-        responseOk = isResponsOk(response)
+        responseOk = isResponseOk(response)
         if (responseOk is True):
             try:
                 responseObj = json.loads(response.read().decode('utf-8'))
@@ -584,7 +583,7 @@ def getUserStatus():
     currentUserStatus["loggedOn"] = loggedOn
 
     if (loggedOn is True and loggedInCacheState != loggedOn):
-        log("Code Time: Logged on")
+        log("Music Time: Logged on")
         sendHeartbeat("STATE_CHANGE:LOGGED_IN:true")
 
     loggedInCacheState = loggedOn
@@ -609,10 +608,10 @@ def sendHeartbeat(reason):
         try:
             response = requestIt("POST", api, json.dumps(payload), jwt)
 
-            if (response is not None and isResponsOk(response) is False):
-                log("Code Time: Unable to send heartbeat ping")
+            if (response is not None and isResponseOk(response) is False):
+                log("Music Time: Unable to send heartbeat ping")
         except Exception as ex:
-            log("Code Time: Unable to send heartbeat: %s" % ex)
+            log("Music Time: Unable to send heartbeat: %s" % ex)
 
 
 def humanizeMinutes(minutes):
@@ -683,70 +682,79 @@ def launchSpotifyLoginUrl():
     # api_endpoint = getValue("software_api_endpoint", "api.software.com")
 #     jwt = getItem("jwt")
     try:
-        spotify_url = "https://api.software.com" + "/auth/spotify?token=" + jwt + "&mac=" + str(isMac()).lower()
-        print("Music Time: ",spotify_url)
+        spotify_url = SOFTWARE_API + "/auth/spotify?token=" + \
+            jwt + "&mac=" + str(isMac()).lower()
+        print("Music Time: ", spotify_url)
         webbrowser.open(spotify_url)
     except Exception as e:
-        print("Music Time: Try to connctt after some time.", e)
+        print("Music Time: Try to connect after some time.", e)
         message_dialog = sublime.message_dialog(
             "Please try to connect Spotify after some time. !")
 
 # get user authentication data
 
 
-def getauthinfo():
+def getAuthInfo():
     global jwt
-    # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTU3MzE5NjE5MSwiaWF0IjoxNTczMTk2MTk1fQ.VIiKF3eZD7alV49oV_IF3PrdP4Rg9cZNi-BerVfWXSc"
-    jwt = requests.get('https://api.software.com/data/apptoken?token='+str(round(time.time()))).json()['jwt']
-
-#     if getItem("jwt"):
-#         jwt = getItem("jwt")
-#     else:
-#         get_JWT = requests.get(
-#             'https://api.software.com/data/apptoken?token='+str(round(time.time())))
-#         jwt = get_JWT.json()['jwt']
+    jwt = requests.get(SOFTWARE_API + '/data/apptoken?token=' +
+                       str(round(time.time()))).json()['jwt']
+    print("getAuthInfo JWT ^^^^^^", jwt)
     setItem("jwt", jwt)
-    # print(">>@<<",jwt)
     headers = {'content-type': 'application/json', 'Authorization': jwt}
     launchSpotifyLoginUrl()
-    time.sleep(50)
-    getauth = requests.get(
-        'https://api.software.com/auth/spotify/user', headers=headers)
+    time.sleep(20)
+    user_state_url = SOFTWARE_API + "/users/plugin/state"
+    getauth = requests.get(user_state_url, headers=headers)
     if getauth.status_code == 200:
+        print(getauth.text)
         authinfo = {}
+        # authinfo = getauth.json()
         try:
-            #     # print("succeed")
             authinfo = getauth.json()
-        #     # print("<<<<<<<<<<<<<<->>>>>>>>>\n\n",authinfo)
+            if authinfo['state'] == "OK":
+                print("succeed")
+                # authinfo = getauth.json()
+                print("<<<<<<<<<<<<<<->>>>>>>>>\n\n", authinfo)
+            else:
+                print("STATE_NOT_FOUND")
+
         except Exception as e:
             print("Music Time: AUTHTOKEN ERROR: ", e)
 
-        # print("#######getauthinfo######")
         return authinfo
 
 
 # Access tokens from user auth
-def GetToken(authinfo):
-
+def getTokens(authinfo):
     try:
         EMAIL = authinfo['email']
-        for i in range(len(authinfo['auths'])):
-            if authinfo['auths'][i]['type'] == "spotify":
+        setItem("jwt", authinfo['jwt'])
+        print("Music Time: JWT updated from /users/plugin/state")
 
-                # EMAIL = authinfo['auths'][i]['email']
-                ACCESS_TOKEN = authinfo['auths'][i]['access_token']
-                REFRESH_TOKEN = authinfo['auths'][i]['refresh_token']
+        for i in range(len(authinfo['user']['auths'])):
+            if authinfo['user']['auths'][i]['type'] == "spotify":
+                ACCESS_TOKEN = authinfo['user']['auths'][i]['access_token']
+                REFRESH_TOKEN = authinfo['user']['auths'][i]['refresh_token']
+
+        # EMAIL = authinfo['email']
+        # # setItem(authinfo['jwt'], jwt)
+        # for i in range(len(authinfo['auths'])):
+        #     if authinfo['auths'][i]['type'] == "spotify":
+
+        #         # EMAIL = authinfo['auths'][i]['email']
+        #         ACCESS_TOKEN = authinfo['auths'][i]['access_token']
+        #         REFRESH_TOKEN = authinfo['auths'][i]['refresh_token']
 
     except Exception as e:
         print("Music Time: Token not found", e)
 
-    print("Music Time: GetToken()   #####")
+    print("Music Time: getTokens()   #####")
     return EMAIL, ACCESS_TOKEN, REFRESH_TOKEN
 
 # Update session file after getting spotify access tokens
 
 
-def Updatetokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
+def updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
     setItem("name", '')
     setItem("spotify_access_token", '')
     setItem("spotify_refresh_token", '')
@@ -758,49 +766,60 @@ def Updatetokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
 # get userinfo from spotify
 
 
-def Userme():
-    url = 'https://api.spotify.com/v1/me'
+def userMeInfo():
+    url = SPOTIFY_API + '/v1/me'
     headers = {'Authorization': 'Bearer ' + getItem('spotify_access_token')}
     spotify = requests.get(url, headers=headers)
     spotifyUserInfo = {}
     if spotify.status_code == 200 and len(spotify.text) > 0:
         spotifyUserInfo = spotify.json()
     else:
-        Refreshspotifytoken()
-        spotifyUserInfo = Userme()
+        refreshSpotifyToken()
+        spotifyUserInfo = userMeInfo()
 
     return spotifyUserInfo
 
 # check user type premium/ non-premium
 
 
-def UserInfo():
+def userTypeInfo():
     global spotifyuser
-    usertype = ''
+    global user_type
+    global spotifyUserId
     try:
-        spotifyuser = Userme()
-        print("Music Time : User Info \n", spotifyuser)
+        spotifyuser = userMeInfo()
+        # print("Music Time : User Info \n", spotifyuser)
+        spotifyUserId = spotifyuser.get("id")
 
         if spotifyuser['product'] == "premium":
-            usertype = "premium"
+            user_type = "premium"
+            # IsPremium = True
         else:
-            usertype = "non-premium"
+            user_type = "non-premium"
+            # IsPremium = False
     except Exception as e:
         print('Music Time: Spotify user info not found :>', e)
+        showStatus("Connect Spotify")
         pass
 
-    print("Music Time: User type detected #######")
-    return usertype
+    # print("Music Time: User type detected ")
+    return user_type
+
 
 # get spotify client credentials
+def getClientCredentials():
+    jwt = getItem("jwt")
+    if jwt is None or jwt == "":
+        client_creds_url = SOFTWARE_API + '/data/apptoken?token=30000'
+        get_JWT = requests.get(client_creds_url)
+        jwt = get_JWT.json()['jwt']
 
-
-def get_credentials():
-    get_JWT = requests.get('https://api.software.com/data/apptoken?token=30000')
-    jwt = get_JWT.json()['jwt']
+    # client_creds_url = SOFTWARE_API + '/data/apptoken?token=30000'
+    # get_JWT = requests.get(client_creds_url)
+    # jwt = get_JWT.json()['jwt']
     headers = {'content-type': 'application/json', 'Authorization': jwt}
-    get_client_creds = requests.get(
-        'https://api.software.com/auth/spotify/clientInfo', headers=headers)
+    get_client_creds_url = SOFTWARE_API + '/auth/spotify/clientInfo'
+    get_client_creds = requests.get(get_client_creds_url, headers=headers)
     clientId = get_client_creds.json()['clientId']
     clientSecret = get_client_creds.json()['clientSecret']
     return clientId, clientSecret
@@ -808,61 +827,72 @@ def get_credentials():
 # Refresh access token after expiry
 
 
-def Refreshspotifytoken():
+def refreshSpotifyToken():
+    jwt = getItem("jwt")
     payload = {}
     obj = {}
-    try:
-        spotify_refresh_token = getItem("spotify_refresh_token")
-        payload['grant_type'] = 'refresh_token'
-        payload['refresh_token'] = spotify_refresh_token
-        refreshurl = "https://accounts.spotify.com/api/token"
-        CLIENT_ID, CLIENT_SECRET = get_credentials()
-        auth_header = base64.b64encode(six.text_type(
-            CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
-        headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
-        response = requests.post(refreshurl, data=payload, headers=headers)
+    # try:
+    spotify_refresh_token = getItem("spotify_refresh_token")
+    payload['grant_type'] = 'refresh_token'
+    payload['refresh_token'] = spotify_refresh_token
+    refresh_token_url = "https://accounts.spotify.com/api/token"
+    CLIENT_ID, CLIENT_SECRET = getClientCredentials()
+    auth_header = base64.b64encode(six.text_type(
+        CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
+    headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
+    response = requests.post(
+        refresh_token_url, data=payload, headers=headers)
 
-        if response.status_code == 200:
-            obj = response.json()
+    if response.status_code == 200:
+        obj = response.json()
 
-            setItem("spotify_access_token", obj['access_token'])
-    except Exception as e:
-        print("Music Time : Refresh token not found !", e)
+        setItem("spotify_access_token", obj['access_token'])
+        setItem("spotify_refresh_token", spotify_refresh_token)
+        setItem("jwt", jwt)
+        print("Music Time: Spotify Access token updated !",str(time.localtime()[3:6]))
 
-    t = Timer(60*59, Refreshspotifytoken)
+    else:
+# except Exception as e:
+        print("Music Time: Refresh token not found !", response)
+        setItem("jwt", jwt)
+        setItem("spotify_refresh_token", spotify_refresh_token)
+
+
+def autoRefreshAccessToken():
+    t = Timer(60*59, refreshSpotifyToken)
     t.start()
 
-    return obj['access_token']
 
 # Clear the spotify tokens from session file
-
-
-def ClearSpotifyTokens():
+def clearSpotifyTokens():
     setItem("name", '')
     setItem("spotify_access_token", '')
     setItem("spotify_refresh_token", '')
-#     setItem("jwt", '')
+    setItem("jwt", '')
     print("Music Time: Tokens Cleared !")
 
 # disconnecting spotify
 
 
-def Disconnectspotify():
+def disconnectSpotify():
     jwt = getItem("jwt")
     # print(">>@<<",jwt)
     try:
         headers = {'content-type': 'application/json', 'Authorization': jwt}
-        disconnect = requests.put(
-            'https://api.software.com/auth/spotify/disconnect', headers=headers)
+        disconnect_spotify_url = SOFTWARE_API + '/auth/spotify/disconnect'
+        disconnect = requests.put(disconnect_spotify_url, headers=headers)
         if disconnect.status_code == 200:
             print("Music Time: Spotify Disconnected !")
 
     except Exception as e:
+        
         print("Music Time: Disconnection error !\n", e)
         pass
-    ClearSpotifyTokens()
+    clearSpotifyTokens()
 
 
-def musictimedash():
-    print("Music Time: Loading Music time dashboard ...")
+def seeWebAnalytics():
+    url = SOFTWARE_URL + "/music"
+    webbrowser.open(url)
+    print("Music Time: Loading Music time Web Analytics ...")
     pass

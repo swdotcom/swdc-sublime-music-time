@@ -18,12 +18,8 @@
                         "caption": "Disconnect Spotify"
                     },
                     {
-                        "command": "launch_music_time_metrics",
-                        "caption": "Music Time Dashboard"
-                    },
-                    {
-                        "command": "software_top_forty",
-                        "caption": "Software Top 40"
+                        "caption": "Learn More ",
+                        "command": "readme_please"
                     },
                     {
                         "command": "submit_issue_github",
@@ -31,26 +27,102 @@
                     },
                     {
                         "command": "submit_feedback",
-                        "caption": "Send feedback to cody@software.com"
+                        "caption": "Send Feedback to cody@software.com"
                     },
                     {
-                        "command": "connect_slack",
-                        "caption": "Connect Slack"
+                        "command": "launch_music_time_metrics",
+                        "caption": "Music Time Dashboard"
                     },
                     {
-                        "command": "disconnect_slack",
-                        "caption": "Disonnect Slack"
+                        "command": "see_web_analytics",
+                        "caption": "See Web Analytics"
+                    },
+
+                    {
+                        "caption": "My Playlists",
+                        "children": [
+                            {
+                                "command": "refresh_playlist",
+                                "caption": "Refresh Playlist"
+                            },
+                            {
+                                "caption": "Sort Playlist",
+                                "children":[
+                                    {
+                                        "command": "sort_az",
+                                        "caption": "Sort A-Z"
+                                    },
+                                    {   
+                                        "command": "sort_latest",
+                                        "caption": "Sort by Latest"
+                                    },
+                                ]
+                            },
+                            {
+                                "command": "open_playlists",
+                                "caption": "Open Playlists"
+                            },
+                            {
+                                "command": "open_songs",
+                                "caption": "Open Songs"
+                            },
+                            {
+                                "command": "like_unlike_song",
+                                "caption": "Like / Unlike Song"
+
+                            },
+                            {
+                                "command": "generate_ai_playlist",
+                                "caption": "Generate My AI Playlist"
+                            },
+                            {
+                                "command": "refresh_ai_playlist",
+                                "caption": "Refresh My AI Playlist"
+                            },
+                            {
+                                "command": "connect_slack",
+                                "caption": "Connect Slack"
+                            },
+                            {
+                                "command": "disconnect_slack",
+                                "caption": "Disconnect Slack"
+                            },
+                            {
+                                "command": "share_song",
+                                "caption": "Share Song"
+                            },
+
+                        ]
+                    },
+                    {   "caption": "Songs Controls",
+                        "children": [
+                            {
+                                "command": "play_song",
+                                "caption": "Play"
+                            },
+                            {
+                                "command": "pause_song",
+                                "caption": "Pause"
+                            },
+                            {
+                                "command": "next_song",
+                                "caption": "Next"
+                            },
+                            {
+                                "command": "prev_song",
+                                "caption": "Previous"
+                            }
+
+                        ]
                     },
                     {
-                        "command": "open_playlists",
-                        "caption": "Open playlists"
-                    },
-                    {
-                        "command": "open_songs",
-                        "caption": "Open songs"
+                        "command": "select_player",
+                        "caption": "Connect to a Spotify device"
                     }
-                ]
-            }
+
+                        ]
+                }
+            
         ]
     }
 ]
