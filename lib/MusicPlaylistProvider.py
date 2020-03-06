@@ -127,6 +127,8 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
         else:
             message_dialog = sublime.message_dialog(
                 "Songs not found. Please Use \nTools > Music Time > My Playlists > Open Playlist")
+            current_window = sublime.active_window()
+            current_window.run_command("hide_overlay")
             # print("NO SONG found")
 
     def confirm(self, value):
