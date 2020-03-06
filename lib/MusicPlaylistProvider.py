@@ -237,7 +237,8 @@ def playThisSong(currentDeviceId, track_id):
                                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     # time.sleep(5)
                 else:
-                    pass
+                    current_window = sublime.active_window()
+                    current_window.run_command("hide_overlay")
 
                 time.sleep(4)
                 device_id = getSpotifyDevice()[0]['device_id']
@@ -289,8 +290,9 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
                     result = subprocess.Popen("%APPDATA%/Spotify/Spotify.exe", shell=True,
                                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             else:
-                pass
-                
+                current_window = sublime.active_window()
+                current_window.run_command("hide_overlay") 
+                                
             time.sleep(4)
             print("spotifydevices",getSpotifyDevice())
             device_id = getSpotifyDevice()[0]['device_id']
