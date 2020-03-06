@@ -862,6 +862,10 @@ def autoRefreshAccessToken():
     t = Timer(60*59, refreshSpotifyToken)
     t.start()
 
+    logged = getValue("logged_on", True)
+    if logged is False:
+        t.cancel()
+
 
 # Clear the spotify tokens from session file
 def clearSpotifyTokens():

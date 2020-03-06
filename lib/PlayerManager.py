@@ -22,7 +22,7 @@ def checkSpotifyUser():
             ("Launch Desktop Player", []),
             ]
 
-    elif (userTypeInfo() == "open"):
+    elif (userTypeInfo() == "non-premium"):
         items = [("Launch Desktop Player", []),]
 
     else:
@@ -89,64 +89,98 @@ class SelectPlayer(sublime_plugin.WindowCommand):
 
         # if device are available, show them
         else:
-            items = []
-            for i in device_list:
-                if i['type'] == "Computer":
-                # print(i['device_name'], i['device_id'], i['type'])
-                    items.append((i['device_name'],[i['device_id']]))
+            if userTypeInfo() == "non-premium":
+                items = []
+                for i in device_list:
+                    if i['type'] == "Computer" and "Web Player" not in i['device_name']:
+                    # print(i['device_name'], i['device_id'], i['type'])
+                        items.append((i['device_name'],[i['device_id']]))
 
-            new_items = []
-            is_web = False
-            is_desktop = False
-
-            if active_device.get('device_id') is not None:
-                print("found active device")
-                active_device_id = active_device.get('device_id')
-                active_device_name = active_device.get('device_name')
-                print(active_device_name)
-                
-                for i in items:
-                    # print(i[0])     # get device name in string
-                    # print(i[1][0])  # get device id in string
-                    if i[1][0] == active_device_id:
-                        new_items.append(("Listening on "+i[0],[i[1][0]]))
-                    else:
-                        new_items.append(("Available on "+i[0],[i[1][0]]))
-                        
-                print("new_items before\n",new_items)
-            #     is_web = False
-            #     is_desktop = False
-
-            else:
-                print("when device is not active")
-                for i in items:
-                    new_items.append(("Available on "+i[0],[i[1][0]]))
-                
-                    
-            # Check web/desktop player is avaiable or not
-            for i in new_items:
-                if "Web Player" not in i[0]:
-                    is_desktop = True
-                else:                 # "Web Player" not in i[0]:
-                    is_web = True
-
-            print("web",is_web)
-            print("desk",is_desktop)
-
-            if is_web is True and is_desktop is False:         
-                new_items.append(("Launch Desktop Player",[]))
-
-            elif is_web is False and is_desktop is True:
-                new_items.append(("Launch Web Player",[]))
-
-            elif is_web is False and is_desktop is False:
                 new_items = []
-                new_items.append(("Launch Web Player",[]))
-                new_items.append(("Launch Desktop Player",[]))
+                if active_device.get('device_id') is not None:
+                    print("found active device")
+                    active_device_id = active_device.get('device_id')
+                    active_device_name = active_device.get('device_name')
+                    print(active_device_name)
+                    
+                    for i in items:
+                        # print(i[0])     # get device name in string
+                        # print(i[1][0])  # get device id in string
+                        if i[1][0] == active_device_id:
+                            new_items.append(("Listening on "+i[0],[i[1][0]]))
+                        else:
+                            new_items.append(("Available on "+i[0],[i[1][0]]))
+                            
+                    print("new_items before\n",new_items)
+                #     is_web = False
+                #     is_desktop = False
+
+                else:
+                    print("when device is not active")
+                    for i in items:
+                        new_items.append(("Available on "+i[0],[i[1][0]]))
+
+
             else:
-                # elif web is True and desk is True:
-                print("Both exist")
-                pass
+                items = []
+                for i in device_list:
+                    if i['type'] == "Computer":
+                    # print(i['device_name'], i['device_id'], i['type'])
+                        items.append((i['device_name'],[i['device_id']]))
+
+                new_items = []
+                is_web = False
+                is_desktop = False
+
+                if active_device.get('device_id') is not None:
+                    print("found active device")
+                    active_device_id = active_device.get('device_id')
+                    active_device_name = active_device.get('device_name')
+                    print(active_device_name)
+                    
+                    for i in items:
+                        # print(i[0])     # get device name in string
+                        # print(i[1][0])  # get device id in string
+                        if i[1][0] == active_device_id:
+                            new_items.append(("Listening on "+i[0],[i[1][0]]))
+                        else:
+                            new_items.append(("Available on "+i[0],[i[1][0]]))
+                            
+                    print("new_items before\n",new_items)
+                #     is_web = False
+                #     is_desktop = False
+
+                else:
+                    print("when device is not active")
+                    for i in items:
+                        new_items.append(("Available on "+i[0],[i[1][0]]))
+                    
+                        
+                # Check web/desktop player is avaiable or not
+                for i in new_items:
+                    if "Web Player" not in i[0]:
+                        is_desktop = True
+                    else:                 # "Web Player" not in i[0]:
+                        is_web = True
+
+                print("web",is_web)
+                print("desk",is_desktop)
+
+                if is_web is True and is_desktop is False:         
+                    new_items.append(("Launch Desktop Player",[]))
+
+                elif is_web is False and is_desktop is True:
+                    new_items.append(("Launch Web Player",[]))
+
+                elif is_web is False and is_desktop is False:
+                    new_items = []
+                    new_items.append(("Launch Web Player",[]))
+                    new_items.append(("Launch Desktop Player",[]))
+                else:
+                    # elif web is True and desk is True:
+                    print("Both exist")
+                    pass
+
 
             items = new_items
             # print("items update with new items")
@@ -173,14 +207,11 @@ class SelectPlayer(sublime_plugin.WindowCommand):
             if device_ids == []:
                 # when desktop is selected
                 if device == "Launch Desktop Player":
-                    # open desktop
-                    # result = subprocess.Popen("cmd /c spotify.exe", shell=True,
-                    #                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    # output,error = result.communicate()
-
-                    # if len(error) is not 0:
-                    #     print("Spotify not found ")
-                    result = subprocess.Popen("%APPDATA%/Spotify/Spotify.exe", shell=True,
+                    
+                    if isMac() == True:
+                        msg = subprocess.Popen(["open", "-a", "spotify"], stdout=subprocess.PIPE)
+                    else:
+                        result = subprocess.Popen("%APPDATA%/Spotify/Spotify.exe", shell=True,
                                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
                     # output,error = result.communicate()
@@ -250,9 +281,11 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                 transferPlayback(device_id)
                 print("active_device",active_device)
 
-        else:
-            print("id_1",id_1)
-            print("items[id_1]",items[id_1])
+        # else: 
+        #     print("id_1",id_1)
+        #     print("items[id_1]",items[id_1])
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
 
 
 def transferPlayback(deviceid):
@@ -282,7 +315,7 @@ def getNonWebPlayerId(device_list):
     return None
 
 
-def getWebPlayerId(device_list):
+def getWebPlayerId(device_list):    
     for i in device_list:
         if i['type'] == "Computer" and "Web Player" in i['device_name']:
 #             print(i['device_name'])
