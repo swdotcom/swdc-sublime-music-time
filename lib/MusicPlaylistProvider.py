@@ -436,7 +436,8 @@ def sortPlaylistByAz():
     playlist_section_one = sorted(playlist_section_one, key = lambda i: i['playlistTypeId'])
 
     # sorting by playlist name
-    playlist_section_two = sorted(playlist_section_two, key = lambda i: i['name'])
+    playlist_section_two = sorted(playlist_section_two, key = lambda i:(i['name'].lower(),i['name'].islower()))
+#     playlist_section_two = sorted(playlist_section_two, key = lambda i: i['name'])
 
     # Final sorted playlist in A-z
     playlist_data = playlist_section_one + playlist_section_two
