@@ -339,26 +339,26 @@ class ConnectSpotify(sublime_plugin.TextCommand):
 
             message_dialog = sublime.message_dialog("Spotify Connected !")
 
-            # Condition for MAC users
-            if isMac() is True and user_type == "non-premium":
-                try:
-                    msg = subprocess.Popen(
-                        ["open", "-a", "spotify"], stdout=subprocess.PIPE)
-                    if msg == "Unable to find application named 'spotify'":
-                        message_dialog = sublime.message_dialog(
-                            "Desktop player didn't opened. Please check whether \
-                            Spotify Desktop player is installed correctly \
-                            or Connect using Premium")
-                        showStatus("Connect Premium")
-                    else:
-                        print("getSpotifyTrackState", getSpotifyTrackState())
-                        print("getTrackInfo", getTrackInfo())
+            # # Condition for non premium MAC users
+            # if isMac() is True and user_type == "non-premium":
+            #     try:
+            #         msg = subprocess.Popen(
+            #             ["open", "-a", "spotify"], stdout=subprocess.PIPE)
+            #         if msg == "Unable to find application named 'spotify'":
+            #             message_dialog = sublime.message_dialog(
+            #                 "Desktop player didn't opened. Please check whether \
+            #                 Spotify Desktop player is installed correctly \
+            #                 or Connect using Premium")
+            #             showStatus("Connect Premium")
+            #         else:
+            #             print("getSpotifyTrackState", getSpotifyTrackState())
+            #             print("getTrackInfo", getTrackInfo())
 
-                    # currentTrackInfo()
-                except Exception as e:
-                    print("Music Time: Desktop player didn't opened")
-                    message_dialog = sublime.message_dialog(
-                        "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+            #         # currentTrackInfo()
+            #     except Exception as e:
+            #         print("Music Time: Desktop player didn't opened")
+            #         message_dialog = sublime.message_dialog(
+            #             "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
 
             setValue("logged_on", True)
             showStatus("Spotify Connected")

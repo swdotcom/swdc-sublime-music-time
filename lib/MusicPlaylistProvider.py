@@ -128,6 +128,8 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
         else:
             message_dialog = sublime.message_dialog(
                 "Songs not found. Please Use \nTools > Music Time > My Playlists > Open Playlist")
+            current_window = sublime.active_window()
+            current_window.run_command("hide_overlay")
             # print("NO SONG found")
 
     def confirm(self, value):
@@ -189,6 +191,8 @@ def playThisSong(currentDeviceId, track_id):
     # current_window = sublime.active_window()
     # current_window.run_command("select_player")
     if isMac() == True and userTypeInfo() == "non-premium":
+        if currentDeviceId is None:
+            openDesktopPlayer()
 
         script = '''
         osascript -e 'tell application "Spotify" to play track "spotify:track:{}"'
@@ -220,19 +224,20 @@ def playThisSong(currentDeviceId, track_id):
             data = { "uris": uris_list, "offset": {"position": track_index} }# {"position": 5}
             payload = json.dumps(data)
             print("payload",payload)
+            print("currentDeviceId",currentDeviceId)
 
-            if currentDeviceId is None:
+            if (currentDeviceId != ''.join([i for i in getSpotifyDevice() if ['device_id'] == currentDeviceId])) or currentDeviceId is None:
                 msg = sublime.yes_no_cancel_dialog("Launch a Spotify device", "Web player", "Desktop player")
 
                 if msg is 1:
                     webbrowser.open("https://open.spotify.com/")
                     # time.sleep(5)
                 elif msg is 2:
-                    result = subprocess.Popen("%APPDATA%/Spotify/Spotify.exe", shell=True,
-                                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    # time.sleep(5)
+                    launchDesktopPlayer()
+
                 else:
-                    pass
+                    current_window = sublime.active_window()
+                    current_window.run_command("hide_overlay")
 
                 time.sleep(4)
                 device_id = getSpotifyDevice()[0]['device_id']
@@ -243,6 +248,9 @@ def playThisSong(currentDeviceId, track_id):
                 ACTIVE_DEVICE['device_id'] = device_id
 
                 playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + active_device.get('device_id')
+            elif currentDeviceId is not None and ACTIVE_DEVICE.get('device_id') is None:#getSpotifyActiveDevice().get('device_id') is None:
+                transferPlayback(currentDeviceId)
+                playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
             else:
                 playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
             
@@ -259,6 +267,8 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
     global playlist_id
     playlist_id = playlistid
     if isMac() == True and userTypeInfo() == "non-premium":
+        if currentDeviceId is None:
+            openDesktopPlayer()
         script = '''
         osascript -e 'tell application "Spotify" to play track "spotify:track:{}" in context "spotify:playlist:{}"'
         '''.format(track_id, playlist_id)
@@ -270,18 +280,19 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
         headers = {"Authorization": "Bearer {}".format(
             getItem('spotify_access_token'))}
 
-        if currentDeviceId is None:
+        if (currentDeviceId != ''.join([i for i in getSpotifyDevice() if ['device_id'] == currentDeviceId])) or currentDeviceId is None:
             msg = sublime.yes_no_cancel_dialog("Launch a Spotify device", "Web player", "Desktop player")
 
             if msg is 1:
                 webbrowser.open("https://open.spotify.com/")
             elif msg is 2:
-                result = subprocess.Popen("%APPDATA%/Spotify/Spotify.exe", shell=True,
-                                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                launchDesktopPlayer()
+                # set_timeout_async(launchDesktopPlayer(),4000)
             else:
-                pass
-                
+                current_window = sublime.active_window()
+                current_window.run_command("hide_overlay") 
             time.sleep(4)
+            print("spotifydevices",getSpotifyDevice())
             device_id = getSpotifyDevice()[0]['device_id']
             transferPlayback(device_id)
             time.sleep(1)
@@ -290,7 +301,9 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
             ACTIVE_DEVICE['device_id'] = device_id
             
             playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + active_device.get('device_id') #currentDeviceId
-
+        # elif currentDeviceId is not None and ACTIVE_DEVICE.get('device_id') is None:#getSpotifyActiveDevice().get('device_id') is None:
+        #     transferPlayback(currentDeviceId)
+        #     playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
         else:
             playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
         data = {}
@@ -503,7 +516,8 @@ def sortPlaylistByAz():
     playlist_section_one = sorted(playlist_section_one, key = lambda i: i['playlistTypeId'])
 
     # sorting by playlist name # c = sorted(s, key=lambda c: (c.lower(), c.islower()))
-    playlist_section_two = sorted(playlist_section_two, key = lambda i: i['name'])
+    playlist_section_two = sorted(playlist_section_two, key = lambda i:(i['name'].lower(),i['name'].islower()))
+    # playlist_section_two = sorted(playlist_section_two, key = lambda i: i['name'])
 
     # Final sorted playlist in A-z
     playlist_data = playlist_section_one + playlist_section_two
@@ -719,3 +733,16 @@ def refreshMyAIPlaylist():
     else:
         print("Unable to wipe uris\n", get_recommends.text)
         pass
+
+
+def launchDesktopPlayer():
+    try:
+        if isMac is True:
+            launch = subprocess.Popen(["open", "-a", "spotify"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        else:
+            user = os.path.expanduser('~')
+            spotify_path = os.path.join(user , r"AppData\Roaming\Spotify\Spotify.exe")
+            launch = subprocess.Popen(spotify_path, shell=True,
+                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except Exception as e:
+        print("launchDesktopPlayer",e)
