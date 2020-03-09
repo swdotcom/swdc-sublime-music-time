@@ -746,3 +746,5 @@ def launchDesktopPlayer():
                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except Exception as e:
         print("launchDesktopPlayer",e)
+        sublime.error_message("Unable to launch Desktop player")
+        webbrowser.open("https://open.spotify.com/")

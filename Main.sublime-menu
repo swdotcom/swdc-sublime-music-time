@@ -18,6 +18,10 @@
                         "caption": "Disconnect Spotify"
                     },
                     {
+                        "caption": "-",
+                        "id": "software1"
+                    },
+                    {
                         "caption": "Learn More ",
                         "command": "readme_please"
                     },
@@ -28,6 +32,10 @@
                     {
                         "command": "submit_feedback",
                         "caption": "Send Feedback to cody@software.com"
+                    },
+                    {
+                        "caption": "-",
+                        "id": "software2"
                     },
                     {
                         "command": "launch_music_time_metrics",
@@ -94,6 +102,26 @@
 
                         ]
                     },
+                    {
+                        "caption": "-",
+                        "id": "software3"
+                    },
+                    {
+                        "command": "open_moodlist",
+                        "caption": "Filter by mood"
+                    },
+                    {
+                        "command": "open_genrelist",
+                        "caption": "Filter by genre"
+                    },
+                    {
+                        "command": "opentracks",
+                        "caption": "Open recommended songs"
+                    },
+                    {
+                        "caption": "-",
+                        "id": "software4"
+                    },
                     {   "caption": "Songs Controls",
                         "children": [
                             {
@@ -114,6 +142,10 @@
                             }
 
                         ]
+                    },
+                    {
+                        "caption": "-",
+                        "id": "software5"
                     },
                     {
                         "command": "select_player",

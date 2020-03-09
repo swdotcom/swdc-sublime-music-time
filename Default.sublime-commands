@@ -31,5 +31,17 @@
         "command": "open_songs",
         "caption": "Open Songs"
     },
+    {
+        "command": "open_moodlist",
+        "caption": "Filter by mood"
+    },
+    {
+        "command": "open_genrelist",
+        "caption": "Filter by genre"
+    },
+    {
+        "command": "opentracks",
+        "caption": "Open recommended songs"
+    },
      
 ]

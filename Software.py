@@ -26,6 +26,7 @@ from .lib.SoftwareOffline import *
 from .lib.SoftwareSettings import *
 from .lib.SocialShareManager import *
 from .lib.PlayerManager import *
+from .lib.MusicRecommendation import *
 
 # SOFTWARE_API = Constants.SOFTWARE_API
 # SPOTIFY_API = Constants.SPOTIFY_API
