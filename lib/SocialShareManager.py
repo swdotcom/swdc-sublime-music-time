@@ -44,7 +44,6 @@ class ShareSong(sublime_plugin.WindowCommand):
         global slack_channel_names
         global slack_channel
 
-
         isSlackAvailable = getValue("slack_logged_on", True)
         print("isSlackAvailable",isSlackAvailable)
         if isSlackAvailable is True:

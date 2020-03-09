@@ -16,6 +16,7 @@ from ..Software import *
 from .SoftwareMusic import *
 # from .MusicCommandManager import *
 from .MusicControlManager import *
+from .PlayerManager import *
 
 
 # global variables
@@ -53,24 +54,27 @@ class OpenSongsCommand(sublime_plugin.TextCommand):
         return SongInputHandler()
 
     def run(self, edit, songs_tree):
+        global ACTIVE_DEVICE
+
+        print("ACTIVE_DEVICE",ACTIVE_DEVICE)
         # print('first',songs_tree)
         self.view.insert(edit, 0, songs_tree)
         # print('second',songs_tree)
 
         print("current_song",current_song)
         if playlist_id == None:
-            try:
-                openTrackInWeb(playlist_id, current_song)
-            except Exception as e:
-                print("OpenSongsCommand:run:openTrackInWeb", e)
-            getActiveDeviceInfo()
+            # try:
+            #     openTrackInWeb(playlist_id, current_song)
+            # except Exception as e:
+            #     print("OpenSongsCommand:run:openTrackInWeb", e)
+            # getActiveDeviceInfo()
             playThisSong(ACTIVE_DEVICE.get('device_id'), songs_tree)
         else:
-            try:
-                openTrackInWeb(playlist_id, current_song)
-            except Exception as e:
-                print("OpenSongsCommand:run:openTrackInWeb", e)
-            getActiveDeviceInfo()
+            # try:
+            #     openTrackInWeb(playlist_id, current_song)
+            # except Exception as e:
+            #     print("OpenSongsCommand:run:openTrackInWeb", e)
+            # getActiveDeviceInfo()
             playSongFromPlaylist(ACTIVE_DEVICE.get(
                 'device_id'), playlist_id, songs_tree)
         # print("+"*20,songs_tree)
@@ -138,23 +142,15 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
 
         if playlist_id == None:
             print('#'*10, 'playlist_id == None SongInputHandler')
-            try:
-                openTrackInWeb(playlist_id, current_song)
-            except Exception as TypeError: #e
-                print("SongInputHandler:confirm:openTrackInWeb", e)
-                message_dialog = sublime.message_dialog("Song not found")
-            getActiveDeviceInfo()
-            playThisSong(ACTIVE_DEVICE.get('device_id'), current_song)
-        else:
-            try:
-                openTrackInWeb(playlist_id, current_song)
-            except Exception as e:
-                print("SongInputHandler:confirm:openTrackInWeb", e)
-            getActiveDeviceInfo()
-            print('#'*10, 'else == None SongInputHandler')
-            playSongFromPlaylist(ACTIVE_DEVICE.get(
-                'device_id'), playlist_id, current_song)
 
+
+            playThisSong(ACTIVE_DEVICE.get('device_id'), current_song)
+                # print(str(time.localtime()[3:6]))
+        else:
+
+            print('#'*10, 'else == None SongInputHandler')
+            sublime.set_timeout_async(playSongFromPlaylist(ACTIVE_DEVICE.get(
+                'device_id'), playlist_id, current_song),10000)
 
 
 def getPlaylists():
@@ -174,7 +170,12 @@ def getSongsInPlaylist(playlist_name):
 
 # Play song from playlist without playlist_id
 def playThisSong(currentDeviceId, track_id):
+    global ACTIVE_DEVICE
+
     if isMac() == True and userTypeInfo() == "non-premium":
+        if currentDeviceId is None:
+            openDesktopPlayer()
+
         script = '''
         osascript -e 'tell application "Spotify" to play track "spotify:track:{}"'
         '''.format(track_id)
@@ -194,9 +195,9 @@ def playThisSong(currentDeviceId, track_id):
         print("track_index",track_index)
         '''
         {"uris": ["spotify:track:1rZwgdUwUYBqEphd4CXynL", "spotify:track:6Q8mqjuz8xqdoUjhZQDfY7",
-        "spotify:track:1aDklx1GaBqHFowCzz63wU", "spotify:track:4oaU0fMSg3n9kqOwmLPVhH",
-        "spotify:track:4WZizdGrBVSZCES0q2XDwu", "spotify:track:0l1i3nJ4aDMk0inxnvzYTz"],
-        "offset": {"position": 2}}
+                  "spotify:track:1aDklx1GaBqHFowCzz63wU", "spotify:track:4oaU0fMSg3n9kqOwmLPVhH",
+                  "spotify:track:4WZizdGrBVSZCES0q2XDwu", "spotify:track:0l1i3nJ4aDMk0inxnvzYTz"],
+                  "offset": {"position": 2}}
         '''
         data = {}
         try:
@@ -205,7 +206,53 @@ def playThisSong(currentDeviceId, track_id):
             data = { "uris": uris_list, "offset": {"position": track_index} }# {"position": 5}
             payload = json.dumps(data)
             print("payload",payload)
+            print("currentDeviceId",currentDeviceId)
+
+            if ACTIVE_DEVICE == {}:
+
+                msg = sublime.yes_no_cancel_dialog("Launch a Spotify device", "Web player", "Desktop player")
+
+                if msg is 1:
+                    webbrowser.open("https://open.spotify.com/")
+                    time.sleep(3)
+                    try:
+                        devices = getSpotifyDevice()
+                        print("Launch Web Player:devices",devices)
+
+                        device_id = getWebPlayerId(devices)
+                        print("Launch Web Player:device_id",device_id)
+
+                        ACTIVE_DEVICE = {}
+                        ACTIVE_DEVICE['device_id'] = device_id
+                        print(ACTIVE_DEVICE)
+                        transferPlayback(device_id)
+                        currentDeviceId = device_id
+                        time.sleep(1)
+                    except Exception as e:
+                        print("Launch Web Player Error",e)
+                elif msg is 2:
+                    launchDesktopPlayer()
+                    time.sleep(5)
+                    try:
+                        devices = getSpotifyDevice()
+                        print("Launch Web Player:devices",devices)
+
+                        device_id = getNonWebPlayerId(devices)
+                        print("Launch Web Player:device_id",device_id)
+
+                        ACTIVE_DEVICE = {}
+                        ACTIVE_DEVICE['device_id'] = device_id
+                        print(ACTIVE_DEVICE)
+                        transferPlayback(device_id)
+                        currentDeviceId = device_id
+                        time.sleep(1)
+                    except Exception as e:
+                        print("Launch Desktop Player Error",e)
+                else:
+                    pass
+         
             playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
+            
             plays = requests.put(playstr, headers=headers, data=payload)
             print(plays.text)
         except Exception as e:
@@ -215,9 +262,12 @@ def playThisSong(currentDeviceId, track_id):
 
 # Play song from playlist using playlist_id and track_id
 def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
+    global ACTIVE_DEVICE
     global playlist_id
     playlist_id = playlistid
     if isMac() == True and userTypeInfo() == "non-premium":
+        if currentDeviceId is None:
+            openDesktopPlayer()
         script = '''
         osascript -e 'tell application "Spotify" to play track "spotify:track:{}" in context "spotify:playlist:{}"'
         '''.format(track_id, playlist_id)
@@ -228,6 +278,52 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
     else:
         headers = {"Authorization": "Bearer {}".format(
             getItem('spotify_access_token'))}
+
+
+        if ACTIVE_DEVICE == {}:
+
+            msg = sublime.yes_no_cancel_dialog("Launch a Spotify device", "Web player", "Desktop player")
+
+            if msg is 1:
+                webbrowser.open("https://open.spotify.com/")
+                time.sleep(3)
+                try:
+                    devices = getSpotifyDevice()
+                    print("Launch Web Player:devices",devices)
+
+                    device_id = getWebPlayerId(devices)
+                    print("Launch Web Player:device_id",device_id)
+
+                    ACTIVE_DEVICE = {}
+                    ACTIVE_DEVICE['device_id'] = device_id
+                    print(ACTIVE_DEVICE)
+                    transferPlayback(device_id)
+                    currentDeviceId = device_id
+                    time.sleep(3)
+                except Exception as e:
+                    print("Launch Web Player",e)
+            elif msg is 2:
+                launchDesktopPlayer()
+                time.sleep(5)
+                try:
+                    devices = getSpotifyDevice()
+                    print("Launch Web Player:devices",devices)
+
+                    device_id = getNonWebPlayerId(devices)
+                    print("Launch Web Player:device_id",device_id)
+
+                    ACTIVE_DEVICE = {}
+                    ACTIVE_DEVICE['device_id'] = device_id
+                    print(ACTIVE_DEVICE)
+                    transferPlayback(device_id)
+                    currentDeviceId = device_id
+                    time.sleep(3)
+                except Exception as e:
+                    print("Launch Desktop Player Error",e)
+            else:
+                pass
+
+
         playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
         data = {}
         try:
@@ -235,6 +331,7 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
             data['offset'] = {"uri": "spotify:track:" + track_id}
             payload = json.dumps(data)
             print("playSongFromPlaylist", payload)
+
             plays = requests.put(playstr, headers=headers, data=payload)
             print(plays.text)
         except Exception as e:
@@ -437,9 +534,9 @@ def sortPlaylistByAz():
 
     playlist_section_one = sorted(playlist_section_one, key = lambda i: i['playlistTypeId'])
 
-    # sorting by playlist name
+    # sorting by playlist name # c = sorted(s, key=lambda c: (c.lower(), c.islower()))
     playlist_section_two = sorted(playlist_section_two, key = lambda i:(i['name'].lower(),i['name'].islower()))
-#     playlist_section_two = sorted(playlist_section_two, key = lambda i: i['name'])
+    # playlist_section_two = sorted(playlist_section_two, key = lambda i: i['name'])
 
     # Final sorted playlist in A-z
     playlist_data = playlist_section_one + playlist_section_two
@@ -655,3 +752,18 @@ def refreshMyAIPlaylist():
     else:
         print("Unable to wipe uris\n", get_recommends.text)
         pass
+
+
+def launchDesktopPlayer():
+    try:
+        if isMac is True:
+            launch = subprocess.Popen(["open", "-a", "spotify"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        else:
+            user = os.path.expanduser('~')
+            spotify_path = os.path.join(user , r"AppData\Roaming\Spotify\Spotify.exe")
+            launch = subprocess.Popen(spotify_path, shell=True,
+                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except Exception as e:
+        print("launchDesktopPlayer",e)
+        sublime.error_message("Unable to launch Desktop player")
+        webbrowser.open("https://open.spotify.com/")

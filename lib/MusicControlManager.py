@@ -14,6 +14,7 @@ from ..Constants import *
 from .MusicPlaylistProvider import *
 from .SoftwareMusic import *
 from .SocialShareManager import *
+from .PlayerManager import *
 # from .SoftwareUtil import *
 # from ..Software import *
 # from .MusicCommandManager import *
@@ -21,7 +22,9 @@ from .SocialShareManager import *
 
 # Song's Controls: Play
 def playSong():
-    getActiveDeviceInfo()
+    global active_device
+
+    # getActiveDeviceInfo()
     # print("isMac",isMac(),'|',userTypeInfo())
     if isMac() == True and userTypeInfo() == "non-premium": 
         playPlayer()
@@ -31,11 +34,20 @@ def playSong():
         headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
         # print("headers",headers)
         # print(getActiveDeviceInfo())
+        active_device = getSpotifyActiveDevice()
+
+        if active_device == {}:
+            current_window = sublime.active_window()
+            current_window.run_command("select_player")
+            playstr = SPOTIFY_API + "/v1/me/player/play?" + active_device.get('device_id')
+
+
         playstr = SPOTIFY_API + "/v1/me/player/play?" + ACTIVE_DEVICE.get('device_id')#getActiveDeviceInfo()#currentDeviceId
         plays = requests.put(playstr, headers=headers)
         # print(plays.status_code)
-        print("Web player Working | Playing :", plays.status_code, "|",plays.text)
+        print("Web player Working | Playing ... ", plays.status_code, "|",plays.text)
     currentTrackInfo()
+
 
 # Song's Controls: Pause
 def pauseSong():
@@ -52,6 +64,7 @@ def pauseSong():
         pause = requests.put(pausestr, headers=headers)
         print("Web player Working | Paused ...", pause.status_code, "|",pause.text)
     currentTrackInfo()
+
 
 # Song's Controls: Next
 def nextSong():

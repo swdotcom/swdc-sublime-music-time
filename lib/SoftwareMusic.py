@@ -9,6 +9,7 @@ from .SoftwareUtil import *
 from ..Software import *
 from .MusicPlaylistProvider import *
 from .SoftwareMusic import *
+# from .PlayerManager import *
 
 current_track_info = {}
 ACTIVE_DEVICE = {}
@@ -16,6 +17,7 @@ DEVICES = []
 Liked_songs_ids = []
 
 current_track_id = ""
+
 
 # To fetch and show music-time dashboard
 def getMusicTimedashboard():
@@ -153,12 +155,14 @@ def getActiveDeviceInfo():
         devices = getdevs.json()
         DEVICES = []
         # try:
-        if devices['devices'] == [] and userTypeInfo() == "premium":
-            url = "https://open.spotify.com/"
-            # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
-            webbrowser.open(url)
-            # else:
-            # print("Music Time: No active device found.")
+        if devices['devices'] == []:# and userTypeInfo() == "premium":
+            msg = sublime.ok_cancel_dialog("Please launch Spotify player", "Ok")
+            if msg is True:
+                current_window = sublime.active_window()
+                current_window.run_command("select_player")
+            else:
+                pass
+
         else:
             for i in devices:
                 for j in range(len(devices['devices'])):
@@ -187,6 +191,8 @@ def getActiveDeviceInfo():
 
 # Function to check whether current track is liked or not
 check_liked_songs = lambda x :"  ❤️" if (x in Liked_songs_ids) else " "
+# ❤️ https://emojipedia.org/red-heart/
+# ♥️ https://emojipedia.org/heart-suit/
 
 
 def getLikedSongsIds():
@@ -213,6 +219,7 @@ def getLikedSongsIds():
 # Liked_songs_ids = getLikedSongs()
 
 def currentTrackInfo():
+    # global ACTIVE_DEVICE
     trackstate = ''
     trackinfo = ''
     Liked_songs_ids = getLikedSongsIds()
@@ -231,12 +238,10 @@ def currentTrackInfo():
         # getTrackInfo {'duration': '268210', 'state': 'playing', 'name': 'Dhaga Dhaga', \
         # 'artist': 'harsh wavre', 'genre': '', 'type': 'spotify', 'id': 'spotify:track:79TKZDxCWEonklGmC5WbDC'}
             if trackstate == "playing":
-                showStatus("Now Playing "+str(trackinfo) +
-                           " on " + ACTIVE_DEVICE.get('name') + isLiked)
+                showStatus("Now Playing "+str(trackinfo) + isLiked)
                 # print("Playing "+trackinfo)
             else:
-                showStatus("Paused "+str(trackinfo) +
-                           " on " + ACTIVE_DEVICE.get('name') + isLiked)
+                showStatus("Paused "+str(trackinfo) + isLiked)
                 # print("Paused "+trackinfo)
         except Exception as e:
             print("Music time: player not found", e)
@@ -244,10 +249,15 @@ def currentTrackInfo():
 
     else:
         try:
+            # print("ACTIVE_DEVICE in currentTrackInfo 1:",ACTIVE_DEVICE)
+            if ACTIVE_DEVICE == {}:
+                getActiveDeviceInfo()
+
             headers = {"Authorization": "Bearer {}".format(
                 getItem('spotify_access_token'))}
             trackstr = SPOTIFY_API + "/v1/me/player/currently-playing?" + \
                 ACTIVE_DEVICE.get('device_id')  # getActiveDeviceInfo()
+            
             track = requests.get(trackstr, headers=headers)
 
             if track.status_code == 200:
@@ -260,12 +270,10 @@ def currentTrackInfo():
                 # print("Liked_songs_ids:",Liked_songs_ids,"\nisLiked:",isLiked) 
 
                 if trackstate == True:
-                    showStatus("Now Playing "+str(trackinfo) +
-                               " on "+ACTIVE_DEVICE.get('name') + isLiked)
+                    showStatus("Now Playing "+str(trackinfo) + isLiked)
                     # print("Playing "+trackinfo)
                 else:
-                    showStatus("Paused "+str(trackinfo) +
-                               " on "+ACTIVE_DEVICE.get('name') + isLiked)
+                    showStatus("Paused "+str(trackinfo) + isLiked)
                     # print("Paused "+trackinfo)
 
             elif track.status_code == 401:
@@ -321,78 +329,78 @@ def check_user(): return "Spotify Connected" if (userTypeInfo() == "premium") el
 # to get all device names
 
 
-def getDeviceNames():
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
-    get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
-    getdevs = requests.get(get_device_url, headers=headers)
-    show_list = []
-    if getdevs.status_code == 200:
-        devices = getdevs.json()['devices']
-        show_list = []
-        for i in range(len(devices)):
-            show_list.append(devices[i]['name'])
+# def getDeviceNames():
+#     headers = {"Authorization": "Bearer {}".format(
+#         getItem('spotify_access_token'))}
+#     get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
+#     getdevs = requests.get(get_device_url, headers=headers)
+#     show_list = []
+#     if getdevs.status_code == 200:
+#         devices = getdevs.json()['devices']
+#         show_list = []
+#         for i in range(len(devices)):
+#             show_list.append(devices[i]['name'])
 
-        show_device = ", ".join(show_list)
-        if len(devices) == 0:
-            show_device = "Device not found"
+#         show_device = ", ".join(show_list)
+#         if len(devices) == 0:
+#             show_device = "Device not found"
 
-    else:
-        show_device = "Device status not found"
-        print(getdevs)
+#     else:
+#         show_device = "Device status not found"
+#         print(getdevs)
 
-    return show_device
-
-
-# get active device name
-def activeDeviceName():
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
-    get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
-    getdevs = requests.get(get_device_url, headers=headers)
-    name = ""
-    if getdevs.status_code == 200:
-        devices = getdevs.json()['devices']
-        for i in range(len(devices)):
-            if devices[i]['is_active'] == True:
-                name = devices[i]['name']
-    else:
-        name = ""
-
-    return name
-
-# Show Active/connected/no device msg
+#     return show_device
 
 
-def myToolTip():
-    # global DEVICES
-    # getActiveDeviceInfo()
-    header = "<h3>Music Time</h3>"
-    connected = '<p><b>{}</b></p>'.format(check_user())
-    close_msg = '(Press <b>Esc</b> to close)'
+# # get active device name
+# def activeDeviceName():
+#     headers = {"Authorization": "Bearer {}".format(
+#         getItem('spotify_access_token'))}
+#     get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
+#     getdevs = requests.get(get_device_url, headers=headers)
+#     name = ""
+#     if getdevs.status_code == 200:
+#         devices = getdevs.json()['devices']
+#         for i in range(len(devices)):
+#             if devices[i]['is_active'] == True:
+#                 name = devices[i]['name']
+#     else:
+#         name = ""
 
-    if len(activeDeviceName()) > 0:
-        show_str = activeDeviceName()
-        # print(show_str)
-        listen_on = '<p><b>Listening on </b><i>{}</i></p>'.format(show_str)
-        body = "<body>" + header + connected + listen_on + close_msg + "</body>"
-        # print("\n",body)
+#     return name
 
-    else:
-        if getDeviceNames() == "Device not found":
-            show_str = getDeviceNames()
-            # print(show_str)
-            no_device_msg = '<p><i>No device found</i></p>'
-            body = "<body>" + header + connected + no_device_msg + close_msg + "</body>"
-            # print("\n",body)
-        else:
-            show_str = getDeviceNames()
-            # print(show_str)
-            available_on = '<p><b>Connected on </b><i>{}</i></p>'.format(
-                show_str)
-            body = "<body>" + header + connected + available_on + close_msg + "</body>"
-    # print("\n",body)
-    return body
+# # Show Active/connected/no device msg
+
+
+# def myToolTip():
+#     # global DEVICES
+#     # getActiveDeviceInfo()
+#     header = "<h3>Music Time</h3>"
+#     connected = '<p><b>{}</b></p>'.format(check_user())
+#     close_msg = '(Press <b>Esc</b> to close)'
+
+#     if len(activeDeviceName()) > 0:
+#         show_str = activeDeviceName()
+#         # print(show_str)
+#         listen_on = '<p><b>Listening on </b><i>{}</i></p>'.format(show_str)
+#         body = "<body>" + header + connected + listen_on + close_msg + "</body>"
+#         # print("\n",body)
+
+#     else:
+#         if getDeviceNames() == "Device not found":
+#             show_str = getDeviceNames()
+#             # print(show_str)
+#             no_device_msg = '<p><i>No device found</i></p>'
+#             body = "<body>" + header + connected + no_device_msg + close_msg + "</body>"
+#             # print("\n",body)
+#         else:
+#             show_str = getDeviceNames()
+#             # print(show_str)
+#             available_on = '<p><b>Connected on </b><i>{}</i></p>'.format(
+#                 show_str)
+#             body = "<body>" + header + connected + available_on + close_msg + "</body>"
+#     # print("\n",body)
+#     return body
 
 
 # To open spotify playlist/track web url
@@ -436,30 +444,30 @@ def openTrackInWeb(playlist_ids, current_songs):
 
 # ---------------------------------------------------plug292
 
-class SelectPlayer(sublime_plugin.WindowCommand):
+# class SelectPlayer(sublime_plugin.WindowCommand):
 
-    def run(self):
-        player = ["Launch Web Player", "Launch Desktop Player"]
-        self.window.show_quick_panel(player, lambda id: self.on_done(id, player))
+#     def run(self):
+#         player = ["Launch Web Player", "Launch Desktop Player"]
+#         self.window.show_quick_panel(player, lambda id: self.on_done(id, player))
 
-    def on_done(self, id, player):
-        if id >= 0 and player[id] == "Launch Web Player":
-            webbrowser.open("https://open.spotify.com/")
+#     def on_done(self, id, player):
+#         if id >= 0 and player[id] == "Launch Web Player":
+#             webbrowser.open("https://open.spotify.com/")
 
-        else:
-            # open desktop
-            result = subprocess.Popen("cmd /c spotify.exe", shell=True,
-                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            output,error = result.communicate()
+#         else:
+#             # open desktop
+#             result = subprocess.Popen("cmd /c spotify.exe", shell=True,
+#                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#             output,error = result.communicate()
 
-            if len(error) is not 0:
-                print("Spotify not found in C")
-                result = subprocess.Popen("%APPDATA%/Spotify/Spotify.exe", shell=True,
-                                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#             if len(error) is not 0:
+#                 print("Spotify not found in C")
+#                 result = subprocess.Popen("%APPDATA%/Spotify/Spotify.exe", shell=True,
+#                                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-                output,error = result.communicate()
-                if len(error) is not 0:
-                    print("Desktop player not found. Opening Web player. \nError:",error)
+#                 output,error = result.communicate()
+#                 if len(error) is not 0:
+#                     print("Desktop player not found. Opening Web player. \nError:",error)
             
             
 
@@ -537,3 +545,4 @@ def isEndInRange(playingTrack):
     buffer_val = playingTrack['duration_ms'] * 0.07
     if (playingTrack['duration_ms'] - buffer_val) <= playingTrack['duration_ms']:
         return True
+
