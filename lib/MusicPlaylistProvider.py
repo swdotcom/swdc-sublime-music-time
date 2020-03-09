@@ -174,7 +174,8 @@ def playThisSong(currentDeviceId, track_id):
 
     if isMac() == True and userTypeInfo() == "non-premium":
         if currentDeviceId is None:
-            openDesktopPlayer()
+            # openDesktopPlayer()
+            launchDesktopPlayer()
 
         script = '''
         osascript -e 'tell application "Spotify" to play track "spotify:track:{}"'
@@ -267,7 +268,8 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
     playlist_id = playlistid
     if isMac() == True and userTypeInfo() == "non-premium":
         if currentDeviceId is None:
-            openDesktopPlayer()
+            # openDesktopPlayer()
+            launchDesktopPlayer()
         script = '''
         osascript -e 'tell application "Spotify" to play track "spotify:track:{}" in context "spotify:playlist:{}"'
         '''.format(track_id, playlist_id)
