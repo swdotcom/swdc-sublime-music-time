@@ -17,6 +17,7 @@ from .SoftwareMusic import *
 # from .MusicCommandManager import *
 from .MusicControlManager import *
 from .PlayerManager import *
+from .SocialShareManager import *
 
 
 # global variables
@@ -754,6 +755,83 @@ def refreshMyAIPlaylist():
     else:
         print("Unable to wipe uris\n", get_recommends.text)
         pass
+
+
+class CreatePlaylist(sublime_plugin.WindowCommand):
+    def run(self):
+        default_text = "Neoplaylist"
+        self.window.show_input_panel("Enter a playlist name:", default_text, self.on_done, None, None)
+
+    def on_done(self, providedname):
+        print("providedname",providedname)
+        newplaylistid = CreateNewPlaylist(providedname)
+        if len(newplaylistid) == 22:
+            print("playlist created !")
+            current_song_id, current_song_name = getSpotifyTrackId()
+            print("current_song_id",current_song_id)
+            addTrackToPlaylist(current_song_id,newplaylistid)
+
+
+def CreateNewPlaylist(playlistname):
+    spotifyUserId = userMeInfo().get('id')
+    create_playlist_url = "https://api.spotify.com/v1/users/" + spotifyUserId + "/playlists"
+    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+    json_data = json.dumps({"name": playlistname,}) #"public": True, "description": ""
+    print("json_data :", json_data,"\nheaders :",headers,"\ncreate_playlist_url :",create_playlist_url)
+    create_playlist = requests.post(create_playlist_url, headers=headers, data=json_data)
+    # create_playlist_response = create_playlist.json()
+    if create_playlist.status_code >= 200:
+        # response = create_playlist.json()
+        new_playlist_id = create_playlist.json()['id']
+        return new_playlist_id
+    else:
+        print("UNABLE",create_playlist.text)
+        return ""
+
+class CreateAddPlaylist(sublime_plugin.WindowCommand):
+
+    def run(self):
+        playlist_items = ['New playlist'] + [i['name'] for i in playlist_data]
+        # playlist_items = [('New playlist','')] + [(i['name'],i['id']) for i in playlist_data]
+        self.window.show_quick_panel(playlist_items, lambda id: self.on_done(id, playlist_items))
+
+    def on_done(self, id, playlist_items):
+        if id >= 0 and playlist_items[id] == "New playlist":
+            # Invoke a function because Item 2 was selected
+            print("Create a new playlist selected",playlist_items[id])
+            # spotifyUserId = userMeInfo().get('id')
+            # print("spotifyUserId",spotifyUserId)
+            # print("playlist_info",playlist_info)
+            current_window = sublime.active_window()
+            current_window.run_command("create_playlist")
+            pass
+        
+        else:
+            print("Adding track to existing playlist")
+            playlistname = playlist_items[id]
+            playlist_id = playlist_info.get(playlistname)
+            current_song_id, current_song_name = getSpotifyTrackId()
+            print("playlist name:",playlistname," id:",playlist_id,"current_song_id",current_song_id)
+            addTrackToPlaylist(current_song_id,playlist_id)
+
+
+def addTrackToPlaylist(trackid,playlistid):
+    addtrack_api = "https://api.spotify.com/v1/playlists/"+playlistid+"/tracks"
+    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+    payload = json.dumps({"uris": ["spotify:track:"+trackid], "position": 0})
+    resp = requests.post(addtrack_api, headers=headers, data=payload )
+    if resp.status_code == 201:
+        print("success",resp.text)
+        # msg = current_song_name+" added to "+playlistname
+        sublime.message_dialog("Track added !")
+    else:
+        print("failed",resp.text)
+        sublime.message_dialog("Unable to add track")
+
+
+
+
+
 
 
 def launchDesktopPlayer():

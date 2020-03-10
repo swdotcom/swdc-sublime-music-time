@@ -22,15 +22,15 @@ def getSpotifyTrackId():
         track = requests.get(trackstr, headers=headers)
 
         if track.status_code == 200:
-            trackinfo = track.json()['item']['name']
+            trackname = track.json()['item']['name']
             trackstate = track.json()['is_playing']
             track_id = track.json()['item']['id']
-            return track_id
+            return track_id,trackname
     except Exception as e:
         print("getSpotifyTrackId",e)
         pass
 
-    return ""
+    return "",""
 
 
 
@@ -82,7 +82,7 @@ class ShareSong(sublime_plugin.WindowCommand):
             self.window.show_quick_panel(items[id_1][1], lambda id_2: self.on_done2(id_2, id_1, items))
 
     def on_done2(self, id_2, id_1, items):
-        current_track_id = getSpotifyTrackId()
+        current_track_id = getSpotifyTrackId()[0]
         print("current_track_id",current_track_id)
         if current_track_id:
             # Slack
@@ -156,84 +156,3 @@ class ShareSong(sublime_plugin.WindowCommand):
 
 
 
-
-# current_track_id = "2Svje8vKEM4VCKxoRyAvA4"
-# current_track_id = ""
-
-# class ShareSong(sublime_plugin.WindowCommand):
-
-#     def run(self):
-#         items = ["Facebook", "Slack", "Tumblr",
-#             "Twitter", "Whatsapp", "Copy Song Link"]
-#         self.window.show_quick_panel(items, lambda id: self.on_done(id, items))
-
-#     def on_done(self, id, items):
-#         current_track_id = getSpotifyTrackId()
-#         print("current_track_id",current_track_id)
-#         if current_track_id:
-#             # current_track_id = current_song
-#             if id >= 0 and items[id] == "Facebook":
-#                 '''
-#                 "https://www.facebook.com/sharer/sharer.php?u=
-#                 https%3A%2F%2Fopen.spotify.com%2Ftrack%2F5O932cZmzOZGOGZz9RHx20
-#                 &hashtag=%23MusicTime"
-#                 '''
-#                 fb_Url = "https://www.facebook.com/sharer/sharer.php?u="
-#                 EncodedURL = encodeUrl("https://open.spotify.com/album/"+ current_track_id)
-#                 Endcoded_hashtag = encodeUrl("MusicTime")
-#                 fb_shareUrl = fb_Url+EncodedURL+"&hashtags="+Endcoded_hashtag
-#                 webbrowser.open(fb_shareUrl)
-#                 print("Facebook:",fb_shareUrl)
-
-#             elif items[id] == "Slack":
-#                 print("Slack")
-
-#             elif items[id] == "Tumblr":
-#                 '''
-#                 https://www.tumblr.com/widgets/share/tool?
-#                 canonicalUrl=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F5O932cZmzOZGOGZz9RHx20
-#                 &content=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F5O932cZmzOZGOGZz9RHx20
-#                 &posttype=link&title=Check%20out%20this%20Song
-#                 &caption=Software%20Audio%20Share&tags=MusicTime
-#                 '''
-#                 tumblr_Url = "https://www.tumblr.com/widgets/share/tool?canonicalUrl=" 
-#                 EncodedURL = encodeUrl("https://open.spotify.com/album/"+ current_track_id)
-#                 Endcoded_msg = encodeUrl("Check out this Song")
-#                 Encoded_caption = encodeUrl("Software Audio Share")
-#                 tumblr_shareUrl = tumblr_Url+EncodedURL+"&content="+EncodedURL+"&posttype=link&title="+Endcoded_msg+"&caption="+Encoded_caption+"&tags=MusicTime"
-#                 webbrowser.open(tumblr_shareUrl)
-#                 print("Tumblr:",tumblr_shareUrl)
-
-
-#             elif items[id] == "Twitter":
-#                 '''
-#                 https://twitter.com/intent/tweet/?text=Check%20out%20this%20Song
-#                 &url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F5O932cZmzOZGOGZz9RHx20
-#                 &hashtags=MusicTime
-#                 '''
-#                 twitter_Url = "https://twitter.com/intent/tweet/?text="
-#                 Endcoded_msg = encodeUrl("Check out this Song ")
-#                 EncodedURL = encodeUrl("https://open.spotify.com/album/"+ current_track_id)
-#                 twitter_shareUrl = twitter_Url + Endcoded_msg +"&url="+ EncodedURL +"&hashtags=MusicTime"
-#                 webbrowser.open(twitter_shareUrl)
-#                 print("Twitter:",twitter_shareUrl)
-
-#             elif items[id] == "Whatsapp":
-#                 '''
-#                 https://api.whatsapp.com/send?text=
-#                 Check%20out%20this%20Song%3A%20https%3A%2F%2Fopen.spotify.com%2Ftrack%2F5O932cZmzOZGOGZz9RHx20
-
-#                 '''
-#                 whatsapp_Url = "https://api.whatsapp.com/send?text="
-#                 Endcoded_msg = encodeUrl("Check out this Song ")
-#                 EncodedURL = encodeUrl("https://open.spotify.com/album/"+ current_track_id)
-#                 whatsapp_shareUrl = whatsapp_Url + Endcoded_msg +EncodedURL
-#                 webbrowser.open(whatsapp_shareUrl)
-#                 print("Whatsapp: ",whatsapp_shareUrl)
-
-#             else:
-#                 track_url = "https://open.spotify.com/album/"+ current_track_id
-#                 sublime.set_clipboard(track_url)
-#                 print(track_url)
-#         else:
-#             message_dialog = sublime.message_dialog("No track found. Please play some track before sharing.")

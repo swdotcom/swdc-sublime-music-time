@@ -216,7 +216,7 @@ def unLikeSong(track_id):
 
 
 def checkLikedSong():
-    track_id = getSpotifyTrackId()
+    track_id = getSpotifyTrackId()[0]
     Liked_songs_ids = getLikedSongsIds()#getLikedSongs()
     print("checkLikedSong Liked_songs_ids",Liked_songs_ids)
     if track_id:

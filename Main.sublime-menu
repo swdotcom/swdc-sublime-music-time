@@ -75,9 +75,21 @@
                                 "caption": "Open Songs"
                             },
                             {
+                                "caption": "-",
+                                "id": "software8"
+                            },
+                            {
                                 "command": "like_unlike_song",
                                 "caption": "Like / Unlike Song"
 
+                            },
+                            {
+                                "command": "create_add_playlist",
+                                "caption": "Add or create playlist"
+                            },
+                            {
+                                "caption": "-",
+                                "id": "software7"
                             },
                             {
                                 "command": "generate_ai_playlist",
@@ -86,6 +98,10 @@
                             {
                                 "command": "refresh_ai_playlist",
                                 "caption": "Refresh My AI Playlist"
+                            },
+                            {
+                                "caption": "-",
+                                "id": "software6"
                             },
                             {
                                 "command": "connect_slack",
