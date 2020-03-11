@@ -10,5 +10,5 @@
   {"keys": ["ctrl+alt+o"],"command":"like_unlike_song"},
   {"keys": ["ctrl+alt+d"],"command":"select_player"},
   {"keys": ["ctrl+alt+a"],"command":"create_add_playlist"},
-  {"keys": ["ctrl+alt+r"],"command":"opentracks"}
+  {"keys": ["ctrl+alt+s"],"command":"opentracks"}
 ]
