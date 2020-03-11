@@ -128,7 +128,11 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
         global current_playlist_name
         print("SongInputHandler:list_items", current_playlist_name)
         if len(current_playlist_name) > 0:
-            return getSongsInPlaylist(current_playlist_name)
+            listoftracks = getSongsInPlaylist(current_playlist_name)
+            if listoftracks == []:
+                # msg = "a bit empty here"
+                message_dialog = sublime.message_dialog("This playlist is a bit empty here.")
+            return listoftracks
         else:
             message_dialog = sublime.message_dialog(
                 "Songs not found. Please Use \nTools > Music Time > My Playlists > Open Playlist")
@@ -165,6 +169,7 @@ def getSongsInPlaylist(playlist_name):
     global playlist_data
     for playlist in playlist_data:
         if playlist.get("name") == playlist_name:
+            print('playlist.get("songs")',playlist.get("songs"))
             return playlist.get("songs")
 
 
@@ -772,9 +777,9 @@ def refreshMyAIPlaylist():
 
 class CreatePlaylist(sublime_plugin.WindowCommand):
     def run(self):
-        default_text = "Neoplaylist"
+        default_text = "NewPlaylist" + datetime.datetime.now().strftime("%Y%m%d%w-%H%M%S")
         self.window.show_input_panel(
-            "Enter a playlist name:", default_text, self.on_done, None, None)
+            "Enter a playlist name:", default_text, self.on_done, self.on_change, None)
 
     def on_done(self, providedname):
         print("providedname", providedname)
@@ -783,7 +788,15 @@ class CreatePlaylist(sublime_plugin.WindowCommand):
             print("playlist created !")
             current_song_id, current_song_name = getSpotifyTrackId()
             print("current_song_id", current_song_id)
-            addTrackToPlaylist(current_song_id, newplaylistid)
+            addTrackToPlaylist(current_song_id, newplaylistid, providedname)
+
+    def on_change(self, providedname):
+        if len(providedname) == 0:
+            sublime.message_dialog("Please Enter valid a name.")
+        elif len(providedname) == 1 and providedname.isspace():
+            sublime.message_dialog("Please Enter valid a name.")
+        else:
+            pass
 
 
 def CreateNewPlaylist(playlistname):
@@ -811,7 +824,10 @@ def CreateNewPlaylist(playlistname):
 class CreateAddPlaylist(sublime_plugin.WindowCommand):
 
     def run(self):
-        playlist_items = ['New playlist'] + [i['name'] for i in playlist_data]
+        # print("playlist_data",playlist_data)
+        # items = [i['name'] for i in playlist_data]
+        item_list = [i['name'] for i in playlist_data if (i['name'] not in ['My AI Top 40','Software Top 40','Liked songs'])]
+        playlist_items = ['New playlist'] + item_list
         # playlist_items = [('New playlist','')] + [(i['name'],i['id']) for i in playlist_data]
         self.window.show_quick_panel(
             playlist_items, lambda id: self.on_done(id, playlist_items))
@@ -826,20 +842,23 @@ class CreateAddPlaylist(sublime_plugin.WindowCommand):
             current_window = sublime.active_window()
             current_window.run_command("create_playlist")
             pass
-        else:
+        elif id >= 0 and playlist_items[id] in [i['name'] for i in playlist_data]:
             print("Adding track to existing playlist")
-            playlistname = playlist_items[id]
-            playlist_id = playlist_info.get(playlistname)
+            playlist_name = playlist_items[id]
+            playlist_id = playlist_info.get(playlist_name)
             current_song_id, current_song_name = getSpotifyTrackId()
-            print("playlist name:", playlistname, " id:",
+            print("playlist name:", playlist_name, " id:",
                   playlist_id, "current_song_id", current_song_id)
-            addTrackToPlaylist(current_song_id, playlist_id)
+            addTrackToPlaylist(current_song_id, playlist_id,playlist_name)
+        else:
+            current_window = sublime.active_window()
+            current_window.run_command("hide_overlay")
 
-    def is_enabled(self):
+    def is_enabled(self): 
         return (getValue("logged_on", True) is True)
 
 
-def addTrackToPlaylist(trackid, playlistid):
+def addTrackToPlaylist(trackid, playlistid, play_list_name):
     addtrack_api = "https://api.spotify.com/v1/playlists/"+playlistid+"/tracks"
     headers = {"Authorization": "Bearer {}".format(
         getItem('spotify_access_token'))}
@@ -847,11 +866,14 @@ def addTrackToPlaylist(trackid, playlistid):
     resp = requests.post(addtrack_api, headers=headers, data=payload)
     if resp.status_code == 201:
         print("success", resp.text)
-        # msg = current_song_name+" added to "+playlistname
-        sublime.message_dialog("Track added !")
+        msg = "Track added to "+ '"' +play_list_name+ '"'
+        sublime.message_dialog(msg)
+        getUserPlaylists()
     else:
-        print("failed", resp.text)
-        sublime.message_dialog("Unable to add track")
+        msg = resp.json()['error']['message']
+        print("failed", msg)
+        msg_body = "Unable to add track.\n"+msg
+        sublime.message_dialog(msg_body)
 
 
 def launchDesktopPlayer():
