@@ -130,9 +130,11 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
         if len(current_playlist_name) > 0:
             listoftracks = getSongsInPlaylist(current_playlist_name)
             if listoftracks == []:
+                return [("It's a bit empty here...","")]
                 # msg = "a bit empty here"
-                message_dialog = sublime.message_dialog("This playlist is a bit empty here.")
-            return listoftracks
+                # message_dialog = sublime.message_dialog("This playlist is a bit empty here.")
+            else:
+                return listoftracks
         else:
             message_dialog = sublime.message_dialog(
                 "Songs not found. Please Use \nTools > Music Time > My Playlists > Open Playlist")
@@ -145,16 +147,18 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
         current_song = value
         print("current_song", current_song)
 
-        if playlist_id == None:
-            print('#'*10, 'playlist_id == None SongInputHandler')
-
-            playThisSong(ACTIVE_DEVICE.get('device_id'), current_song)
-            # print(str(time.localtime()[3:6]))
+        if len(current_song) != 0:
+            if playlist_id == None:
+                print('#'*10, 'playlist_id == None SongInputHandler')
+                playThisSong(ACTIVE_DEVICE.get('device_id'), current_song)
+            else:
+                print('#'*10, 'else == None SongInputHandler')
+                playSongFromPlaylist(ACTIVE_DEVICE.get(
+                    'device_id'), playlist_id, current_song)
         else:
+            pass
+            # sublime.message_dialog("Can't play the track.")
 
-            print('#'*10, 'else == None SongInputHandler')
-            sublime.set_timeout_async(playSongFromPlaylist(ACTIVE_DEVICE.get(
-                'device_id'), playlist_id, current_song), 10000)
 
 
 def getPlaylists():
@@ -288,7 +292,7 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
         headers = {"Authorization": "Bearer {}".format(
             getItem('spotify_access_token'))}
 
-        if ACTIVE_DEVICE == {}:
+        if currentDeviceId == None:
 
             msg = sublime.yes_no_cancel_dialog(
                 "Launch a Spotify device", "Web player", "Desktop player")
@@ -333,6 +337,7 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
                 pass
 
         playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
+        print("device",playstr)
         data = {}
         try:
             data["context_uri"] = "spotify:playlist:" + playlist_id

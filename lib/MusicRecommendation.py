@@ -142,28 +142,26 @@ class SongsInputHandler(sublime_plugin.ListInputHandler):
         if len(recommendation_data) == 0 or recommendation_data[0] != filter_type:
             tracks = getTracksBySelection(filter_type)
             if tracks == []:
-                sublime.message_dialog(
-                    "Songs not found. Please select a mood or genre")
-                current_window = sublime.active_window()
-                current_window.run_command("hide_overlay")
-
-            recommendation_data = [filter_type, tracks]
-            print("recommendation_data", recommendation_data)
-            return recommendation_data[1]
-        # print("recommendation_data",recommendation_data)
-
-        # if len(recommendation_data[1]) == 0:
-        #     msg = mes
-
-        return recommendation_data[1]
-        # print("recommendation_data",recommendation_data)
+                # sublime.message_dialog(
+                #     "Songs not found. Please select a mood or genre")
+                return [("Songs not found. Please try another mood or genre","")]
+                # current_window = sublime.active_window()
+                # current_window.run_command("hide_overlay")
+            else:
+                recommendation_data = [filter_type, tracks]
+                print("recommendation_data", recommendation_data)
+                return recommendation_data[1]
 
     def confirm(self, value):
         global current_track
         global ACTIVE_DEVICE
         current_track = value
         print("current_track_id", current_track)
-        playRecommendationTrack(ACTIVE_DEVICE.get('device_id'), current_track)
+        if len(current_track) != 0:
+            playRecommendationTrack(ACTIVE_DEVICE.get('device_id'), current_track)
+        else:
+            pass
+            # sublime.message_dialog("Can't play the track.")
 
 
 def getMoodlist():
