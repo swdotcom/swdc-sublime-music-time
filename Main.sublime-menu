@@ -19,6 +19,14 @@
                     },
                     {
                         "caption": "-",
+                        "id": "software0"
+                    },
+                    {
+                        "command": "select_player",
+                        "caption": "Connect to a Spotify device"
+                    },
+                    {
+                        "caption": "-",
                         "id": "software1"
                     },
                     {
@@ -45,7 +53,10 @@
                         "command": "see_web_analytics",
                         "caption": "See Web Analytics"
                     },
-
+                    {
+                        "caption": "-",
+                        "id": "software5"
+                    },
                     {
                         "caption": "My Playlists",
                         "children": [
@@ -159,15 +170,6 @@
 
                         ]
                     },
-                    {
-                        "caption": "-",
-                        "id": "software5"
-                    },
-                    {
-                        "command": "select_player",
-                        "caption": "Connect to a Spotify device"
-                    }
-
                         ]
                 }
             
