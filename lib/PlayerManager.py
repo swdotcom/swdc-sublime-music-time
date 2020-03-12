@@ -21,13 +21,13 @@ def checkSpotifyUser():
             ("Launch Web Player", []),
             ("Launch Desktop Player", []),
         ]
-
-    elif (userTypeInfo() == "non-premium"):
+    else:
+    # elif (userTypeInfo() == "non-premium"):
         items = [("Launch Desktop Player", []), ]
 
-    else:
-        items = []
-    return 
+    # else:
+    #     iÐtems = []
+    return items 
 
 
 def getSpotifyDevice():
@@ -90,7 +90,6 @@ class SelectPlayer(sublime_plugin.WindowCommand):
 
         # if no device available, show generic list
         if device_list == []:
-            print("SelectPlayer:run:")
             items = checkSpotifyUser()
             print("items", items)
 
@@ -215,7 +214,7 @@ class SelectPlayer(sublime_plugin.WindowCommand):
 
                     if isMac() == True:
                         launch = subprocess.Popen(
-                            ["open", "-a", "spotify"], stdout=subprocess.PIPE)
+                            ["open", "-a", "spotify"], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 
                     else:
                         user = os.path.expanduser('~')
