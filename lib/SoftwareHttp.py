@@ -3,7 +3,6 @@
 import http
 import json
 import sys
-# sys.path.append('../')
 import sublime_plugin
 import sublime
 
@@ -11,9 +10,6 @@ from ..Constants import *
 from ..Software import *
 from .SoftwareSettings import *
 from .SoftwareUtil import *
-# from SoftwareUtil import isMusicTime
-# from .MusicCommandManager import *
-# from .MusicControlManager import *
 
 
 lastMsg = ''
@@ -67,12 +63,53 @@ def isUnauthenticated(response):
         return True
     return False
 
+def refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET):
+    payload = {}
+    obj = {}
+
+    spotify_refresh_token = getItem("spotify_refresh_token")
+    payload['grant_type'] = 'refresh_token'
+    payload['refresh_token'] = spotify_refresh_token
+
+    auth_header = base64.b64encode(str(CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
+    headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
+    api = "https://accounts.spotify.com/api/token"
+
+    return requestSpotify("POST", api, payload)
+
+def requestSpotify(method, api, payload):
+    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+    try:
+        connection = http.client.HTTPSConnection(SPOTIFY_API)
+        if (payload is None):
+            payload = {}
+        connection.request(method, api, payload, headers)
+        response = connection.getresponse()
+        httpLog("Spotify request: " + SPOTIFY_API + "" + api + " Response (%d)" % response.status)
+        return response
+    except Exception as ex:
+        print("Music Time: " + api + " Network error: %s" % ex)
+        return None
+
+def requestSlack(method, api, payload):
+    headers = {"Content-Type": "application/x-www-form-urlencoded",
+                     "Authorization": "Bearer {}".format(getItem("slack_access_token"))}
+    try:
+        connection = http.client.HTTPSConnection(SLACK_API)
+        if (payload is None):
+            payload = {}
+        connection.request(method, api, payload, headers)
+        response = connection.getresponse()
+        httpLog("Slack request: " + SLACK_API + "" + api + " Response (%d)" % response.status)
+        return response
+    except Exception as ex:
+        print("Music Time: " + api + " Network error: %s" % ex)
+        return None
+
 # send the request.
-
-
 def requestIt(method, api, payload, jwt):
 
-    api_endpoint = getValue("software_api_endpoint", "api.software.com")
+    api_endpoint = getValue("software_api_endpoint", SOFTWARE_API)
     telemetry = getValue("software_telemetry_on", True)
 
     if (telemetry is False):

@@ -3,7 +3,6 @@
  refresh the UI, manage actions like getting, adding tracks to,
  and creating playlists.
 '''
-import requests
 import sublime
 import sublime_plugin
 from threading import Thread, Timer, Event
@@ -14,7 +13,6 @@ from .SoftwareUtil import *
 from .SoftwareHttp import *
 from ..Software import *
 from .SoftwareMusic import *
-# from .MusicCommandManager import *
 from .MusicControlManager import *
 from .PlayerManager import *
 from .SocialShareManager import *
@@ -194,8 +192,7 @@ def playThisSong(currentDeviceId, track_id):
         print("Played from desktop")
 
     else:
-        headers = {"Authorization": "Bearer {}".format(
-            getItem('spotify_access_token'))}
+
         print(Liked_songs_ids)
         uris_list = []
         for song_id in Liked_songs_ids:
@@ -265,9 +262,8 @@ def playThisSong(currentDeviceId, track_id):
                 else:
                     pass
 
-            playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
-
-            plays = requests.put(playstr, headers=headers, data=payload)
+            api = "/v1/me/player/play?device_id=" + currentDeviceId
+            plays = requestSpotify("PUT", api, payload)
             print(plays.text)
         except Exception as e:
             print("playThisSong", e)
@@ -291,8 +287,6 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
         pass
 
     else:
-        headers = {"Authorization": "Bearer {}".format(
-            getItem('spotify_access_token'))}
 
         if currentDeviceId == None:
 
@@ -338,7 +332,6 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
             else:
                 pass
 
-        playstr = SPOTIFY_API + "/v1/me/player/play?device_id=" + currentDeviceId
         print("device",playstr)
         data = {}
         try:
@@ -347,7 +340,8 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
             payload = json.dumps(data)
             print("playSongFromPlaylist", payload)
 
-            plays = requests.put(playstr, headers=headers, data=payload)
+            api = "/v1/me/player/play?device_id=" + currentDeviceId
+            plays = requestSpotify("PUT", api, payload)
             print(plays.text)
         except Exception as e:
             print("playSongFromPlaylist", e)
@@ -357,10 +351,9 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
 # fetch liked songs tracks
 def getLikedSongs():
     global Liked_songs_ids
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
-    playlist_track = SPOTIFY_API + "/v1/me/tracks"
-    tracklist = requests.get(playlist_track, headers=headers)
+
+    api = "/v1/me/tracks"
+    tracklist = requestSpotify("GET", api)
     if tracklist.status_code == 200:
         track_list = tracklist.json()
         ids = []
@@ -381,10 +374,9 @@ def getLikedSongs():
 # GET playlist name and ids ro view
 def getUserPlaylistInfo(spotifyUserId):
     global playlist_names
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
-    playlist_track = SPOTIFY_API + "/v1/users/" + spotifyUserId + "/playlists"
-    playlist = requests.get(playlist_track, headers=headers)
+
+    api = "/v1/users/" + spotifyUserId + "/playlists"
+    playlist = requestSpotify("GET", api)
     try:
         if playlist.status_code == 200:
             playlistname = playlist.json()
@@ -408,10 +400,9 @@ def getUserPlaylistInfo(spotifyUserId):
 
 # get tracks data using playlist id
 def getTracks(playlist_id):
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
-    playlist_track = SPOTIFY_API + "/v1/playlists/" + playlist_id + "/tracks"
-    tracklist = requests.get(playlist_track, headers=headers)
+
+    api = "/v1/playlists/" + playlist_id + "/tracks"
+    tracklist = requestSpotify("GET", api)
     if tracklist.status_code == 200:
         track_list = tracklist.json()
         ids = []
@@ -579,11 +570,8 @@ def checkAIPlaylistid():
     spotifyUserId = userMeInfo().get('id')
 
     # Check for ai_playlist in software backend
-    url = "https://api.software.com" + "/music/playlist/generated"
-    # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTE0Nzc1LCJpYXQiOjE1NjgwMDg1Mjh9.h-2i2SRK3kWSojBkJ3JXUztWFdErUotAz9wk7JHw1H4"
-    jwt = getItem("jwt")
-    headers0 = {'content-type': 'application/json', 'Authorization': jwt}
-    get_ai_playlistid = requests.get(url, headers=headers0)
+    api = "/music/playlist/generated"
+    get_ai_playlistid = requestIt("GET", api)
     # print("get_ai_playlistid:",get_ai_playlistid.text)
     if get_ai_playlistid.status_code == 200:
         get_ai_playlistid_data = get_ai_playlistid.json()
@@ -604,14 +592,8 @@ def checkAIPlaylistid():
             if len(check_playlistid) == 0:
                 print("Ai playlist not found")
                 # Delete backend ai playlistid
-                delete_ai_playlist_url = "https://api.software.com/music/playlist/generated/" + \
-                    backend_ai_playlistid
-                jwt = getItem("jwt")
-                # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTE0Nzc1LCJpYXQiOjE1NjgwMDg1Mjh9.h-2i2SRK3kWSojBkJ3JXUztWFdErUotAz9wk7JHw1H4"
-                headers0 = {'content-type': 'application/json',
-                            'Authorization': jwt}
-                delete_ai_playlistid = requests.delete(
-                    delete_ai_playlist_url, headers=headers0)
+                api = "/music/playlist/generated/" + backend_ai_playlistid
+                delete_ai_playlistid = requestIt("DELETE", api)
                 if delete_ai_playlistid.status_code == 200:
                     print("Deleted ai playlistid: ", delete_ai_playlistid.text)
                     # Enable Generate AI button
@@ -648,16 +630,14 @@ def checkAIPlaylistid():
 def generateMyAIPlaylist():
     global AI_PLAYLIST_ID
     spotifyUserId = userMeInfo().get('id')
-    create_playlist_url = "https://api.spotify.com/v1/users/" + \
-        spotifyUserId + "/playlists"
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
+
     data = {"name": AI_PLAYLIST_NAME, "public": True, "description": ""}
     json_data = json.dumps(data)
     print("json_data :", json_data, "\nheaders :", headers,
           "\ncreate_playlist_url :", create_playlist_url)
-    create_my_ai_playlist = requests.post(
-        create_playlist_url, headers=headers, data=json_data)
+
+    api = "/v1/users/" + spotifyUserId + "/playlists"
+    create_my_ai_playlist = requestSpotify("POST", api, json_data)
     print("create_my_ai_playlist :", create_my_ai_playlist.text)
 
     if create_my_ai_playlist.status_code >= 200:
@@ -665,23 +645,18 @@ def generateMyAIPlaylist():
         response = create_my_ai_playlist.json()
         AI_PLAYLIST_ID = response['id']
 
-        update_playlist_url = "https://api.software.com/music/playlist/generated"
-        jwt = getItem("jwt")
-        # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTE0Nzc1LCJpYXQiOjE1NjgwMDg1Mjh9.h-2i2SRK3kWSojBkJ3JXUztWFdErUotAz9wk7JHw1H4"
-        headers0 = {'content-type': 'application/json', 'Authorization': jwt}
         data = {"playlist_id": AI_PLAYLIST_ID,
                 "playlistTypeId": 1, "name": AI_PLAYLIST_NAME}
         json_data = json.dumps(data)
-        update_playlist = requests.post(
-            update_playlist_url, headers=headers0, data=json_data)
+
+        api = "/music/playlist/generated"
+        update_playlist = requestIt("POST", api, json_data)
 
         if update_playlist.status_code >= 200:
             print("update_playlist id to software backend :", update_playlist)
-            software_recommend = "https://api.software.com/music/recommendations?limit=40"
-            jwt = getItem("jwt")
-            # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTE0Nzc1LCJpYXQiOjE1NjgwMDg1Mjh9.h-2i2SRK3kWSojBkJ3JXUztWFdErUotAz9wk7JHw1H4"
-            # headers0 = {'content-type': 'application/json', 'Authorization': jwt}
-            get_recommends = requests.get(software_recommend, headers=headers0)
+
+            api = "/music/recommendations?limit=40"
+            get_recommends = requestIt("GET", api)
 
             if get_recommends.status_code >= 200:
                 print("get_recommends :\n", get_recommends)
@@ -690,12 +665,12 @@ def generateMyAIPlaylist():
                 for i in range(len(recommends_song_list)):
                     uris_list.append(recommends_song_list[i]['uri'])
 
-                send_uris_url = "https://api.spotify.com/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
                 # headers = {"Authorization": "Bearer {}".format(access_token)}
                 uris_data = {"uris": uris_list, "position": 0}
                 json_data = json.dumps(uris_data)
-                post_uris = requests.post(
-                    send_uris_url, headers=headers, data=json_data)
+
+                api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
+                post_uris = requestIt("POST", api, json_data)
                 if post_uris.status_code >= 200:
                     print("post_uris", post_uris)
                     setValue("ai_playlist", True)
@@ -719,11 +694,10 @@ def generateMyAIPlaylist():
 # Refresh MY AI Playlist
 def refreshMyAIPlaylist():
     # get track uris list
-    software_recommend = "https://api.software.com/music/recommendations?limit=40"
-    jwt = getItem("jwt")
-    # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTE0Nzc1LCJpYXQiOjE1NjgwMDg1Mjh9.h-2i2SRK3kWSojBkJ3JXUztWFdErUotAz9wk7JHw1H4"
-    headers0 = {'content-type': 'application/json', 'Authorization': jwt}
-    get_recommends = requests.get(software_recommend, headers=headers0)
+    software_recommend = SOFTWARE_API + "/music/recommendations?limit=40"
+
+    api = "/music/recommendations?limit=40"
+    get_recommends = requestIt("GET", api)
 
     if get_recommends.status_code >= 200:
         recommends_song_list = get_recommends.json()
@@ -732,22 +706,17 @@ def refreshMyAIPlaylist():
             uris_list.append(recommends_song_list[i]['uri'])
 
         # wipe out the old track uris
-        refresh_backend_url = "https://api.spotify.com" + \
-            "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
-        headers = {"Authorization": "Bearer {}".format(
-            getItem('spotify_access_token'))}
         uris_data = {"uris": uris_list}
         json_data = json.dumps(uris_data)
-        wipe_uris = requests.put(
-            refresh_backend_url, headers=headers, data=json_data)
+
+        api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
+        wipe_uris = requestSpotify("PUT", api, json_data)
 
         if wipe_uris.status_code >= 200:
             # print("wipe_uris", wipe_uris)
-            software_recommend = "https://api.software.com/music/recommendations?limit=40"
-            jwt = getItem("jwt")
-            # jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTE0Nzc1LCJpYXQiOjE1NjgwMDg1Mjh9.h-2i2SRK3kWSojBkJ3JXUztWFdErUotAz9wk7JHw1H4"
-            # headers0 = {'content-type': 'application/json', 'Authorization': jwt}
-            get_recommends = requests.get(software_recommend, headers=headers0)
+
+            api = "/music/recommendations?limit=40"
+            get_recommends = requestIt("GET", api)
 
             if get_recommends.status_code >= 200:
                 recommends_song_list = get_recommends.json()
@@ -755,12 +724,11 @@ def refreshMyAIPlaylist():
                 for i in range(len(recommends_song_list)):
                     uris_list.append(recommends_song_list[i]['uri'])
 
-                send_uris_url = "https://api.spotify.com/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
                 uris_data = {"uris": uris_list, "position": 0}
                 json_data = json.dumps(uris_data)
-                post_uris = requests.post(
-                    send_uris_url, headers=headers, data=json_data)
 
+                api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
+                post_uris = requestIt("POST", api, json_data)
                 if post_uris.status_code >= 200:
                     print("AI playlist refreshed !")
                     setValue("ai_playlist", True)
@@ -808,16 +776,14 @@ class CreatePlaylist(sublime_plugin.WindowCommand):
 
 def CreateNewPlaylist(playlistname):
     spotifyUserId = userMeInfo().get('id')
-    create_playlist_url = "https://api.spotify.com/v1/users/" + \
-        spotifyUserId + "/playlists"
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
+
     # "public": True, "description": ""
     json_data = json.dumps({"name": playlistname, })
     print("json_data :", json_data, "\nheaders :", headers,
           "\ncreate_playlist_url :", create_playlist_url)
-    create_playlist = requests.post(
-        create_playlist_url, headers=headers, data=json_data)
+
+    api = "/v1/users/" + spotifyUserId + "/playlists"
+    create_playlist = requestSpotify("POST", api, json_data)
     # create_playlist_response = create_playlist.json()
     if create_playlist.status_code >= 200:
         # response = create_playlist.json()
@@ -866,11 +832,10 @@ class CreateAddPlaylist(sublime_plugin.WindowCommand):
 
 
 def addTrackToPlaylist(trackid, playlistid, play_list_name):
-    addtrack_api = "https://api.spotify.com/v1/playlists/"+playlistid+"/tracks"
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
     payload = json.dumps({"uris": ["spotify:track:"+trackid], "position": 0})
-    resp = requests.post(addtrack_api, headers=headers, data=payload)
+
+    api = "/v1/playlists/"+playlistid+"/tracks"
+    resp = requestSpotify("POST", api, payload)
     if resp.status_code == 201:
         print("success", resp.text)
         msg = "Track added to "+ '"' +play_list_name+ '"'

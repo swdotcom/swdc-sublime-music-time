@@ -3,19 +3,14 @@
 '''
 import sublime_plugin
 import sublime
-import requests
 from threading import Thread, Timer, Event
 import webbrowser
 
-# from ..Software import *
-# from .SoftwareUtil import *
-# from .SoftwareHttp import *
-# from .SoftwareMusic import *
 from .MusicPlaylistProvider import *
 from ..Constants import *
 from .MusicControlManager import *
 from .SlackConnectionManager import *
-
+from .SoftwareHttp import *
 
 
 # Open Readme file 

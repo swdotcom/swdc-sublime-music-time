@@ -1,6 +1,5 @@
 import sublime_plugin
 import sublime
-import requests
 
 from .SoftwareHttp import *
 from .SoftwareUtil import *
@@ -226,10 +225,8 @@ def moodChoice(argument):
  
 
 def getSeedTracks():
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
-    playlist_track = "https://api.spotify.com/v1/me/tracks"
-    tracklist = requests.get(playlist_track, headers=headers)
+    api = "/v1/me/tracks"
+    tracklist = requestSpotify("GET", api)
     if tracklist.status_code == 200:
         track_list = tracklist.json()
         ids = []
@@ -249,7 +246,7 @@ def getSeedTracks():
 
 
 def getRecommendationsTracks(value):
-    endpoint_url = "https://api.spotify.com/v1/recommendations?"
+    api = "/v1/recommendations?"
     limit = 100
     market = ""
     min_popularity = 20
@@ -278,18 +275,16 @@ def getRecommendationsTracks(value):
 
     if value in ['Happy', 'Energetic', 'Danceable', 'Instrumental', 'Familiar', 'Quiet music']:
         print("from moods")
-        query = endpoint_url+"limit="+str(limit)+"&min_popularity="+str(min_popularity)+"&target_popularity="+str(
+        api = api+"limit="+str(limit)+"&min_popularity="+str(min_popularity)+"&target_popularity="+str(
             target_popularity)+"&seed_tracks=" + final_seed_track + "".join(moodChoice(value))
     else:
         print("from genres")
-        query = endpoint_url+"limit="+str(limit)+"&min_popularity="+str(
+        api = api+"limit="+str(limit)+"&min_popularity="+str(
             min_popularity)+"&target_popularity="+str(target_popularity)+"&seed_genres=" + value.lower()
 
-    print("finalquery", query)
+    print("final api", api)
 
-    response = requests.get(query,
-                            headers={"Content-Type": "application/json",
-                                     "Authorization": "Bearer {}".format(getItem('spotify_access_token'))})
+    response = requestSpotify("GET", api)
     if response.status_code == 200:
         json_response = response.json()
         print("No. of tracks: ", len(json_response['tracks']))
@@ -396,11 +391,9 @@ def playRecommendationTrack(currentDeviceId, track_id):
             payload = json.dumps(data)
             print("payload", payload)
             print("currentDeviceId", currentDeviceId)
-            playstr = "https://api.spotify.com" + \
-                "/v1/me/player/play?device_id=" + currentDeviceId
-            print("playstr\n", playstr)
 
-            plays = requests.put(playstr, headers=headers, data=payload)
+            api = "/v1/me/player/play?device_id=" + currentDeviceId
+            plays = requestSpotify("PUT", api, payload)
             print(plays.text)
         except Exception as e:
             print("playThisSong", e)

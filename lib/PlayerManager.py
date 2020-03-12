@@ -31,10 +31,9 @@ def checkSpotifyUser():
 
 
 def getSpotifyDevice():
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
-    get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
-    getdevs = requests.get(get_device_url, headers=headers)
+
+    api = "/v1/me/player/devices"
+    getdevs = requestSpotify("GET", api)
 #     print(getdevs.text)
     device_list = []
 
@@ -53,11 +52,9 @@ def getSpotifyDevice():
 
 
 def getSpotifyActiveDevice():
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
-    get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
-    getdevs = requests.get(get_device_url, headers=headers)
 
+    api = "/v1/me/player/devices"
+    getdevs = requestSpotify("GET", api)
     ACTIVE_DEVICE = {}  # {"device_name":"","device_id":""}
 
     if getdevs.status_code == 200:
@@ -338,12 +335,11 @@ class SelectPlayer(sublime_plugin.WindowCommand):
 
 def transferPlayback(deviceid):
     # https://api.spotify.com/v1/me/player
-    transfer_api = "https://api.spotify.com/v1/me/player"
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
     payload = json.dumps({"device_ids": [deviceid], "play": True})
     print("payload for transfer device:", payload)
-    transfer = requests.put(transfer_api, headers=headers, data=payload)
+
+    api = "/v1/me/player"
+    transfer = requestIt("PUT", api, payload)
     if transfer.status_code == 204:
         print("playback transferred to device_id", deviceid)
         # time.sleep(5)

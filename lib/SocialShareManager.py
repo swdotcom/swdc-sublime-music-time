@@ -1,13 +1,13 @@
 
 import urllib.parse
 import webbrowser
-import requests
 
 from ..Constants import *
 from .SoftwareUtil import *
 from .SoftwareSettings import *
 from .SoftwareMusic import *
 from .SlackConnectionManager import *
+from .SoftwareHttp import *
 
 
 def encodeUrl(url):
@@ -16,11 +16,8 @@ def encodeUrl(url):
 
 def getSpotifyTrackId():
     try:
-        headers = {"Authorization": "Bearer {}".format(
-            getItem('spotify_access_token'))}
-        trackstr = SPOTIFY_API + "/v1/me/player/currently-playing?" + \
-            ACTIVE_DEVICE.get('device_id')  # getActiveDeviceInfo()
-        track = requests.get(trackstr, headers=headers)
+        api = "/v1/me/player/currently-playing?" + ACTIVE_DEVICE.get('device_id')
+        track = requestSpotify("GET", api)
 
         if track.status_code == 200:
             trackname = track.json()['item']['name']

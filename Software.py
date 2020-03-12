@@ -5,7 +5,6 @@ import json
 import os
 from package_control import events
 from queue import Queue
-import requests
 import sublime_plugin
 import sublime
 import subprocess
@@ -28,20 +27,12 @@ from .lib.SocialShareManager import *
 from .lib.PlayerManager import *
 from .lib.MusicRecommendation import *
 
-# SOFTWARE_API = Constants.SOFTWARE_API
-# SPOTIFY_API = Constants.SPOTIFY_API
-
 ACCESS_TOKEN = ''
 REFRESH_TOKEN = ''
 EMAIL = ''
 user_type = ''
 spotifyUserId = ''
 slack = False
-
-# DEFAULT_DURATION = 60
-# PROJECT_DIR = None
-# check_online_interval_sec = 60 * 10
-# retry_counter = 0
 
 
 # payload trigger to store it for later.
@@ -75,6 +66,7 @@ class BackgroundWorker():
 class PluginData():
     __slots__ = ('source', 'keystrokes', 'start', 'local_start',
                  'project', 'pluginId', 'version', 'os', 'timezone')
+    # the 1st arg is the thread count, the 2nd is the callback target function
     background_worker = BackgroundWorker(1, post_json)
     active_datas = {}
     line_counts = {}
@@ -254,6 +246,7 @@ class PluginData():
 
     @staticmethod
     def send_all_datas():
+        print("SENDING ALL DATA")
         for dir in PluginData.active_datas:
             PluginData.active_datas[dir].send()
 
@@ -658,9 +651,8 @@ def checkUserState():
     global slack
     try:
         jwt = getItem("jwt")
-        headers = {'content-type': 'application/json', 'Authorization': jwt}
-        check_state_url = SOFTWARE_API + "/users/plugin/state"
-        resp = requests.get(check_state_url, headers=headers)
+        api = "/users/plugin/state"
+        resp = requestIt("GET", api, None, jwt)
         resp_data = resp.json()
         if resp_data['state'] == "OK":
             for i in range(len(resp_data['user']['auths'])):

@@ -1,18 +1,18 @@
 
 import urllib.parse
 import webbrowser
-import requests
 
 from ..Constants import *
 from .SoftwareUtil import *
 from .SoftwareSettings import *
+from .SoftwareHttp import *
 
 
 def launchConnectSlack():
     jwt = getItem("jwt")
     encodedJwt = urllib.parse.quote(jwt)
     qryStr = "integrate=slack&plugin=musictime&token=" + encodedJwt
-    endpoint = "https://api.software.com/auth/slack?"+qryStr
+    endpoint = SOFTWARE_API + "/auth/slack?"+qryStr
     print("encodedJwt:", encodedJwt, "\nqryStr:",
           qryStr, "\nendpoint_url:", endpoint)
     webbrowser.open(endpoint)
@@ -22,10 +22,8 @@ def launchConnectSlack():
 
 # connectSlack(jwt)
 def getSlackTokens():
-    jwt = getItem("jwt")
-    headers0 = {'content-type': 'application/json', 'Authorization': jwt}
-    getauth0 = requests.get(
-        'https://api.software.com/users/plugin/state', headers=headers0)
+    api = '/users/plugin/state'
+    getauth0 = requestIt("GET", api)
     try:
         if getauth0.status_code >= 200:
             authinfo = getauth0.json()
@@ -50,12 +48,9 @@ def getSlackTokens():
 
 
 def disconnectSlack():
-    jwt = getItem("jwt")
-    # print(">>@<<",jwt)
     try:
-        headers = {'content-type': 'application/json', 'Authorization': jwt}
-        disconnect_spotify_url = SOFTWARE_API + '/auth/slack/disconnect'
-        disconnect = requests.put(disconnect_spotify_url, headers=headers)
+        api = '/auth/slack/disconnect'
+        disconnect = requestIt("PUT", api)
         if disconnect.status_code == 200:
             # print(disconnect.text)
             print("Music Time: Slack Disconnected !")
@@ -69,11 +64,9 @@ def disconnectSlack():
 
 
 def getSlackChannels():
-    url = "https://slack.com/api/conversations.list"
-    slack_headers = {"Content-Type": "application/x-www-form-urlencoded",
-                     "Authorization": "Bearer {}".format(getItem("slack_access_token"))}
 
-    get_channels = requests.get(url, headers=slack_headers)
+    api = "/api/conversations.list"
+    get_channels = requestSlack("GET", api)
     if get_channels.status_code == 200:
         channels_data = get_channels.json()
         ids = []
@@ -92,15 +85,14 @@ def sendSlackMessage(channel_id, track_id):
     track_url = "https://open.spotify.com/track/"+track_id
 #     channel_id = "CNAR34A9M"
 
-    post_msg_url = "https://slack.com/api/chat.postMessage"
-    headers = {"Content-Type": "application/x-www-form-urlencoded",
-               "Authorization": "Bearer {}".format(getItem("slack_access_token"))}
-
     txt = "Check out this Song\n" + track_url
     payload_data = {"channel": channel_id, "text": txt}
-#     payload = json.dumps(payload_data)
-    post_msg = requests.post(post_msg_url, headers=headers, data=payload_data)
+
+    api = "/api/chat.postMessage"
+    get_channels = requestSlack("POST", api, payload_data)
     if post_msg.status_code == 200:
         print("Music Time: Slack share succeed !\n", post_msg.json())
     else:
         print("Music Time: unable to share on Slack !\n", post_msg.json())
+
+

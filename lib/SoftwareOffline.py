@@ -6,26 +6,11 @@ import os.path
 import time
 import datetime
 import math
-import six
 
 from ..Constants import *
 from .SoftwareUtil import *
 from .SoftwareSettings import *
-# from .SoftwareMusic import *
-# from .SoftwareRepo import *
-# from .SoftwareOffline import *
-# from .SoftwareSettings import *
-
-# Constants
-# sessionSummaryData = Constants.sessionSummaryData
-# lastDayOfMonth = Constants.lastDayOfMonth
-# SERVICE_NOT_AVAIL = Constants.SERVICE_NOT_AVAIL
-# ONE_MINUTE_IN_SEC = Constants.ONE_MINUTE_IN_SEC
-# SECONDS_PER_HOUR = Constants.SECONDS_PER_HOUR
-# LONG_THRESHOLD_HOURS = Constants.LONG_THRESHOLD_HOURS
-# SHORT_THRESHOLD_HOURS = Constants.SHORT_THRESHOLD_HOURS
-# NO_TOKEN_THRESHOLD_HOURS = Constants.NO_TOKEN_THRESHOLD_HOURS
-# LOGIN_LABEL = Constants.LOGIN_LABEL
+from .SoftwareHttp import *
 
 
 # init the session summary data
@@ -257,8 +242,6 @@ def fetchDailyKpmSessionInfo(forceRefresh):
         return {"data": sessionSummaryData, "status": "OK"}
 
 # store the payload offline...
-
-
 def storePayload(payload):
 
     # calculate it and call add to the minutes

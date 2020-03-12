@@ -9,7 +9,6 @@ from .SoftwareUtil import *
 from ..Software import *
 from .MusicPlaylistProvider import *
 from .SoftwareMusic import *
-# from .PlayerManager import *
 
 current_track_info = {}
 ACTIVE_DEVICE = {}
@@ -21,11 +20,8 @@ current_track_id = ""
 
 # To fetch and show music-time dashboard
 def getMusicTimedashboard():
-    jwt = getItem("jwt")
-    headers = {'content-type': 'application/json', 'Authorization': jwt}
-    dash_url = SOFTWARE_API + "/dashboard/music"
-    # dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
-    resp = requests.get(dash_url, headers=headers)
+    api = "/dashboard/music"
+    resp = requestIt("GET", api)
     if resp.status_code == 200:
         print("Music Time: launching MusicTime.txt")
     else:
@@ -99,6 +95,7 @@ def gatherMusicInfo():
         if (currentTrackId is not None and (currentTrackId != trackId or isPaused is True)):
             # update the end time of the previous track and post it
             current_track_info["end"] = start - 1
+            gatherCodingDataAndSendSongSession(current_track_info)
             response = requestIt("POST", "/data/music",
                                  json.dumps(current_track_info), getItem("jwt"))
             if (response is None):
@@ -111,6 +108,7 @@ def gatherMusicInfo():
             trackInfo["start"] = start
             trackInfo["local_start"] = local_start
             trackInfo["end"] = 0
+            gatherCodingDataAndSendSongSession(current_track_info)
             response = requestIt("POST", "/data/music",
                                  json.dumps(trackInfo), getItem("jwt"))
             if (response is None):
@@ -124,6 +122,7 @@ def gatherMusicInfo():
             # update the end time since there are no songs coming
             # in and the previous one is stil available
             current_track_info["end"] = start - 1
+            gatherCodingDataAndSendSongSession(current_track_info)
             response = requestIt("POST", "/data/music",
                                  json.dumps(current_track_info), getItem("jwt"))
             if (response is None):
@@ -137,6 +136,10 @@ def gatherMusicInfo():
     gatherMusicInfoTimer.start()
     pass
 
+def gatherCodingDataAndSendSongSession(current_track_info):
+    # end current keystroke data gathering
+    PluginData.send_all_datas()
+
 
 # Fetch Active device  and Devices(all device including inactive devices)
 def getActiveDeviceInfo():
@@ -145,10 +148,8 @@ def getActiveDeviceInfo():
     # global playlist_id
     # global current_song
 
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
-    get_device_url = SPOTIFY_API + "/v1/me/player/devices"
-    getdevs = requests.get(get_device_url, headers=headers)
+    api = "/v1/me/player/devices"
+    getdevs = requestSpotify("GET", api)
 
     if getdevs.status_code == 200:
 
@@ -197,10 +198,9 @@ check_liked_songs = lambda x :"  ❤️" if (x in Liked_songs_ids) else " "
 
 def getLikedSongsIds():
     global Liked_songs_ids
-    headers = {"Authorization": "Bearer {}".format(
-        getItem('spotify_access_token'))}
-    playlist_track = SPOTIFY_API + "/v1/me/tracks"
-    tracklist = requests.get(playlist_track, headers=headers)
+
+    api = "/v1/me/tracks"
+    tracklist = requestSpotify("GET", api)
     if tracklist.status_code == 200:
         track_list = tracklist.json()
         ids = []
@@ -253,12 +253,8 @@ def currentTrackInfo():
             if ACTIVE_DEVICE == {}:
                 getActiveDeviceInfo()
 
-            headers = {"Authorization": "Bearer {}".format(
-                getItem('spotify_access_token'))}
-            trackstr = SPOTIFY_API + "/v1/me/player/currently-playing?" + \
-                ACTIVE_DEVICE.get('device_id')  # getActiveDeviceInfo()
-            
-            track = requests.get(trackstr, headers=headers)
+            api = "/v1/me/player/currently-playing?" + ACTIVE_DEVICE.get('device_id')
+            track = requestSpotify("GET", api)
 
             if track.status_code == 200:
                 trackinfo = track.json()['item']['name']
@@ -288,7 +284,7 @@ def currentTrackInfo():
         # except Exception as e:
         #     print('Music Time: currentTrackInfo', e)
         #     showStatus("Spotify Connected. No Active device found.")
-        except requests.exceptions.ConnectionError:
+        except Exception as ex:
             print('Music Time: currentTrackInfo ConnectionError')
             showStatus("Spotify Connected")
             time.sleep(5)
@@ -329,45 +325,6 @@ def check_user(): return "Spotify Connected" if (userTypeInfo() == "premium") el
 # to get all device names
 
 
-# def getDeviceNames():
-#     headers = {"Authorization": "Bearer {}".format(
-#         getItem('spotify_access_token'))}
-#     get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
-#     getdevs = requests.get(get_device_url, headers=headers)
-#     show_list = []
-#     if getdevs.status_code == 200:
-#         devices = getdevs.json()['devices']
-#         show_list = []
-#         for i in range(len(devices)):
-#             show_list.append(devices[i]['name'])
-
-#         show_device = ", ".join(show_list)
-#         if len(devices) == 0:
-#             show_device = "Device not found"
-
-#     else:
-#         show_device = "Device status not found"
-#         print(getdevs)
-
-#     return show_device
-
-
-# # get active device name
-# def activeDeviceName():
-#     headers = {"Authorization": "Bearer {}".format(
-#         getItem('spotify_access_token'))}
-#     get_device_url = "https://api.spotify.com" + "/v1/me/player/devices"
-#     getdevs = requests.get(get_device_url, headers=headers)
-#     name = ""
-#     if getdevs.status_code == 200:
-#         devices = getdevs.json()['devices']
-#         for i in range(len(devices)):
-#             if devices[i]['is_active'] == True:
-#                 name = devices[i]['name']
-#     else:
-#         name = ""
-
-#     return name
 
 # # Show Active/connected/no device msg
 

@@ -4,7 +4,6 @@
  in a separate file (MusicControlManager).
 '''
 import os
-import requests
 import sublime_plugin
 import sublime
 from threading import Thread, Timer, Event
@@ -15,9 +14,7 @@ from .MusicPlaylistProvider import *
 from .SoftwareMusic import *
 from .SocialShareManager import *
 from .PlayerManager import *
-# from .SoftwareUtil import *
-# from ..Software import *
-# from .MusicCommandManager import *
+from .SoftwareHttp import *
 
 
 # Song's Controls: Play
@@ -31,19 +28,14 @@ def playSong():
         currentTrackInfo()
         print("desktop player Working")
     else:
-        headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-        # print("headers",headers)
-        # print(getActiveDeviceInfo())
         active_device = getSpotifyActiveDevice()
 
         if active_device == {}:
             current_window = sublime.active_window()
             current_window.run_command("select_player")
-            playstr = SPOTIFY_API + "/v1/me/player/play?" + active_device.get('device_id')
 
-
-        playstr = SPOTIFY_API + "/v1/me/player/play?" + ACTIVE_DEVICE.get('device_id')#getActiveDeviceInfo()#currentDeviceId
-        plays = requests.put(playstr, headers=headers)
+        api = "/v1/me/player/play?" + ACTIVE_DEVICE.get('device_id')
+        plays = requestSpotify("PUT", api, None)
         # print(plays.status_code)
         print("Web player Working | Playing ... ", plays.status_code, "|",plays.text)
     currentTrackInfo()
@@ -59,9 +51,8 @@ def pauseSong():
         currentTrackInfo()
         print("desktop player Working")
     else:
-        headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-        pausestr = SPOTIFY_API + "/v1/me/player/pause?" + ACTIVE_DEVICE.get('device_id')#getActiveDeviceInfo()#currentDeviceId
-        pause = requests.put(pausestr, headers=headers)
+        api = "/v1/me/player/pause?" + ACTIVE_DEVICE.get('device_id')
+        pause = requestSpotify("PUT", api, None)
         print("Web player Working | Paused ...", pause.status_code, "|",pause.text)
     currentTrackInfo()
 
@@ -75,9 +66,8 @@ def nextSong():
         currentTrackInfo()
         print("desktop player Working")
     else:
-        headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-        nxtstr = SPOTIFY_API + "/v1/me/player/next?" + ACTIVE_DEVICE.get('device_id')#getActiveDeviceInfo()#currentDeviceId
-        nxt = requests.post(nxtstr, headers=headers)
+        api = "/v1/me/player/next?" + ACTIVE_DEVICE.get('device_id')
+        nxt = requestSpotify("POST", api, None)
         print("Web player Working | Next ...", nxt.status_code, "|",nxt.text)
     currentTrackInfo()
 
@@ -90,9 +80,8 @@ def previousSong():
         currentTrackInfo()
         print("desktop player Working")
     else:
-        headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
-        prevstr = SPOTIFY_API + "/v1/me/player/previous?" + ACTIVE_DEVICE.get('device_id')
-        prev = requests.post(prevstr, headers=headers)
+        api = "/v1/me/player/previous?" + ACTIVE_DEVICE.get('device_id')
+        nxt = requestSpotify("POST", api, None)
         print("Web player Working | previous ...", prev.status_code, "|",prev.text)
         # showStatus("▶️ "+currentTrackInfo()[0])# if currentTrackInfo()[1] is True else print("Paused",currentTrackInfo()[0])
     currentTrackInfo()
@@ -146,29 +135,25 @@ def openDesktopPlayer():
 def likeSong(track_id):
     try:
 
-        like_url = "https://api.spotify.com/v1/me/tracks"
-        headers1 = {'Authorization': 'Bearer {}'.format(getItem('spotify_access_token'))}
-
         payload_data1 = {'ids': [track_id]}
         print("payload_data1",payload_data1)
         payload1 = json.dumps(payload_data1)
         print("payload1",payload1)
 
-        put_like_url = requests.put(like_url, headers=headers1, data=payload1)
+        api = "/v1/me/tracks"
+        put_like_url = requestSpotify("PUT", api, payload1)
         print("put_like_url",put_like_url)
         if put_like_url.status_code == 200:
             
             #  call the software API PUT `/music/liked/track/${trackId}?type=${type}` with a payload of 
-            swdc_like_url = "https://api.software.com/music/liked/track/"+ track_id +"?type=spotify"
-            jwt = getItem("jwt")
-            headers0 = {'content-type': 'application/json', 'Authorization': jwt}
 
             payload_data2 = {"liked": True}
             print("payload_data2",payload_data2)
             payload2 = json.dumps(payload_data2)
             print("payload2",payload2)
 
-            swdc_put_like_url = requests.put(swdc_like_url, headers=headers0, data=payload2)
+            api = "/music/liked/track/"+ track_id +"?type=spotify"
+            swdc_put_like_url = requestIt("PUT", api, payload2)
             print("swdc_put_like_url",swdc_put_like_url.text)
             if swdc_put_like_url.status_code == 200:
                 print("Music Time: Song Liked !")
@@ -182,28 +167,25 @@ def likeSong(track_id):
 
 def unLikeSong(track_id):
     try:
-        unlike_url = "https://api.spotify.com/v1/me/tracks"
-        headers1 = {'Authorization': 'Bearer {}'.format(getItem('spotify_access_token'))}
 
         payload_data1 = {'ids': [track_id]}
         print("payload_data1",payload_data1)
         payload1 = json.dumps(payload_data1)
         print("payload1",payload1)
 
-        put_unlike_url = requests.delete(unlike_url, headers=headers1, data=payload1)
+        api = "/v1/me/tracks"
+        put_unlike_url = requestSpotify("DELETE", api, payload1)
         print("put_unlike_url",put_unlike_url)
         if put_unlike_url.status_code == 200:
             #  call the software API PUT `/music/liked/track/${trackId}?type=${type}` with a payload of 
-            swdc_unlike_url = "https://api.software.com/music/liked/track/"+ track_id +"?type=spotify"
-            jwt = getItem("jwt")
-            headers0 = {'content-type': 'application/json', 'Authorization': jwt}
 
             payload_data2 = {"liked": False}
             print("payload_data2",payload_data2)
             payload2 = json.dumps(payload_data2)
             print("payload2",payload2)
 
-            swdc_put_unlike_url = requests.put(swdc_unlike_url, headers=headers0, data=payload2)
+            api = "/music/liked/track/"+ track_id +"?type=spotify"
+            swdc_put_unlike_url = requestIt("PUT", api, payload2)
             print("swdc_put_unlike_url",swdc_put_unlike_url.text)
             if swdc_put_unlike_url.status_code == 200:
                 print("Music Time: Song Unliked !")

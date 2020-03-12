@@ -4,9 +4,7 @@ import datetime
 import json
 import os
 import platform
-import requests
 import re
-import six
 import socket
 import sublime_plugin
 import sublime
@@ -22,22 +20,7 @@ from ..Constants import *
 from .SoftwareHttp import *
 from .SoftwareSettings import *
 from ..Software import *
-# from .MusicCommandManager import *
-# from .MusicControlManager import *
-# from .schedule import *
 
-# the plugin version
-# VERSION = '0.0.3'
-# PLUGIN_ID = 1
-# VERSION = Constants.VERSION
-# PLUGIN_ID = Constants.PLUGIN_ID
-
-# SOFTWARE_API = Constants.SOFTWARE_API
-# SPOTIFY_API = Constants.SPOTIFY_API
-
-# DASHBOARD_LABEL_WIDTH = Constants.DASHBOARD_LABEL_WIDTH
-# DASHBOARD_VALUE_WIDTH = Constants.DASHBOARD_VALUE_WIDTH
-# MARKER_WIDTH = Constants.MARKER_WIDTH
 
 runningResourceCmd = False
 loggedInCacheState = False
@@ -59,7 +42,7 @@ def log(message):
 
 
 def getUrlEndpoint():
-    return getValue("software_dashboard_url", "https://app.software.com")
+    return getValue("software_dashboard_url", SOFTWARE_URL)
 
 
 def getOsUsername():
@@ -679,8 +662,6 @@ def getDashboardDataDisplay(widthLen, data):
 # launch browser to get user permissions
 def launchSpotifyLoginUrl():
     global jwt
-    # api_endpoint = getValue("software_api_endpoint", "api.software.com")
-#     jwt = getItem("jwt")
     try:
         spotify_url = SOFTWARE_API + "/auth/spotify?token=" + \
             jwt + "&mac=" + str(isMac()).lower()
@@ -696,15 +677,17 @@ def launchSpotifyLoginUrl():
 
 def getAuthInfo():
     global jwt
-    jwt = requests.get(SOFTWARE_API + '/data/apptoken?token=' +
-                       str(round(time.time()))).json()['jwt']
+
+    api = '/data/apptoken?token=' + str(round(time.time()))
+    jwt = requestIt("GET", api).json()['jwt']
     print("getAuthInfo JWT ^^^^^^", jwt)
     setItem("jwt", jwt)
     headers = {'content-type': 'application/json', 'Authorization': jwt}
     launchSpotifyLoginUrl()
     time.sleep(20)
-    user_state_url = SOFTWARE_API + "/users/plugin/state"
-    getauth = requests.get(user_state_url, headers=headers)
+
+    api = "/users/plugin/state"
+    getauth = requestIt("GET", api)
     if getauth.status_code == 200:
         print(getauth.text)
         authinfo = {}
@@ -767,9 +750,8 @@ def updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
 
 
 def userMeInfo():
-    url = SPOTIFY_API + '/v1/me'
-    headers = {'Authorization': 'Bearer ' + getItem('spotify_access_token')}
-    spotify = requests.get(url, headers=headers)
+    api = '/v1/me'
+    spotify = requestSpotify("GET", api)
     spotifyUserInfo = {}
     if spotify.status_code == 200 and len(spotify.text) > 0:
         spotifyUserInfo = spotify.json()
@@ -810,16 +792,13 @@ def userTypeInfo():
 def getClientCredentials():
     jwt = getItem("jwt")
     if jwt is None or jwt == "":
-        client_creds_url = SOFTWARE_API + '/data/apptoken?token=30000'
-        get_JWT = requests.get(client_creds_url)
+        api = '/data/apptoken?token=' + str(round(time.time()))
+        get_JWT = requestIt("GET", api)
         jwt = get_JWT.json()['jwt']
 
-    # client_creds_url = SOFTWARE_API + '/data/apptoken?token=30000'
-    # get_JWT = requests.get(client_creds_url)
-    # jwt = get_JWT.json()['jwt']
-    headers = {'content-type': 'application/json', 'Authorization': jwt}
-    get_client_creds_url = SOFTWARE_API + '/auth/spotify/clientInfo'
-    get_client_creds = requests.get(get_client_creds_url, headers=headers)
+
+    api = '/auth/spotify/clientInfo'
+    get_client_creds = requestIt("GET", api)
     clientId = get_client_creds.json()['clientId']
     clientSecret = get_client_creds.json()['clientSecret']
     return clientId, clientSecret
@@ -829,19 +808,10 @@ def getClientCredentials():
 
 def refreshSpotifyToken():
     jwt = getItem("jwt")
-    payload = {}
-    obj = {}
-    # try:
     spotify_refresh_token = getItem("spotify_refresh_token")
-    payload['grant_type'] = 'refresh_token'
-    payload['refresh_token'] = spotify_refresh_token
-    refresh_token_url = "https://accounts.spotify.com/api/token"
     CLIENT_ID, CLIENT_SECRET = getClientCredentials()
-    auth_header = base64.b64encode(six.text_type(
-        CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
-    headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
-    response = requests.post(
-        refresh_token_url, data=payload, headers=headers)
+
+    response = refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET)
 
     if response.status_code == 200:
         obj = response.json()
@@ -882,9 +852,8 @@ def disconnectSpotify():
     jwt = getItem("jwt")
     # print(">>@<<",jwt)
     try:
-        headers = {'content-type': 'application/json', 'Authorization': jwt}
-        disconnect_spotify_url = SOFTWARE_API + '/auth/spotify/disconnect'
-        disconnect = requests.put(disconnect_spotify_url, headers=headers)
+        api = '/auth/spotify/disconnect'
+        disconnect = requestIt("PUT", api)
         if disconnect.status_code == 200:
             print("Music Time: Spotify Disconnected !")
 
