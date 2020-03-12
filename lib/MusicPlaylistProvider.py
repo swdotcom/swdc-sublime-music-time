@@ -795,13 +795,23 @@ class CreatePlaylist(sublime_plugin.WindowCommand):
             print("playlist created !")
             current_song_id, current_song_name = getSpotifyTrackId()
             print("current_song_id", current_song_id)
-            addTrackToPlaylist(current_song_id, newplaylistid, providedname)
+            if current_song_id:
+                addTrackToPlaylist(current_song_id, newplaylistid, providedname)
+            else:
+                msg = 'Playlist with name '+'"'+ providedname +'"'+ 'created.'+"\nCurrent track not found.\nPlease play a track before adding to playlist."
+                sublime.message_dialog(msg)
+
 
     def on_change(self, providedname):
         if len(providedname) == 0:
             sublime.message_dialog("Please Enter valid a name.")
-        elif len(providedname) == 1 and providedname.isspace():
-            sublime.message_dialog("Please Enter valid a name.")
+
+        elif len(providedname) > 0:
+            if providedname.isspace() and not providedname.isalnum():
+                sublime.message_dialog("Please Enter valid a name.")
+
+        elif providedname in [i['name'] for i in playlist_data]:
+            sublime.message_dialog("Name already existed. Please try another name.")
         else:
             pass
 
@@ -834,13 +844,13 @@ class CreateAddPlaylist(sublime_plugin.WindowCommand):
         # print("playlist_data",playlist_data)
         # items = [i['name'] for i in playlist_data]
         item_list = [i['name'] for i in playlist_data if (i['name'] not in ['My AI Top 40','Software Top 40','Liked songs'])]
-        playlist_items = ['New playlist'] + item_list
+        playlist_items = ['Create a new playlist'] + item_list
         # playlist_items = [('New playlist','')] + [(i['name'],i['id']) for i in playlist_data]
         self.window.show_quick_panel(
             playlist_items, lambda id: self.on_done(id, playlist_items))
 
     def on_done(self, id, playlist_items):
-        if id >= 0 and playlist_items[id] == "New playlist":
+        if id >= 0 and playlist_items[id] == "Create a new playlist":
             # Invoke a function because Item 2 was selected
             print("Create a new playlist selected", playlist_items[id])
             # spotifyUserId = userMeInfo().get('id')
@@ -856,7 +866,12 @@ class CreateAddPlaylist(sublime_plugin.WindowCommand):
             current_song_id, current_song_name = getSpotifyTrackId()
             print("playlist name:", playlist_name, " id:",
                   playlist_id, "current_song_id", current_song_id)
-            addTrackToPlaylist(current_song_id, playlist_id,playlist_name)
+            if current_song_id:
+                addTrackToPlaylist(current_song_id, playlist_id,playlist_name)
+            else:
+                msg_body = "Unable to add track.\n"+"Please play a track before adding to playlist."
+                sublime.message_dialog(msg_body)
+
         else:
             current_window = sublime.active_window()
             current_window.run_command("hide_overlay")
