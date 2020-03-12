@@ -140,6 +140,7 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
                 "Songs not found. Please Use \nTools > Music Time > My Playlists > Open Playlist")
             current_window = sublime.active_window()
             current_window.run_command("hide_overlay")
+            # return [("Songs not found. Please Use \nTools > Music Time > My Playlists > Open Playlist","")]
             # print("NO SONG found")
 
     def confirm(self, value):
@@ -208,6 +209,7 @@ def playThisSong(currentDeviceId, track_id):
                   "spotify:track:1aDklx1GaBqHFowCzz63wU", "spotify:track:4oaU0fMSg3n9kqOwmLPVhH",
                   "spotify:track:4WZizdGrBVSZCES0q2XDwu", "spotify:track:0l1i3nJ4aDMk0inxnvzYTz"],
                   "offset": {"position": 2}}
+        0TZjSoLZcKZGaFEv1ytOqb
         '''
         data = {}
         try:
@@ -882,17 +884,33 @@ def addTrackToPlaylist(trackid, playlistid, play_list_name):
 
 
 def launchDesktopPlayer():
-    try:
-        if isMac is True:
-            launch = subprocess.Popen(
-                ["open", "-a", "spotify"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    if isMac is True:
+        launch = subprocess.Popen(
+            ["open", "-a", "spotify"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+    else:
+        user = os.path.expanduser('~')
+        spotify_path = os.path.join(
+            user, r"AppData\Roaming\Spotify\Spotify.exe")
+        launch = subprocess.Popen(spotify_path, shell=True,
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+    err_msg = launch.communicate()[1].decode("utf-8") 
+    print("launchDesktopPlayer", err_msg)
+    if len(err_msg) == 0:
+        print("Desktop player opened")
+    else:
+        if "The system cannot find the path specified" in err_msg:
+            msg_body = "Unable to launch Desktop player\n" + "Desktop player not found"
         else:
-            user = os.path.expanduser('~')
-            spotify_path = os.path.join(
-                user, r"AppData\Roaming\Spotify\Spotify.exe")
-            launch = subprocess.Popen(spotify_path, shell=True,
-                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except Exception as e:
-        print("launchDesktopPlayer", e)
-        sublime.error_message("Unable to launch Desktop player")
+            msg_body = "Unable to launch Desktop player" + err_msg
+    sublime.error_message(msg_body)
+    msg = sublime.ok_cancel_dialog("Launching Web player ...", "Ok")
+    if msg is True:
         webbrowser.open("https://open.spotify.com/")
+        print("Launching Web player ...")
+    else:
+        pass  
+
+

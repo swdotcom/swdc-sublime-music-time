@@ -27,7 +27,7 @@ def checkSpotifyUser():
 
     else:
         items = []
-    return items
+    return 
 
 
 def getSpotifyDevice():
@@ -214,14 +214,44 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                 if device == "Launch Desktop Player":
 
                     if isMac() == True:
-                        msg = subprocess.Popen(
+                        launch = subprocess.Popen(
                             ["open", "-a", "spotify"], stdout=subprocess.PIPE)
+
                     else:
-                        result = subprocess.Popen("%APPDATA%/Spotify/Spotify.exe", shell=True,
+                        user = os.path.expanduser('~')
+                        spotify_path = os.path.join(
+                            user, r"AppData\Roaming\Spotify\Spotify.exe")
+                        launch = subprocess.Popen(spotify_path, shell=True,
                                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-                    # output,error = result.communicate()
-                    print("Launching desktop player ...1")
+                    err_msg = launch.communicate()[1].decode("utf-8")
+                    print("launchDesktopPlayer\n", err_msg)
+                    if len(err_msg) == 0:
+                        print("Desktop player opened")
+                    else:
+                        if "The system cannot find the path specified" in err_msg:
+                            msg_body = "Unable to launch Desktop player\n" + "Desktop player not found"
+                        else:
+                            msg_body = "Unable to launch Desktop player" + err_msg
+                        sublime.error_message(msg_body)
+                        msg = sublime.ok_cancel_dialog("Launching Web player ...", "Ok")
+                        if msg is True:
+                            print("Launching Web player ...")
+                            webbrowser.open("https://open.spotify.com/")
+                            time.sleep(5)
+
+                            devices = getSpotifyDevice()
+                            print("Launch Web Player:devices", devices)
+                            device_id = getWebPlayerId(devices)
+
+                            print("Launch Web Player:device_id", device_id)
+
+                            ACTIVE_DEVICE = {}
+                            ACTIVE_DEVICE['device_id'] = device_id
+                            print("web player selected", ACTIVE_DEVICE)
+                        else:
+                            pass
+
                     time.sleep(5)
                     devices = getSpotifyDevice()
                     print("Launching desktop player ...2", devices)
@@ -240,24 +270,24 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                     except Exception as e:
                         print("Launch Desktop Player Error", e)
                         # If desktop player didn't work. launch Web player
-                        print(
-                            "Desktop player not found. Opening Web player ...Error:")
-                        webbrowser.open("https://open.spotify.com/")
-                        time.sleep(5)
+                        # print(
+                        #     "Desktop player not found. Opening Web player ...Error:")
+                        # webbrowser.open("https://open.spotify.com/")
+                        # time.sleep(5)
 
-                        try:
-                            devices = getSpotifyDevice()
-                            print("Launch Web Player:devices", devices)
+                        # try:
+                        #     devices = getSpotifyDevice()
+                        #     print("Launch Web Player:devices", devices)
 
-                            device_id = getWebPlayerId(devices)
-                            print("Launch Web Player:device_id", device_id)
+                        #     device_id = getWebPlayerId(devices)
+                        #     print("Launch Web Player:device_id", device_id)
 
-                            ACTIVE_DEVICE = {}
-                            ACTIVE_DEVICE['device_id'] = device_id
-                            print(ACTIVE_DEVICE)
-                            # currentTrackInfo()
-                        except Exception as e:
-                            print("Launch Web Player", e)
+                        #     ACTIVE_DEVICE = {}
+                        #     ACTIVE_DEVICE['device_id'] = device_id
+                        #     print(ACTIVE_DEVICE)
+                        #     # currentTrackInfo()
+                        # except Exception as e:
+                        #     print("Launch Web Player", e)
 
                 # If user selects web player to launch
                 elif device == "Launch Web Player":

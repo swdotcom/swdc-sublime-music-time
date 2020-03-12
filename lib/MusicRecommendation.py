@@ -119,7 +119,7 @@ class GenrelistInputHandler(sublime_plugin.ListInputHandler):
     def confirm(self, value):
         global filter_type
         filter_type = value
-        print(filter_type)
+        print("filter type select:",filter_type)
 
     def next_input(self, args):
         return SongsInputHandler()
@@ -138,26 +138,50 @@ class SongsInputHandler(sublime_plugin.ListInputHandler):
     def list_items(self):
         global filter_type
         global recommendation_data
-        print("recommendation_data", recommendation_data)
-        if len(recommendation_data) == 0 or recommendation_data[0] != filter_type:
-            tracks = getTracksBySelection(filter_type)
-            if tracks == []:
-                # sublime.message_dialog(
-                #     "Songs not found. Please select a mood or genre")
-                return [("Songs not found. Please try another mood or genre","")]
-                # current_window = sublime.active_window()
-                # current_window.run_command("hide_overlay")
-            else:
+        # print("recommendation_data", recommendation_data,"\nlen of recommendation_data")
+        
+        if filter_type == "":
+            return [("Songs not found. Please try another mood or genre","")]
+
+        else:
+            print("global filter_type received:",filter_type)
+            # print("recommendation_data :",recommendation_data)
+            if recommendation_data == []:
+                print("first time called")
+                tracks = getTracksBySelection(filter_type)
                 recommendation_data = [filter_type, tracks]
-                print("recommendation_data", recommendation_data)
-                return recommendation_data[1]
+                print("len recommendation_data", len(recommendation_data[1]))
+                recommended_tracks = recommendation_data[1]
+                # return recommended_tracks
+
+            elif recommendation_data[0] == filter_type:
+                print("same type")
+                print("len recommendation_data", len(recommendation_data[1]))
+                recommended_tracks = recommendation_data[1]
+                # return recommendation_data[1]
+
+            else:
+            # elif recommendation_data[0] != filter_type:
+                print("new filter type deteted")
+                tracks = getTracksBySelection(filter_type)
+                recommendation_data = [filter_type, tracks]
+                print("len recommendation_data", len(recommendation_data[1]))
+                recommended_tracks = recommendation_data[1]
+                # return recommendation_data[1]
+
+        if recommendation_data[1] and recommendation_data[1] == []:
+            recommended_tracks = [("Songs not found. Please try another mood or genre","")]
+
+        return recommended_tracks
+
 
     def confirm(self, value):
         global current_track
         global ACTIVE_DEVICE
         current_track = value
         print("current_track_id", current_track)
-        if len(current_track) != 0:
+        if len(current_track) != 0: 
+
             playRecommendationTrack(ACTIVE_DEVICE.get('device_id'), current_track)
         else:
             pass
@@ -178,26 +202,28 @@ def getGenrelist():
 
 
 def getTracksBySelection(selectedtype):
+    # global filter_type
     global recommendation_data
+
     recommendation_data = []
     recommendation_data = getRecommendationsTracks(selectedtype)
-    return recommendation_data
-    # for playlist in recommendation_data:
-    #   if playlist.get("name")==playlist_name:
-    #       return playlist.get("songs")
+    if len(recommendation_data) == 0:
+        return [("Songs not found. Please try another mood or genre","")]
+    else:
+        return recommendation_data
 
 
 def moodChoice(argument):
-    switcher = {"Happy": ["&min_valence=0.6&target_valence=1"],
-                "Energetic": ["&min_energy=0.6&target_energy=1"],
-                "Danceable": ["&min_danceability=0.6&target_danceability=1"],
-                "Instrumental": ["&max_speechiness=0.4&target_speechiness=0"],
+    switcher = {"Happy": ["&min_valence=0.7&target_valence=1"],
+                "Energetic": ["&min_energy=0.7&target_energy=1"],
+                "Danceable": ["&min_danceability=0.7&target_danceability=1"],
+                "Instrumental": ["&min_instrumentalness=0.0&target_instrumentalness=0.1"],
                 "Familiar": [],
-                "Quiet music": ["&max_loudness=0.4&target_loudness=0"],
+                "Quiet music": ["&max_loudness=-5&target_loudness=-10"],
                 }
 
     return switcher.get(argument, "nothing")
-
+ 
 
 def getSeedTracks():
     headers = {"Authorization": "Bearer {}".format(
