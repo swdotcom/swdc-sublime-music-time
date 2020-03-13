@@ -315,62 +315,66 @@ class PluginData():
         active_data.keystrokes = 1
         PluginData.send_all_datas()
 
-
 # connect spotify menu
 class ConnectSpotify(sublime_plugin.TextCommand):
     def run(self, edit):
-        try:
-            authinfo = getAuthInfo()
-            print("Music time: /auth/spotify/user: ", authinfo)
+        launchSpotifyLoginUrl()
 
-            EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
-            updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN)
+# connect spotify menu
+# class ConnectSpotify(sublime_plugin.TextCommand):
+#     def run(self, edit):
+#         try:
+#             authinfo = getAuthInfo()
+#             print("Music time: /auth/spotify/user: ", authinfo)
 
-            user_type = userTypeInfo()
-            print("Music Time: Usertype: ", user_type)
+#             EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
+#             updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN)
 
-            message_dialog = sublime.message_dialog("Spotify Connected !")
+#             user_type = userTypeInfo()
+#             print("Music Time: Usertype: ", user_type)
 
-            # # Condition for non premium MAC users
-            # if isMac() is True and user_type == "non-premium":
-            #     try:
-            #         msg = subprocess.Popen(
-            #             ["open", "-a", "spotify"], stdout=subprocess.PIPE)
-            #         if msg == "Unable to find application named 'spotify'":
-            #             message_dialog = sublime.message_dialog(
-            #                 "Desktop player didn't opened. Please check whether \
-            #                 Spotify Desktop player is installed correctly \
-            #                 or Connect using Premium")
-            #             showStatus("Connect Premium")
-            #         else:
-            #             print("getSpotifyTrackState", getSpotifyTrackState())
-            #             print("getTrackInfo", getTrackInfo())
+#             message_dialog = sublime.message_dialog("Spotify Connected !")
 
-            #         # currentTrackInfo()
-            #     except Exception as e:
-            #         print("Music Time: Desktop player didn't opened")
-            #         message_dialog = sublime.message_dialog(
-            #             "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+#             # # Condition for non premium MAC users
+#             # if isMac() is True and user_type == "non-premium":
+#             #     try:
+#             #         msg = subprocess.Popen(
+#             #             ["open", "-a", "spotify"], stdout=subprocess.PIPE)
+#             #         if msg == "Unable to find application named 'spotify'":
+#             #             message_dialog = sublime.message_dialog(
+#             #                 "Desktop player didn't opened. Please check whether \
+#             #                 Spotify Desktop player is installed correctly \
+#             #                 or Connect using Premium")
+#             #             showStatus("Connect Premium")
+#             #         else:
+#             #             print("getSpotifyTrackState", getSpotifyTrackState())
+#             #             print("getTrackInfo", getTrackInfo())
 
-            setValue("logged_on", True)
-            showStatus("Spotify Connected")
-            print("USER_id:", spotifyUserId)
-            # getActiveDeviceInfo()
+#             #         # currentTrackInfo()
+#             #     except Exception as e:
+#             #         print("Music Time: Desktop player didn't opened")
+#             #         message_dialog = sublime.message_dialog(
+#             #             "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
 
-        except Exception as E:
-            print("Music Time: Unable to connect")
-            message_dialog = sublime.message_dialog(
-                "Please retry by clicking on Connect Spotify option")
-                # "Please try to connect after some time !")
-            showStatus("Connect Spotify")
-        checkAIPlaylistid()
-        getUserPlaylists()
-        # autoRefreshPlaylist()
-        # getActiveDeviceInfo()
-        # refreshStatusBar()
+#             setValue("logged_on", True)
+#             showStatus("Spotify Connected")
+#             print("USER_id:", spotifyUserId)
+#             # getActiveDeviceInfo()
 
-    def is_enabled(self):
-        return (getValue("logged_on", True) is False)
+#         except Exception as E:
+#             print("Music Time: Unable to connect")
+#             message_dialog = sublime.message_dialog(
+#                 "Please retry by clicking on Connect Spotify option")
+#                 # "Please try to connect after some time !")
+#             showStatus("Connect Spotify")
+#         checkAIPlaylistid()
+#         getUserPlaylists()
+#         # autoRefreshPlaylist()
+#         # getActiveDeviceInfo()
+#         # refreshStatusBar()
+
+#     def is_enabled(self):
+#         return (getValue("logged_on", True) is False)
 
 
 # Disconnect spotify

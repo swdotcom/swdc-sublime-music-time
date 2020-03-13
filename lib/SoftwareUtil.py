@@ -25,7 +25,6 @@ from ..Software import *
 runningResourceCmd = False
 loggedInCacheState = False
 
-jwt = ''
 spotifyuser = {}
 sessionMap = {}
 spotifyUserId = ''
@@ -470,6 +469,7 @@ def createAnonymousUser(serverAvailable):
             if (response is not None):
                 try:
                     responseObj = response
+                    # replace it with the anon user's jwt
                     jwt = responseObj.get("jwt", None)
                     log("created anonymous user with jwt %s " % jwt)
                     setItem("jwt", jwt)
@@ -485,7 +485,7 @@ def getUser(serverAvailable):
     jwt = getItem("jwt")
     if (jwt and serverAvailable):
         api = "/users/me"
-        response = requestIt("GET", api, None, getItem("jwt"), True)
+        response = requestIt("GET", api, None, jwt, True)
         if (responseObj.get("data", None) is not None):
             try:
                 responseObj = response
@@ -514,7 +514,7 @@ def isLoggedOn(serverAvailable):
             return True
 
         api = "/users/plugin/state"
-        response = requestIt("GET", api, None, getItem("jwt"), True)
+        response = requestIt("GET", api, None, jwt, True)
 
         if (response.get("state", None) is not None):
             try:
@@ -582,7 +582,7 @@ def sendHeartbeat(reason):
 
         api = "/data/heartbeat"
         try:
-            response = requestIt("POST", api, json.dumps(payload), getItem("jwt"), True)
+            response = requestIt("POST", api, json.dumps(payload), jwt, True)
         except Exception as ex:
             log("Music Time: Unable to send heartbeat: %s" % ex)
 
@@ -651,50 +651,63 @@ def getDashboardDataDisplay(widthLen, data):
 
 # launch browser to get user permissions
 def launchSpotifyLoginUrl():
-    global jwt
+    jwt = getItem("jwt")
     try:
         spotify_url = SOFTWARE_API + "/auth/spotify?token=" + \
             jwt + "&mac=" + str(isMac()).lower()
         print("Music Time: ", spotify_url)
         webbrowser.open(spotify_url)
+        t = Timer(10, refetchSpotifyStatusLazily, [30])
+        t.start()
     except Exception as e:
         print("Music Time: Try to connect after some time.", e)
         message_dialog = sublime.message_dialog(
-            "Please try to connect Spotify after some time. !")
+            "Please try to connect Spotify after some time.")
+
+def refetchSpotifyStatusLazily(tryCountUntilFoundUser):
+    getauth = getAuthInfo()
+    if (getauth is not None or tryCountUntilFoundUser <= 0):
+        return
+
+    # start the time
+    tryCountUntilFoundUser -= 1
+    t = Timer(10, refetchSpotifyStatusLazily, [tryCountUntilFoundUser])
+    t.start()
 
 # get user authentication data
 
 
 def getAuthInfo():
-    global jwt
-
-    api = '/data/apptoken?token=' + str(round(time.time()))
-    jwt = requestIt("GET", api, None, None, True)["jwt"]
-    print("getAuthInfo JWT ^^^^^^", jwt)
-    setItem("jwt", jwt)
-
-    launchSpotifyLoginUrl()
-    time.sleep(20)
-
     api = "/users/plugin/state"
     getauth = requestIt("GET", api, None, getItem("jwt"), True)
     if getauth is not None and getauth["status"] == 200:
-        print(getauth)
-        # authinfo = {}
-        # authinfo = getauth.json()
         try:
             # authinfo = getauth.json()
             if getauth['state'] == "OK":
                 print("succeed")
                 # authinfo = getauth.json()
                 print("<<<<<<<<<<<<<<->>>>>>>>>\n\n", getauth)
+                MAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
+                if (MAIL is None or ACCESS_TOKEN is None or REFRESH_TOKEN is None):
+                    return None
+
+                # still ok, save them
+                updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN)
+                user_type = userTypeInfo()
+                print("Music Time: Usertype: ", user_type)
+
+                message_dialog = sublime.message_dialog("Successfully connected Spotify")
+                setValue("logged_on", True)
+                showStatus("Spotify Connected")
+                checkAIPlaylistid()
+                getUserPlaylists()
+                return getauth
             else:
                 print("STATE_NOT_FOUND")
 
         except Exception as e:
             print("Music Time: AUTHTOKEN ERROR: ", e)
-
-        return getauth
+    return None
 
 
 # Access tokens from user auth
@@ -708,15 +721,6 @@ def getTokens(authinfo):
             if authinfo['user']['auths'][i]['type'] == "spotify":
                 ACCESS_TOKEN = authinfo['user']['auths'][i]['access_token']
                 REFRESH_TOKEN = authinfo['user']['auths'][i]['refresh_token']
-
-        # EMAIL = authinfo['email']
-        # # setItem(authinfo['jwt'], jwt)
-        # for i in range(len(authinfo['auths'])):
-        #     if authinfo['auths'][i]['type'] == "spotify":
-
-        #         # EMAIL = authinfo['auths'][i]['email']
-        #         ACCESS_TOKEN = authinfo['auths'][i]['access_token']
-        #         REFRESH_TOKEN = authinfo['auths'][i]['refresh_token']
 
     except Exception as e:
         print("Music Time: Token not found", e)
