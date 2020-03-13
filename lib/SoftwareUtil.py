@@ -346,7 +346,7 @@ def getResourceInfo(rootDir):
 
 def checkOnline():
     # non-authenticated ping, no need to set the Authorization header
-    response = requestIt("GET", "/ping", None, getItem("jwt"))
+    response = requestIt("GET", "/ping", None, True)
     if (isResponseOk(response)):
         return True
     else:
@@ -410,8 +410,7 @@ def fetchCustomDashboard(date_range):
 
     try:
         api = '/dashboard?start=' + str(start) + '&end=' + str(end)
-        response = requestIt("GET", api, None, getItem("jwt"))
-        content = response.read().decode('utf-8')
+        content = requestIt("GET", api, None, False)
         file = getCustomDashboardFile()
         with open(file, 'w', encoding='utf-8') as f:
             f.write(content)
@@ -435,11 +434,10 @@ def getAppJwt():
     if (serverAvailable):
         now = round(time.time())
         api = "/data/apptoken?token=" + str(now)
-        response = requestIt("GET", api, None, None)
+        response = requestIt("GET", api, None, True)
         if (response is not None):
-            responseObjStr = response.read().decode('utf-8')
             try:
-                responseObj = json.loads(responseObjStr)
+                responseObj = response
                 appJwt = responseObj.get("jwt", None)
                 if (appJwt is not None):
                     return appJwt
@@ -459,6 +457,7 @@ def createToken():
 def createAnonymousUser(serverAvailable):
     appJwt = getAppJwt()
     if (serverAvailable and appJwt):
+        setItem("jwt", appJwt)
         username = getOsUsername()
         timezone = getTimezone()
         hostname = getHostname()
@@ -471,10 +470,10 @@ def createAnonymousUser(serverAvailable):
 
         api = "/data/onboard"
         try:
-            response = requestIt("POST", api, json.dumps(payload), appJwt)
+            response = requestIt("POST", api, json.dumps(payload), True)
             if (response is not None and isResponseOk(response)):
                 try:
-                    responseObj = json.loads(response.read().decode('utf-8'))
+                    responseObj = response
                     jwt = responseObj.get("jwt", None)
                     log("created anonymous user with jwt %s " % jwt)
                     setItem("jwt", jwt)
@@ -490,10 +489,10 @@ def getUser(serverAvailable):
     jwt = getItem("jwt")
     if (jwt and serverAvailable):
         api = "/users/me"
-        response = requestIt("GET", api, None, jwt)
+        response = requestIt("GET", api, None, True)
         if (isResponseOk(response)):
             try:
-                responseObj = json.loads(response.read().decode('utf-8'))
+                responseObj = response
                 user = responseObj.get("data", None)
                 return user
             except Exception as ex:
@@ -519,12 +518,12 @@ def isLoggedOn(serverAvailable):
             return True
 
         api = "/users/plugin/state"
-        response = requestIt("GET", api, None, jwt)
+        response = requestIt("GET", api, None, True)
 
         responseOk = isResponseOk(response)
         if (responseOk is True):
             try:
-                responseObj = json.loads(response.read().decode('utf-8'))
+                responseObj = response
 
                 state = responseObj.get("state", None)
                 if (state is not None and state == "OK"):
@@ -589,7 +588,7 @@ def sendHeartbeat(reason):
 
         api = "/data/heartbeat"
         try:
-            response = requestIt("POST", api, json.dumps(payload), jwt)
+            response = requestIt("POST", api, json.dumps(payload), True)
 
             if (response is not None and isResponseOk(response) is False):
                 log("Music Time: Unable to send heartbeat ping")
@@ -679,32 +678,33 @@ def getAuthInfo():
     global jwt
 
     api = '/data/apptoken?token=' + str(round(time.time()))
-    jwt = requestIt("GET", api).json()['jwt']
+    # jwt = requestIt("GET", api).json()['jwt']
+    jwt = requestIt("GET", api, None, True)["jwt"]
     print("getAuthInfo JWT ^^^^^^", jwt)
     setItem("jwt", jwt)
-    headers = {'content-type': 'application/json', 'Authorization': jwt}
+
     launchSpotifyLoginUrl()
     time.sleep(20)
 
     api = "/users/plugin/state"
-    getauth = requestIt("GET", api)
+    getauth = requestIt("GET", api, None, True)
     if getauth.status_code == 200:
         print(getauth.text)
-        authinfo = {}
+        # authinfo = {}
         # authinfo = getauth.json()
         try:
-            authinfo = getauth.json()
-            if authinfo['state'] == "OK":
+            # authinfo = getauth.json()
+            if getauth['state'] == "OK":
                 print("succeed")
                 # authinfo = getauth.json()
-                print("<<<<<<<<<<<<<<->>>>>>>>>\n\n", authinfo)
+                print("<<<<<<<<<<<<<<->>>>>>>>>\n\n", getauth)
             else:
                 print("STATE_NOT_FOUND")
 
         except Exception as e:
             print("Music Time: AUTHTOKEN ERROR: ", e)
 
-        return authinfo
+        return getauth
 
 
 # Access tokens from user auth
@@ -751,10 +751,11 @@ def updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
 
 def userMeInfo():
     api = '/v1/me'
-    spotify = requestSpotify("GET", api)
+    spotify = requestSpotify("GET", api, None, True)
     spotifyUserInfo = {}
     if spotify.status_code == 200 and len(spotify.text) > 0:
-        spotifyUserInfo = spotify.json()
+        # spotifyUserInfo = spotify.json()
+        spotifyUserInfo = spotify
     else:
         refreshSpotifyToken()
         spotifyUserInfo = userMeInfo()
@@ -793,14 +794,17 @@ def getClientCredentials():
     jwt = getItem("jwt")
     if jwt is None or jwt == "":
         api = '/data/apptoken?token=' + str(round(time.time()))
-        get_JWT = requestIt("GET", api)
-        jwt = get_JWT.json()['jwt']
+        get_JWT = requestIt("GET", api, None, True)
+        # jwt = get_JWT.json()['jwt']
+        jwt = get_JWT["jwt"]
 
 
     api = '/auth/spotify/clientInfo'
-    get_client_creds = requestIt("GET", api)
-    clientId = get_client_creds.json()['clientId']
-    clientSecret = get_client_creds.json()['clientSecret']
+    get_client_creds = requestSpotify("GET", api)
+    # clientId = get_client_creds.json()['clientId']
+    clientId = get_client_creds["clientId"]
+    # clientSecret = get_client_creds.json()['clientSecret']
+    clientSecret = get_client_creds["clientSecret"]
     return clientId, clientSecret
 
 # Refresh access token after expiry
@@ -814,9 +818,9 @@ def refreshSpotifyToken():
     response = refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET)
 
     if response.status_code == 200:
-        obj = response.json()
+        # obj = response.json()
 
-        setItem("spotify_access_token", obj['access_token'])
+        setItem("spotify_access_token", response['access_token'])
         setItem("spotify_refresh_token", spotify_refresh_token)
         setItem("jwt", jwt)
         print("Music Time: Spotify Access token updated !",str(time.localtime()[3:6]))
@@ -853,7 +857,7 @@ def disconnectSpotify():
     # print(">>@<<",jwt)
     try:
         api = '/auth/spotify/disconnect'
-        disconnect = requestIt("PUT", api)
+        disconnect = requestSpotify("PUT", api)
         if disconnect.status_code == 200:
             print("Music Time: Spotify Disconnected !")
 

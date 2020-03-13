@@ -154,11 +154,11 @@ def fetchCodeTimeMetricsDashboard(summary):
         if isWindows() is True or isMac() is True:
             islinux = "false"
         api = '/dashboard?linux=' + islinux + '&showToday=false'
-        response = requestIt("GET", api, None, getItem("jwt"))
+        response = requestIt("GET", api, None, False)
 
         summaryContent = ""
         try:
-            summaryContent = response.read().decode('utf-8')
+            summaryContent = response
         except Exception as ex:
             summaryContent = SERVICE_NOT_AVAIL
             log("Code Time: Unable to read response data: %s" % ex)
@@ -221,10 +221,10 @@ def fetchDailyKpmSessionInfo(forceRefresh):
 
         # api to fetch the session kpm info
         api = '/sessions/summary'
-        response = requestIt("GET", api, None, getItem("jwt"))
+        response = requestIt("GET", api, None, True)
 
         if (response is not None and isResponseOk(response)):
-            sessionSummaryData = json.loads(response.read().decode('utf-8'))
+            sessionSummaryData = response
 
             # update the file
             saveSessionSummaryToDisk(sessionSummaryData)
@@ -305,16 +305,14 @@ def sendOfflineData():
                 for i in range(length):
                     payload = payloads[i]
                     if (len(batch) >= 50):
-                        requestIt("POST", "/data/batch",
-                                  json.dumps(batch), getItem("jwt"))
+                        requestIt("POST", "/data/batch", json.dumps(batch), True)
                         # send batch
                         batch = []
                     batch.append(payload)
 
                 # send remaining batch
                 if (len(batch) > 0):
-                    requestIt("POST", "/data/batch",
-                              json.dumps(batch), getItem("jwt"))
+                    requestIt("POST", "/data/batch", json.dumps(batch), True)
 
     # update the statusbar
     fetchDailyKpmSessionInfo(True)

@@ -20,9 +20,12 @@ def getSpotifyTrackId():
         track = requestSpotify("GET", api)
 
         if track.status_code == 200:
-            trackname = track.json()['item']['name']
-            trackstate = track.json()['is_playing']
-            track_id = track.json()['item']['id']
+            # trackname = track.json()['item']['name']
+            trackname = track["item"]["name"]
+            # trackstate = track.json()['is_playing']
+            trackstate = track["is_playing"]
+            # track_id = track.json()['item']['id']
+            track_id = track["item"]["id"]
             return track_id, trackname
     except Exception as e:
         print("getSpotifyTrackId", e)

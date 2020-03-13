@@ -650,10 +650,9 @@ def checkUserState():
     global spotifyUserId
     global slack
     try:
-        jwt = getItem("jwt")
         api = "/users/plugin/state"
-        resp = requestIt("GET", api, None, jwt)
-        resp_data = resp.json()
+        resp_data = requestIt("GET", api, None, True)
+        # resp_data = resp.json()
         if resp_data['state'] == "OK":
             for i in range(len(resp_data['user']['auths'])):
                 if resp_data['user']['auths'][i]['type'] == "spotify":

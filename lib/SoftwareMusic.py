@@ -21,7 +21,7 @@ current_track_id = ""
 # To fetch and show music-time dashboard
 def getMusicTimedashboard():
     api = "/dashboard/music"
-    resp = requestIt("GET", api)
+    resp = requestIt("GET", api, None, True)
     if resp.status_code == 200:
         print("Music Time: launching MusicTime.txt")
     else:
@@ -96,8 +96,8 @@ def gatherMusicInfo():
             # update the end time of the previous track and post it
             current_track_info["end"] = start - 1
             gatherCodingDataAndSendSongSession(current_track_info)
-            response = requestIt("POST", "/data/music",
-                                 json.dumps(current_track_info), getItem("jwt"))
+            payload = json.dumps(current_track_info)
+            response = requestIt("POST", "/data/music", payload, True)
             if (response is None):
                 log("Code Time: error closing previous track")
             # re-initialize the current track info to an empty object
@@ -109,8 +109,8 @@ def gatherMusicInfo():
             trackInfo["local_start"] = local_start
             trackInfo["end"] = 0
             gatherCodingDataAndSendSongSession(current_track_info)
-            response = requestIt("POST", "/data/music",
-                                 json.dumps(trackInfo), getItem("jwt"))
+            payload = json.dumps(current_track_info)
+            response = requestIt("POST", "/data/music", payload, True)
             if (response is None):
                 log("Code Time: error sending new track")
 
@@ -123,8 +123,8 @@ def gatherMusicInfo():
             # in and the previous one is stil available
             current_track_info["end"] = start - 1
             gatherCodingDataAndSendSongSession(current_track_info)
-            response = requestIt("POST", "/data/music",
-                                 json.dumps(current_track_info), getItem("jwt"))
+            payload = json.dumps(current_track_info)
+            response = requestIt("POST", "/data/music", payload, True)
             if (response is None):
                 log("Code Time: error closing previous track")
 
@@ -153,7 +153,8 @@ def getActiveDeviceInfo():
 
     if getdevs.status_code == 200:
 
-        devices = getdevs.json()
+        # devices = getdevs.json()
+        devices = getdevs
         DEVICES = []
         # try:
         if devices['devices'] == []:# and userTypeInfo() == "premium":
@@ -202,11 +203,11 @@ def getLikedSongsIds():
     api = "/v1/me/tracks"
     tracklist = requestSpotify("GET", api)
     if tracklist.status_code == 200:
-        track_list = tracklist.json()
+        # track_list = tracklist.json()
         ids = []
         names = []
         tracks = {}
-        for i in track_list['items']:
+        for i in tracklist['items']:
             ids.append(i['track']['id'])
             names.append(i['track']['name'])
             tracks = tuple(zip(names, ids))
@@ -257,9 +258,12 @@ def currentTrackInfo():
             track = requestSpotify("GET", api)
 
             if track.status_code == 200:
-                trackinfo = track.json()['item']['name']
-                trackstate = track.json()['is_playing']
-                track_id = track.json()['item']['id']
+                # trackinfo = track.json()['item']['name']
+                trackInfo = track["item"]["name"]
+                # trackstate = track.json()['is_playing']
+                trackState = track["is_playing"]
+                # track_id = track.json()['item']['id']
+                track_id = track["item"]["id"]
                 current_track_id = track_id
                 # print("current_track_id",current_track_id)
                 isLiked = check_liked_songs(track_id)

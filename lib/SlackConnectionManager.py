@@ -23,16 +23,16 @@ def launchConnectSlack():
 # connectSlack(jwt)
 def getSlackTokens():
     api = '/users/plugin/state'
-    getauth0 = requestIt("GET", api)
+    getauth0 = requestIt("GET", api, None, True)
     try:
         if getauth0.status_code >= 200:
-            authinfo = getauth0.json()
-            print("getSlackTokens:authinfo:", authinfo)
+            # authinfo = getauth0.json()
+            print("getSlackTokens:authinfo:", getauth0)
 
-            for i in range(len(authinfo['user']['auths'])):
-                if authinfo['user']['auths'][i]['type'] == "slack":
-                    print("slack_auths: ", authinfo['user']['auths'][i])
-                    slack_access_token = authinfo['user']['auths'][i]['access_token']
+            for i in range(len(getauth0['user']['auths'])):
+                if getauth0['user']['auths'][i]['type'] == "slack":
+                    print("slack_auths: ", getauth0['user']['auths'][i])
+                    slack_access_token = getauth0['user']['auths'][i]['access_token']
                     setValue("slack_logged_on", True)
                     setItem("slack_access_token", slack_access_token)
                     print("Music Time: Got slack access token !")
@@ -50,7 +50,7 @@ def getSlackTokens():
 def disconnectSlack():
     try:
         api = '/auth/slack/disconnect'
-        disconnect = requestIt("PUT", api)
+        disconnect = requestIt("PUT", api, None, True)
         if disconnect.status_code == 200:
             # print(disconnect.text)
             print("Music Time: Slack Disconnected !")
@@ -68,11 +68,11 @@ def getSlackChannels():
     api = "/api/conversations.list"
     get_channels = requestSlack("GET", api)
     if get_channels.status_code == 200:
-        channels_data = get_channels.json()
+        # channels_data = get_channels.json()
         ids = []
         names = []
 
-        for i in channels_data["channels"]:
+        for i in get_channels["channels"]:
             #             print("Id:",i['id'],"|" ,"name:",i['name'])
             ids.append(i['id'])
             names.append(i['name'])
@@ -89,10 +89,10 @@ def sendSlackMessage(channel_id, track_id):
     payload_data = {"channel": channel_id, "text": txt}
 
     api = "/api/chat.postMessage"
-    get_channels = requestSlack("POST", api, payload_data)
+    requestSlack("POST", api, payload_data)
     if post_msg.status_code == 200:
-        print("Music Time: Slack share succeed !\n", post_msg.json())
+        print("Music Time: Slack share succeed !\n", post_msg
     else:
-        print("Music Time: unable to share on Slack !\n", post_msg.json())
+        print("Music Time: unable to share on Slack !\n", post_msg
 
 

@@ -38,7 +38,8 @@ def getSpotifyDevice():
     device_list = []
 
     if getdevs.status_code == 200:
-        devices = getdevs.json()['devices']
+        # devices = getdevs.json()['devices']
+        devices getdevs["devices"]
 
         for i in range(len(devices)):
             device_list.append(
@@ -58,7 +59,8 @@ def getSpotifyActiveDevice():
     ACTIVE_DEVICE = {}  # {"device_name":"","device_id":""}
 
     if getdevs.status_code == 200:
-        devices = getdevs.json()['devices']
+        # devices = getdevs.json()['devices']
+        devices = getdevs["devices"]
         for i in range(len(devices)):
             if devices[i]['is_active'] == True:
                 ACTIVE_DEVICE['device_name'] = devices[i]['name']
@@ -339,7 +341,7 @@ def transferPlayback(deviceid):
     print("payload for transfer device:", payload)
 
     api = "/v1/me/player"
-    transfer = requestIt("PUT", api, payload)
+    transfer = requestSpotify("PUT", api, payload)
     if transfer.status_code == 204:
         print("playback transferred to device_id", deviceid)
         # time.sleep(5)

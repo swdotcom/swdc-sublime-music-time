@@ -228,11 +228,11 @@ def getSeedTracks():
     api = "/v1/me/tracks"
     tracklist = requestSpotify("GET", api)
     if tracklist.status_code == 200:
-        track_list = tracklist.json()
+        # track_list = tracklist.json()
         ids = []
         names = []
         tracks = {}
-        for i in track_list['items']:
+        for i in tracklist['items']:
             ids.append(i['track']['id'])
             names.append(i['track']['name'])
             tracks = tuple(zip(names, ids))
@@ -286,11 +286,11 @@ def getRecommendationsTracks(value):
 
     response = requestSpotify("GET", api)
     if response.status_code == 200:
-        json_response = response.json()
-        print("No. of tracks: ", len(json_response['tracks']))
+        # json_response = response.json()
+        print("No. of tracks: ", len(response['tracks']))
 
         tracks = []
-        for i, j in enumerate(json_response['tracks']):
+        for i, j in enumerate(response['tracks']):
             tracks.append((j['name'], j['id']))
     else:
         print(response.text)

@@ -355,11 +355,11 @@ def getLikedSongs():
     api = "/v1/me/tracks"
     tracklist = requestSpotify("GET", api)
     if tracklist.status_code == 200:
-        track_list = tracklist.json()
+        # track_list = tracklist.json()
         ids = []
         names = []
         tracks = {}
-        for i in track_list['items']:
+        for i in tracklist['items']:
             ids.append(i['track']['id'])
             names.append(i['track']['name'])
             tracks = tuple(zip(names, ids))
@@ -379,12 +379,12 @@ def getUserPlaylistInfo(spotifyUserId):
     playlist = requestSpotify("GET", api)
     try:
         if playlist.status_code == 200:
-            playlistname = playlist.json()
+            # playlistname = playlist.json()
             names = []
             ids = []
             playlist = {}
             playlist_names = []
-            for i in playlistname['items']:
+            for i in playlist['items']:
 
                 names.append(i['name'])
                 ids.append(i['id'])
@@ -404,11 +404,11 @@ def getTracks(playlist_id):
     api = "/v1/playlists/" + playlist_id + "/tracks"
     tracklist = requestSpotify("GET", api)
     if tracklist.status_code == 200:
-        track_list = tracklist.json()
+        # track_list = tracklist.json()
         ids = []
         names = []
         tracks = {}
-        for i in track_list['items']:
+        for i in tracklist['items']:
             ids.append(i['track']['id'])
             names.append(i['track']['name'])
             tracks = tuple(zip(names, ids))
@@ -571,13 +571,13 @@ def checkAIPlaylistid():
 
     # Check for ai_playlist in software backend
     api = "/music/playlist/generated"
-    get_ai_playlistid = requestIt("GET", api)
+    get_ai_playlistid = requestIt("GET", api, None, True)
     # print("get_ai_playlistid:",get_ai_playlistid.text)
     if get_ai_playlistid.status_code == 200:
-        get_ai_playlistid_data = get_ai_playlistid.json()
-        print("get_ai_playlistid_data\n", get_ai_playlistid_data)
-        if len(get_ai_playlistid_data) > 0:
-            backend_ai_playlistid = get_ai_playlistid_data[0]['playlist_id']
+        # get_ai_playlistid_data = get_ai_playlistid.json()
+        print("get_ai_playlistid_data\n", get_ai_playlistid)
+        if len(get_ai_playlistid) > 0:
+            backend_ai_playlistid = get_ai_playlistid[0]['playlist_id']
             print("backend_ai_playlistid : ", backend_ai_playlistid)
 
             playlist_info = {}
@@ -593,7 +593,7 @@ def checkAIPlaylistid():
                 print("Ai playlist not found")
                 # Delete backend ai playlistid
                 api = "/music/playlist/generated/" + backend_ai_playlistid
-                delete_ai_playlistid = requestIt("DELETE", api)
+                delete_ai_playlistid = requestIt("DELETE", api, None, True)
                 if delete_ai_playlistid.status_code == 200:
                     print("Deleted ai playlistid: ", delete_ai_playlistid.text)
                     # Enable Generate AI button
@@ -642,35 +642,35 @@ def generateMyAIPlaylist():
 
     if create_my_ai_playlist.status_code >= 200:
         # print("create_my_ai_playlist :", create_my_ai_playlist)
-        response = create_my_ai_playlist.json()
-        AI_PLAYLIST_ID = response['id']
+        # response = create_my_ai_playlist.json()
+        AI_PLAYLIST_ID = create_my_ai_playlist['id']
 
         data = {"playlist_id": AI_PLAYLIST_ID,
                 "playlistTypeId": 1, "name": AI_PLAYLIST_NAME}
         json_data = json.dumps(data)
 
         api = "/music/playlist/generated"
-        update_playlist = requestIt("POST", api, json_data)
+        update_playlist = requestIt("POST", api, json_data, True)
 
         if update_playlist.status_code >= 200:
             print("update_playlist id to software backend :", update_playlist)
 
             api = "/music/recommendations?limit=40"
-            get_recommends = requestIt("GET", api)
+            get_recommends = requestIt("GET", api, None, True)
 
             if get_recommends.status_code >= 200:
                 print("get_recommends :\n", get_recommends)
-                recommends_song_list = get_recommends.json()
+                # recommends_song_list = get_recommends.json()
                 uris_list = []
-                for i in range(len(recommends_song_list)):
-                    uris_list.append(recommends_song_list[i]['uri'])
+                for i in range(len(get_recommends)):
+                    uris_list.append(get_recommends[i]['uri'])
 
                 # headers = {"Authorization": "Bearer {}".format(access_token)}
                 uris_data = {"uris": uris_list, "position": 0}
                 json_data = json.dumps(uris_data)
 
                 api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
-                post_uris = requestIt("POST", api, json_data)
+                post_uris = requestIt("POST", api, json_data, True)
                 if post_uris.status_code >= 200:
                     print("post_uris", post_uris)
                     setValue("ai_playlist", True)
@@ -697,13 +697,13 @@ def refreshMyAIPlaylist():
     software_recommend = SOFTWARE_API + "/music/recommendations?limit=40"
 
     api = "/music/recommendations?limit=40"
-    get_recommends = requestIt("GET", api)
+    get_recommends = requestIt("GET", api, None, True)
 
     if get_recommends.status_code >= 200:
-        recommends_song_list = get_recommends.json()
+        # recommends_song_list = get_recommends.json()
         uris_list = []
-        for i in range(len(recommends_song_list)):
-            uris_list.append(recommends_song_list[i]['uri'])
+        for i in range(len(get_recommends)):
+            uris_list.append(get_recommends[i]['uri'])
 
         # wipe out the old track uris
         uris_data = {"uris": uris_list}
@@ -716,19 +716,19 @@ def refreshMyAIPlaylist():
             # print("wipe_uris", wipe_uris)
 
             api = "/music/recommendations?limit=40"
-            get_recommends = requestIt("GET", api)
+            get_recommends = requestIt("GET", api, None, True)
 
             if get_recommends.status_code >= 200:
-                recommends_song_list = get_recommends.json()
+                # recommends_song_list = get_recommends.json()
                 uris_list = []
-                for i in range(len(recommends_song_list)):
-                    uris_list.append(recommends_song_list[i]['uri'])
+                for i in range(len(get_recommends)):
+                    uris_list.append(get_recommends[i]['uri'])
 
                 uris_data = {"uris": uris_list, "position": 0}
                 json_data = json.dumps(uris_data)
 
                 api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
-                post_uris = requestIt("POST", api, json_data)
+                post_uris = requestIt("POST", api, json_data, True)
                 if post_uris.status_code >= 200:
                     print("AI playlist refreshed !")
                     setValue("ai_playlist", True)
@@ -787,7 +787,7 @@ def CreateNewPlaylist(playlistname):
     # create_playlist_response = create_playlist.json()
     if create_playlist.status_code >= 200:
         # response = create_playlist.json()
-        new_playlist_id = create_playlist.json()['id']
+        new_playlist_id = create_playlist['id']
         return new_playlist_id
     else:
         print("UNABLE", create_playlist.text)
@@ -842,7 +842,8 @@ def addTrackToPlaylist(trackid, playlistid, play_list_name):
         sublime.message_dialog(msg)
         getUserPlaylists()
     else:
-        msg = resp.json()['error']['message']
+        # msg = resp.json()['error']['message']
+        msg = resp['error']['message']
         print("failed", msg)
         msg_body = "Unable to add track.\n"+msg
         sublime.message_dialog(msg_body)

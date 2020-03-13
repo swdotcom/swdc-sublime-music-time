@@ -72,7 +72,7 @@ def refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET):
     payload['refresh_token'] = spotify_refresh_token
 
     auth_header = base64.b64encode(str(CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
-    headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
+    headers = {'Content-Type': 'application/json','Authorization': 'Basic %s' % auth_header.decode('ascii')}
     api = "https://accounts.spotify.com/api/token"
 
     return requestSpotify("POST", api, payload)
@@ -86,7 +86,7 @@ def requestSpotify(method, api, payload):
         connection.request(method, api, payload, headers)
         response = connection.getresponse()
         httpLog("Spotify request: " + SPOTIFY_API + "" + api + " Response (%d)" % response.status)
-        return response
+        return json.loads(response.read().decode('utf-8'))
     except Exception as ex:
         print("Music Time: " + api + " Network error: %s" % ex)
         return None
@@ -101,13 +101,16 @@ def requestSlack(method, api, payload):
         connection.request(method, api, payload, headers)
         response = connection.getresponse()
         httpLog("Slack request: " + SLACK_API + "" + api + " Response (%d)" % response.status)
-        return response
+        return json.loads(response.read().decode('utf-8'))
     except Exception as ex:
         print("Music Time: " + api + " Network error: %s" % ex)
         return None
 
 # send the request.
-def requestIt(method, api, payload, jwt):
+def requestIt(method, api, payload, returnJson):
+
+    print("PAYLOAD: %s" % payload)
+    print("returnJson: %s" % returnJson)
 
     api_endpoint = getValue("software_api_endpoint", SOFTWARE_API)
     telemetry = getValue("software_telemetry_on", True)
@@ -128,6 +131,7 @@ def requestIt(method, api, payload, jwt):
         headers = {'Content-Type': 'application/json',
                    'User-Agent': USER_AGENT}
 
+        jwt = getItem("jwt")
         if (jwt is not None):
             headers['Authorization'] = jwt
         elif (method is 'POST' and jwt is None):
@@ -148,8 +152,11 @@ def requestIt(method, api, payload, jwt):
         connection.request(method, api, payload, headers)
 
         response = connection.getresponse()
-        # httpLog("Code Time: " + api_endpoint + "" + api + " Response (%d)" % response.status)
-        return response
+        if (returnJson is None or returnJson is True):
+            # httpLog("Code Time: " + api_endpoint + "" + api + " Response (%d)" % response.status)
+            return json.loads(response.read().decode('utf-8'))
+        else:
+            return response.read().decode('utf-8')
     except Exception as ex:
         print("Music Time: " + api + " Network error: %s" % ex)
         return None

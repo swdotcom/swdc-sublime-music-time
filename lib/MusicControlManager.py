@@ -153,7 +153,7 @@ def likeSong(track_id):
             print("payload2",payload2)
 
             api = "/music/liked/track/"+ track_id +"?type=spotify"
-            swdc_put_like_url = requestIt("PUT", api, payload2)
+            swdc_put_like_url = requestIt("PUT", api, payload2, True)
             print("swdc_put_like_url",swdc_put_like_url.text)
             if swdc_put_like_url.status_code == 200:
                 print("Music Time: Song Liked !")
@@ -185,7 +185,7 @@ def unLikeSong(track_id):
             print("payload2",payload2)
 
             api = "/music/liked/track/"+ track_id +"?type=spotify"
-            swdc_put_unlike_url = requestIt("PUT", api, payload2)
+            swdc_put_unlike_url = requestIt("PUT", api, payload2, True)
             print("swdc_put_unlike_url",swdc_put_unlike_url.text)
             if swdc_put_unlike_url.status_code == 200:
                 print("Music Time: Song Unliked !")
