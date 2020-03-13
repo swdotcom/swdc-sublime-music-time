@@ -22,7 +22,7 @@ from .PlayerManager import *
 
 # Song's Controls: Play
 def playSong():
-    global active_device
+    global ACTIVE_DEVICE
 
     # getActiveDeviceInfo()
     # print("isMac",isMac(),'|',userTypeInfo())
@@ -34,12 +34,12 @@ def playSong():
         headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
         # print("headers",headers)
         # print(getActiveDeviceInfo())
-        active_device = getSpotifyActiveDevice()
+        ACTIVE_DEVICE = getSpotifyActiveDevice()
 
-        if active_device == {}:
+        if ACTIVE_DEVICE == {}:
             current_window = sublime.active_window()
             current_window.run_command("select_player")
-            playstr = SPOTIFY_API + "/v1/me/player/play?" + active_device.get('device_id')
+            # playstr = SPOTIFY_API + "/v1/me/player/play?" + active_device.get('device_id')
 
 
         playstr = SPOTIFY_API + "/v1/me/player/play?" + ACTIVE_DEVICE.get('device_id')#getActiveDeviceInfo()#currentDeviceId
