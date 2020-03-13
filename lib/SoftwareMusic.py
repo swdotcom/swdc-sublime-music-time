@@ -22,14 +22,14 @@ current_track_id = ""
 def getMusicTimedashboard():
     api = "/dashboard/music"
     resp = requestIt("GET", api, None, getItem("jwt"), True)
-    if resp.status_code == 200:
+    if resp["status"] == 200:
         print("Music Time: launching MusicTime.txt")
     else:
-        print('getMusicTimedashboard error\n', resp.text)
+        print('getMusicTimedashboard error\n', resp["text"])
 
     file = getDashboardFile()
     with open(file, 'w', encoding='utf-8') as f:
-        f.write(resp.text)
+        f.write(resp["text"])
 
     file = getDashboardFile()
     sublime.active_window().open_file(file)
@@ -152,7 +152,7 @@ def getActiveDeviceInfo():
     api = "/v1/me/player/devices"
     getdevs = requestSpotify("GET", api, None, getItem('spotify_access_token'))
 
-    if getdevs.status_code == 200:
+    if getdevs["status"] == 200:
 
         # devices = getdevs.json()
         devices = getdevs
@@ -184,7 +184,7 @@ def getActiveDeviceInfo():
             print("DEVICES :", DEVICES)
             print("Music Time: Number of connected devices: ", len(DEVICES))
             # print("ACTIVE_DEVICE",ACTIVE_DEVICE)
-    elif getdevs.status_code == 401:
+    elif getdevs["status"] == 401:
         refreshSpotifyToken()
 
         # except Exception as E:
@@ -203,7 +203,7 @@ def getLikedSongsIds():
 
     api = "/v1/me/tracks"
     tracklist = requestSpotify("GET", api, None, getItem('spotify_access_token'))
-    if tracklist.status_code == 200:
+    if tracklist["status"] == 200:
         # track_list = tracklist.json()
         ids = []
         names = []
@@ -258,7 +258,7 @@ def currentTrackInfo():
             api = "/v1/me/player/currently-playing?" + ACTIVE_DEVICE.get('device_id')
             track = requestSpotify("GET", api, None, getItem('spotify_access_token'))
 
-            if track.status_code == 200:
+            if track["status"] == 200:
                 # trackinfo = track.json()['item']['name']
                 trackInfo = track["item"]["name"]
                 # trackstate = track.json()['is_playing']
@@ -277,7 +277,7 @@ def currentTrackInfo():
                     showStatus("Paused "+str(trackinfo) + isLiked)
                     # print("Paused "+trackinfo)
 
-            elif track.status_code == 401:
+            elif track["status"] == 401:
                 # showStatus("Loading . . . ")
                 showStatus("Spotify Connected")
                 try:

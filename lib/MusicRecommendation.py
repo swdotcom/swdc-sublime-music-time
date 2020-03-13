@@ -227,7 +227,7 @@ def moodChoice(argument):
 def getSeedTracks():
     api = "/v1/me/tracks"
     tracklist = requestSpotify("GET", api, None, getItem('spotify_access_token'))
-    if tracklist.status_code == 200:
+    if tracklist["status"] == 200:
         # track_list = tracklist.json()
         ids = []
         names = []
@@ -285,7 +285,7 @@ def getRecommendationsTracks(value):
     print("final api", api)
 
     response = requestSpotify("GET", api, None, getItem('spotify_access_token'))
-    if response.status_code == 200:
+    if response["status"] == 200:
         # json_response = response.json()
         print("No. of tracks: ", len(response['tracks']))
 
@@ -293,7 +293,7 @@ def getRecommendationsTracks(value):
         for i, j in enumerate(response['tracks']):
             tracks.append((j['name'], j['id']))
     else:
-        print(response.text)
+        print(response["text"])
         return []
 
     return tracks
@@ -394,7 +394,7 @@ def playRecommendationTrack(currentDeviceId, track_id):
 
             api = "/v1/me/player/play?device_id=" + currentDeviceId
             plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
-            print(plays.text)
+            print(plays["text"])
         except Exception as e:
             print("playThisSong", e)
     currentTrackInfo()

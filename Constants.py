@@ -4,10 +4,10 @@ USER_AGENT = 'Music Time Sublime Plugin'
 SOFTWARE_API = "http://localhost:5000" # "https://api.software.com"
 SOFTWARE_URL = "http://localhost:3000" # "https://app.software.com"
 
-SPOTIFY_API = "https://api.spotify.com"
-SPOTIFY_REFRESH_API = "https://accounts.spotify.com/api/token"
+SPOTIFY_API = "api.spotify.com"
+SPOTIFY_REFRESH_API = "accounts.spotify.com"
 SPOTIFY_WEB_PLAYER = "https://open.spotify.com"
-SLACK_API = "https://slack.com"
+SLACK_API = "slack.com"
 
 ST3_GITHUB_URL = "https://github.com/swdotcom/music-time-sublime/issues"
 FEEDBACK_MAIL_ID = "mailto:cody@software.com"

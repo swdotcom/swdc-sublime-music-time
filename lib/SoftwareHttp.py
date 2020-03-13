@@ -71,20 +71,40 @@ def refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, sp
 
     auth_header = base64.b64encode(str(CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
     headers = {'Content-Type': 'application/json','Authorization': 'Basic %s' % auth_header.decode('ascii')}
-    api = "https://accounts.spotify.com/api/token"
+    api = "/api/token"
 
-    return requestSpotify("POST", api, payload, spotify_access_token)
+    try:
+
+        connection = http.client.HTTPSConnection(SPOTIFY_REFRESH_API)
+        if (payload is None):
+            payload = {}
+
+        connection.request(method, api, payload, headers)
+        response = connection.getresponse()
+        print("Spotify request: " + SPOTIFY_API + "" + api + " Response (%d)" % response.status)
+        jsonData = json.loads(response.read().decode('utf-8'))
+        jsonData["status"] = response.status
+        return jsonData
+    except Exception as ex:
+        print("Music Time: " + api + " Network error: %s" % ex)
+        return None
 
 def requestSpotify(method, api, payload, spotify_access_token):
     headers = {"Authorization": "Bearer {}".format(spotify_access_token)}
     try:
+
         connection = http.client.HTTPSConnection(SPOTIFY_API)
         if (payload is None):
             payload = {}
+
         connection.request(method, api, payload, headers)
         response = connection.getresponse()
-        httpLog("Spotify request: " + SPOTIFY_API + "" + api + " Response (%d)" % response.status)
-        return json.loads(response.read().decode('utf-8'))
+        print("Spotify request: " + SPOTIFY_API + "" + api + " Response (%d)" % response.status)
+
+        jsonData = json.loads(response.read().decode('utf-8'))
+        jsonData["status"] = response.status
+        print("SPOTIFY response status from the dict: %s" % jsonData["status"])
+        return jsonData
     except Exception as ex:
         print("Music Time: " + api + " Network error: %s" % ex)
         return None
@@ -99,7 +119,9 @@ def requestSlack(method, api, payload, slack_access_token):
         connection.request(method, api, payload, headers)
         response = connection.getresponse()
         httpLog("Slack request: " + SLACK_API + "" + api + " Response (%d)" % response.status)
-        return json.loads(response.read().decode('utf-8'))
+        jsonData = json.loads(response.read().decode('utf-8'))
+        jsonData["status"] = response.status
+        return jsonData
     except Exception as ex:
         print("Music Time: " + api + " Network error: %s" % ex)
         return None
@@ -150,12 +172,13 @@ def requestIt(method, api, payload, jwt, returnJson):
 
         if (returnJson is None or returnJson is True):
             jsonData = json.loads(response.read().decode('utf-8'))
+            jsonData["status"] = response.status
             # print("http json data: %s" % jsonData)
             return jsonData
         else:
             contentData = response.read().decode('utf-8')
             # print("http content data: %s" % contentData)
-            return contentData;
+            return contentData
     except Exception as ex:
         print("Music Time: " + api + " Network error: %s" % ex)
         return None

@@ -34,10 +34,10 @@ def getSpotifyDevice():
 
     api = "/v1/me/player/devices"
     getdevs = requestSpotify("GET", api, None, getItem('spotify_access_token'))
-#     print(getdevs.text)
+#     print(getdevs["text"])
     device_list = []
 
-    if getdevs.status_code == 200:
+    if getdevs["status"] == 200:
         # devices = getdevs.json()['devices']
         devices = getdevs["devices"]
 
@@ -58,7 +58,7 @@ def getSpotifyActiveDevice():
     getdevs = requestSpotify("GET", api, None, getItem('spotify_access_token'))
     ACTIVE_DEVICE = {}  # {"device_name":"","device_id":""}
 
-    if getdevs.status_code == 200:
+    if getdevs["status"] == 200:
         # devices = getdevs.json()['devices']
         devices = getdevs["devices"]
         for i in range(len(devices)):
@@ -342,11 +342,11 @@ def transferPlayback(deviceid):
 
     api = "/v1/me/player"
     transfer = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
-    if transfer.status_code == 204:
+    if transfer["status"] == 204:
         print("playback transferred to device_id", deviceid)
         # time.sleep(5)
     else:
-        print(transfer.text)
+        print(transfer["text"])
 
 
 def getNonWebPlayerId(device_list):

@@ -19,7 +19,7 @@ def getSpotifyTrackId():
         api = "/v1/me/player/currently-playing?" + ACTIVE_DEVICE.get('device_id')
         track = requestSpotify("GET", api, None, getItem('spotify_access_token'))
 
-        if track.status_code == 200:
+        if track["status"] == 200:
             # trackname = track.json()['item']['name']
             trackname = track["item"]["name"]
             # trackstate = track.json()['is_playing']

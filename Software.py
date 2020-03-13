@@ -652,8 +652,9 @@ def checkUserState():
     try:
         api = "/users/plugin/state"
         resp_data = requestIt("GET", api, None, getItem("jwt"), True)
-        # resp_data = resp.json()
+        
         if resp_data['state'] == "OK":
+
             for i in range(len(resp_data['user']['auths'])):
                 if resp_data['user']['auths'][i]['type'] == "spotify":
                     spotifyUserId = resp_data['user']['auths'][i]['authId']
@@ -664,7 +665,7 @@ def checkUserState():
                 else:
                     setValue("slack_logged_on", False)
             
-            print("spotifyUserId",spotifyUserId)
+            print("spotify user id: %s" % spotifyUserId)
             
             setValue("logged_on", True) 
             showStatus("Spotify Connected")

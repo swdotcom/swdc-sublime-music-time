@@ -678,8 +678,8 @@ def getAuthInfo():
 
     api = "/users/plugin/state"
     getauth = requestIt("GET", api, None, getItem("jwt"), True)
-    if getauth.status_code == 200:
-        print(getauth.text)
+    if getauth["status"] == 200:
+        print(getauth["text"])
         # authinfo = {}
         # authinfo = getauth.json()
         try:
@@ -743,7 +743,8 @@ def userMeInfo():
     api = '/v1/me'
     spotify = requestSpotify("GET", api, None, getItem('spotify_access_token'))
     spotifyUserInfo = {}
-    if spotify.status_code == 200 and len(spotify.text) > 0:
+    print("spotify result: %s" % spotify)
+    if spotify["status"] == 200 and len(spotify["text"]) > 0:
         # spotifyUserInfo = spotify.json()
         spotifyUserInfo = spotify
     else:
@@ -807,7 +808,7 @@ def refreshSpotifyToken():
 
     response = refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, getItem("spotify_refresh_token"))
 
-    if response.status_code == 200:
+    if response["status"] == 200:
         # obj = response.json()
 
         setItem("spotify_access_token", response['access_token'])
@@ -848,7 +849,7 @@ def disconnectSpotify():
     try:
         api = '/auth/spotify/disconnect'
         disconnect = requestSpotify("PUT", api, None, getItem('spotify_access_token'))
-        if disconnect.status_code == 200:
+        if disconnect["status"] == 200:
             print("Music Time: Spotify Disconnected !")
 
     except Exception as e:
