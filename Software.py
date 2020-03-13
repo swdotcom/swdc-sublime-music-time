@@ -248,6 +248,46 @@ class PluginData():
         for dir in PluginData.active_datas:
             PluginData.active_datas[dir].send()
 
+    # public async sendKeystrokeDataIntervalHandler() {
+    #     //
+    #     // Go through all keystroke count objects found in the map and send
+    #     // the ones that have data (data is greater than 1), then clear the map
+    #     // And only if code time is not instaled, post the data
+    #     //
+    #     let latestPayloads = [];
+    #     if (_keystrokeMap && !isEmptyObj(_keystrokeMap)) {
+    #         let keys = Object.keys(_keystrokeMap);
+    #         // use a normal for loop since we have an await within the loop
+    #         for (let i = 0; i < keys.length; i++) {
+    #             const key = keys[i];
+    #             const keystrokeCount = _keystrokeMap[key];
+
+    #             const hasData = keystrokeCount.hasData();
+
+    #             if (hasData) {
+    #                 // post the payload offline until the batch interval sends it out
+
+    #                 // get the payload
+    #                 const payload = keystrokeCount.getLatestPayload();
+
+    #                 // post it to the file right away so the song session can obtain it
+    #                 if (!codeTimeExtInstalled()) {
+    #                     await keystrokeCount.postData(payload);
+    #                 }
+    #                 await keystrokeCount.postMusicData(payload);
+    #             }
+    #         }
+    #     }
+
+    #     // clear out the keystroke map
+    #     _keystrokeMap = {};
+
+    #     // clear out the static info map
+    #     _staticInfoMap = {};
+
+    #     return latestPayloads;
+    # }
+
     # .........
     @staticmethod
     def initialize_file_info(keystrokeCount, fileName):
