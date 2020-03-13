@@ -9,7 +9,6 @@ import sublime
 from ..Constants import *
 from ..Software import *
 from .SoftwareSettings import *
-from .SoftwareUtil import *
 
 
 lastMsg = ''
@@ -63,11 +62,10 @@ def isUnauthenticated(response):
         return True
     return False
 
-def refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET):
+def refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, spotify_refresh_token):
     payload = {}
     obj = {}
 
-    spotify_refresh_token = getItem("spotify_refresh_token")
     payload['grant_type'] = 'refresh_token'
     payload['refresh_token'] = spotify_refresh_token
 
@@ -75,10 +73,10 @@ def refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET):
     headers = {'Content-Type': 'application/json','Authorization': 'Basic %s' % auth_header.decode('ascii')}
     api = "https://accounts.spotify.com/api/token"
 
-    return requestSpotify("POST", api, payload)
+    return requestSpotify("POST", api, payload, spotify_access_token)
 
-def requestSpotify(method, api, payload):
-    headers = {"Authorization": "Bearer {}".format(getItem('spotify_access_token'))}
+def requestSpotify(method, api, payload, spotify_access_token):
+    headers = {"Authorization": "Bearer {}".format(spotify_access_token)}
     try:
         connection = http.client.HTTPSConnection(SPOTIFY_API)
         if (payload is None):
@@ -91,9 +89,9 @@ def requestSpotify(method, api, payload):
         print("Music Time: " + api + " Network error: %s" % ex)
         return None
 
-def requestSlack(method, api, payload):
+def requestSlack(method, api, payload, slack_access_token):
     headers = {"Content-Type": "application/x-www-form-urlencoded",
-                     "Authorization": "Bearer {}".format(getItem("slack_access_token"))}
+                     "Authorization": "Bearer {}".format(slack_access_token)}
     try:
         connection = http.client.HTTPSConnection(SLACK_API)
         if (payload is None):
@@ -107,7 +105,7 @@ def requestSlack(method, api, payload):
         return None
 
 # send the request.
-def requestIt(method, api, payload, returnJson):
+def requestIt(method, api, payload, jwt, returnJson):
 
     api_endpoint = getValue("software_api_endpoint", SOFTWARE_API)
     telemetry = getValue("software_telemetry_on", True)
@@ -128,7 +126,6 @@ def requestIt(method, api, payload, returnJson):
         headers = {'Content-Type': 'application/json',
                    'User-Agent': USER_AGENT}
 
-        jwt = getItem("jwt")
         if (jwt is not None):
             headers['Authorization'] = jwt
         elif (method is 'POST' and jwt is None):
@@ -149,11 +146,16 @@ def requestIt(method, api, payload, returnJson):
         connection.request(method, api, payload, headers)
 
         response = connection.getresponse()
+        # print("Code Time: " + api_endpoint + "" + api + " Response (%d)" % response.status)
+
         if (returnJson is None or returnJson is True):
-            # httpLog("Code Time: " + api_endpoint + "" + api + " Response (%d)" % response.status)
-            return json.loads(response.read().decode('utf-8'))
+            jsonData = json.loads(response.read().decode('utf-8'))
+            # print("http json data: %s" % jsonData)
+            return jsonData
         else:
-            return response.read().decode('utf-8')
+            contentData = response.read().decode('utf-8')
+            # print("http content data: %s" % contentData)
+            return contentData;
     except Exception as ex:
         print("Music Time: " + api + " Network error: %s" % ex)
         return None
@@ -162,7 +164,6 @@ def requestIt(method, api, payload, returnJson):
 def isMusicTime():
     plugin = getValue("plugin", "music-time")
     # print(">><<",plugin)
-    # plugin = getItem("plugin")
     if plugin == "music-time":
         return True
     else:

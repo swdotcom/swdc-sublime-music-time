@@ -651,7 +651,7 @@ def checkUserState():
     global slack
     try:
         api = "/users/plugin/state"
-        resp_data = requestIt("GET", api, None, True)
+        resp_data = requestIt("GET", api, None, getItem("jwt"), True)
         # resp_data = resp.json()
         if resp_data['state'] == "OK":
             for i in range(len(resp_data['user']['auths'])):

@@ -94,8 +94,6 @@ def getHostname():
         return os.uname().nodename
 
 # fetch a value from the .software/sesion.json file
-
-
 def getItem(key):
     val = sessionMap.get(key, None)
     if (val is not None):
@@ -108,8 +106,6 @@ def getItem(key):
     return val
 
 # set an item from the session json file
-
-
 def setItem(key, value):
     sessionMap[key] = value
     jsonObj = getSoftwareSessionAsJson()
@@ -346,8 +342,8 @@ def getResourceInfo(rootDir):
 
 def checkOnline():
     # non-authenticated ping, no need to set the Authorization header
-    response = requestIt("GET", "/ping", None, True)
-    if (isResponseOk(response)):
+    response = requestIt("GET", "/ping", None, getItem("jwt"), True)
+    if (response is not None and response.get("data", None) is not None):
         return True
     else:
         return False
@@ -410,7 +406,7 @@ def fetchCustomDashboard(date_range):
 
     try:
         api = '/dashboard?start=' + str(start) + '&end=' + str(end)
-        content = requestIt("GET", api, None, False)
+        content = requestIt("GET", api, None, getItem("jwt"), False)
         file = getCustomDashboardFile()
         with open(file, 'w', encoding='utf-8') as f:
             f.write(content)
@@ -434,7 +430,7 @@ def getAppJwt():
     if (serverAvailable):
         now = round(time.time())
         api = "/data/apptoken?token=" + str(now)
-        response = requestIt("GET", api, None, True)
+        response = requestIt("GET", api, None, getItem("jwt"), True)
         if (response is not None):
             try:
                 responseObj = response
@@ -470,8 +466,8 @@ def createAnonymousUser(serverAvailable):
 
         api = "/data/onboard"
         try:
-            response = requestIt("POST", api, json.dumps(payload), True)
-            if (response is not None and isResponseOk(response)):
+            response = requestIt("POST", api, json.dumps(payload), getItem("jwt"), True)
+            if (response is not None):
                 try:
                     responseObj = response
                     jwt = responseObj.get("jwt", None)
@@ -489,8 +485,8 @@ def getUser(serverAvailable):
     jwt = getItem("jwt")
     if (jwt and serverAvailable):
         api = "/users/me"
-        response = requestIt("GET", api, None, True)
-        if (isResponseOk(response)):
+        response = requestIt("GET", api, None, getItem("jwt"), True)
+        if (responseObj.get("data", None) is not None):
             try:
                 responseObj = response
                 user = responseObj.get("data", None)
@@ -518,18 +514,16 @@ def isLoggedOn(serverAvailable):
             return True
 
         api = "/users/plugin/state"
-        response = requestIt("GET", api, None, True)
+        response = requestIt("GET", api, None, getItem("jwt"), True)
 
-        responseOk = isResponseOk(response)
-        if (responseOk is True):
+        if (response.get("state", None) is not None):
             try:
-                responseObj = response
 
-                state = responseObj.get("state", None)
+                state = response.get("state", None)
                 if (state is not None and state == "OK"):
-                    email = responseObj.get("emai", None)
+                    email = response.get("emai", None)
                     setItem("name", email)
-                    pluginJwt = responseObj.get("jwt", None)
+                    pluginJwt = response.get("jwt", None)
                     if (pluginJwt is not None and pluginJwt != jwt):
                         setItem("jwt", pluginJwt)
 
@@ -588,10 +582,7 @@ def sendHeartbeat(reason):
 
         api = "/data/heartbeat"
         try:
-            response = requestIt("POST", api, json.dumps(payload), True)
-
-            if (response is not None and isResponseOk(response) is False):
-                log("Music Time: Unable to send heartbeat ping")
+            response = requestIt("POST", api, json.dumps(payload), getItem("jwt"), True)
         except Exception as ex:
             log("Music Time: Unable to send heartbeat: %s" % ex)
 
@@ -678,8 +669,7 @@ def getAuthInfo():
     global jwt
 
     api = '/data/apptoken?token=' + str(round(time.time()))
-    # jwt = requestIt("GET", api).json()['jwt']
-    jwt = requestIt("GET", api, None, True)["jwt"]
+    jwt = requestIt("GET", api, None, None, True)["jwt"]
     print("getAuthInfo JWT ^^^^^^", jwt)
     setItem("jwt", jwt)
 
@@ -687,7 +677,7 @@ def getAuthInfo():
     time.sleep(20)
 
     api = "/users/plugin/state"
-    getauth = requestIt("GET", api, None, True)
+    getauth = requestIt("GET", api, None, getItem("jwt"), True)
     if getauth.status_code == 200:
         print(getauth.text)
         # authinfo = {}
@@ -751,7 +741,7 @@ def updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
 
 def userMeInfo():
     api = '/v1/me'
-    spotify = requestSpotify("GET", api, None, True)
+    spotify = requestSpotify("GET", api, None, getItem('spotify_access_token'))
     spotifyUserInfo = {}
     if spotify.status_code == 200 and len(spotify.text) > 0:
         # spotifyUserInfo = spotify.json()
@@ -794,13 +784,13 @@ def getClientCredentials():
     jwt = getItem("jwt")
     if jwt is None or jwt == "":
         api = '/data/apptoken?token=' + str(round(time.time()))
-        get_JWT = requestIt("GET", api, None, True)
+        get_JWT = requestIt("GET", api, None, None, True)
         # jwt = get_JWT.json()['jwt']
         jwt = get_JWT["jwt"]
 
 
     api = '/auth/spotify/clientInfo'
-    get_client_creds = requestSpotify("GET", api)
+    get_client_creds = requestSpotify("GET", api, None, getItem('spotify_access_token'))
     # clientId = get_client_creds.json()['clientId']
     clientId = get_client_creds["clientId"]
     # clientSecret = get_client_creds.json()['clientSecret']
@@ -815,7 +805,7 @@ def refreshSpotifyToken():
     spotify_refresh_token = getItem("spotify_refresh_token")
     CLIENT_ID, CLIENT_SECRET = getClientCredentials()
 
-    response = refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET)
+    response = refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, getItem("spotify_refresh_token"))
 
     if response.status_code == 200:
         # obj = response.json()
@@ -857,7 +847,7 @@ def disconnectSpotify():
     # print(">>@<<",jwt)
     try:
         api = '/auth/spotify/disconnect'
-        disconnect = requestSpotify("PUT", api)
+        disconnect = requestSpotify("PUT", api, None, getItem('spotify_access_token'))
         if disconnect.status_code == 200:
             print("Music Time: Spotify Disconnected !")
 

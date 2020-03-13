@@ -263,7 +263,7 @@ def playThisSong(currentDeviceId, track_id):
                     pass
 
             api = "/v1/me/player/play?device_id=" + currentDeviceId
-            plays = requestSpotify("PUT", api, payload)
+            plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
             print(plays.text)
         except Exception as e:
             print("playThisSong", e)
@@ -341,7 +341,7 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
             print("playSongFromPlaylist", payload)
 
             api = "/v1/me/player/play?device_id=" + currentDeviceId
-            plays = requestSpotify("PUT", api, payload)
+            plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
             print(plays.text)
         except Exception as e:
             print("playSongFromPlaylist", e)
@@ -353,7 +353,7 @@ def getLikedSongs():
     global Liked_songs_ids
 
     api = "/v1/me/tracks"
-    tracklist = requestSpotify("GET", api)
+    tracklist = requestSpotify("GET", api, None, getItem('spotify_access_token'))
     if tracklist.status_code == 200:
         # track_list = tracklist.json()
         ids = []
@@ -376,7 +376,7 @@ def getUserPlaylistInfo(spotifyUserId):
     global playlist_names
 
     api = "/v1/users/" + spotifyUserId + "/playlists"
-    playlist = requestSpotify("GET", api)
+    playlist = requestSpotify("GET", api, None, getItem('spotify_access_token'))
     try:
         if playlist.status_code == 200:
             # playlistname = playlist.json()
@@ -402,7 +402,7 @@ def getUserPlaylistInfo(spotifyUserId):
 def getTracks(playlist_id):
 
     api = "/v1/playlists/" + playlist_id + "/tracks"
-    tracklist = requestSpotify("GET", api)
+    tracklist = requestSpotify("GET", api, None, getItem('spotify_access_token'))
     if tracklist.status_code == 200:
         # track_list = tracklist.json()
         ids = []
@@ -571,7 +571,7 @@ def checkAIPlaylistid():
 
     # Check for ai_playlist in software backend
     api = "/music/playlist/generated"
-    get_ai_playlistid = requestIt("GET", api, None, True)
+    get_ai_playlistid = requestIt("GET", api, None, getItem("jwt"), True)
     # print("get_ai_playlistid:",get_ai_playlistid.text)
     if get_ai_playlistid.status_code == 200:
         # get_ai_playlistid_data = get_ai_playlistid.json()
@@ -593,7 +593,7 @@ def checkAIPlaylistid():
                 print("Ai playlist not found")
                 # Delete backend ai playlistid
                 api = "/music/playlist/generated/" + backend_ai_playlistid
-                delete_ai_playlistid = requestIt("DELETE", api, None, True)
+                delete_ai_playlistid = requestIt("DELETE", api, None, getItem("jwt"), True)
                 if delete_ai_playlistid.status_code == 200:
                     print("Deleted ai playlistid: ", delete_ai_playlistid.text)
                     # Enable Generate AI button
@@ -637,7 +637,7 @@ def generateMyAIPlaylist():
           "\ncreate_playlist_url :", create_playlist_url)
 
     api = "/v1/users/" + spotifyUserId + "/playlists"
-    create_my_ai_playlist = requestSpotify("POST", api, json_data)
+    create_my_ai_playlist = requestSpotify("POST", api, json_data, getItem('spotify_access_token'))
     print("create_my_ai_playlist :", create_my_ai_playlist.text)
 
     if create_my_ai_playlist.status_code >= 200:
@@ -650,13 +650,13 @@ def generateMyAIPlaylist():
         json_data = json.dumps(data)
 
         api = "/music/playlist/generated"
-        update_playlist = requestIt("POST", api, json_data, True)
+        update_playlist = requestIt("POST", api, json_data, getItem("jwt"), True)
 
         if update_playlist.status_code >= 200:
             print("update_playlist id to software backend :", update_playlist)
 
             api = "/music/recommendations?limit=40"
-            get_recommends = requestIt("GET", api, None, True)
+            get_recommends = requestIt("GET", api, None, getItem("jwt"), True)
 
             if get_recommends.status_code >= 200:
                 print("get_recommends :\n", get_recommends)
@@ -670,7 +670,7 @@ def generateMyAIPlaylist():
                 json_data = json.dumps(uris_data)
 
                 api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
-                post_uris = requestIt("POST", api, json_data, True)
+                post_uris = requestIt("POST", api, json_data, getItem("jwt"), True)
                 if post_uris.status_code >= 200:
                     print("post_uris", post_uris)
                     setValue("ai_playlist", True)
@@ -697,7 +697,7 @@ def refreshMyAIPlaylist():
     software_recommend = SOFTWARE_API + "/music/recommendations?limit=40"
 
     api = "/music/recommendations?limit=40"
-    get_recommends = requestIt("GET", api, None, True)
+    get_recommends = requestIt("GET", api, None, getItem("jwt"), True)
 
     if get_recommends.status_code >= 200:
         # recommends_song_list = get_recommends.json()
@@ -710,13 +710,13 @@ def refreshMyAIPlaylist():
         json_data = json.dumps(uris_data)
 
         api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
-        wipe_uris = requestSpotify("PUT", api, json_data)
+        wipe_uris = requestSpotify("PUT", api, json_data, getItem('spotify_access_token'))
 
         if wipe_uris.status_code >= 200:
             # print("wipe_uris", wipe_uris)
 
             api = "/music/recommendations?limit=40"
-            get_recommends = requestIt("GET", api, None, True)
+            get_recommends = requestIt("GET", api, None, getItem("jwt"), True)
 
             if get_recommends.status_code >= 200:
                 # recommends_song_list = get_recommends.json()
@@ -728,7 +728,7 @@ def refreshMyAIPlaylist():
                 json_data = json.dumps(uris_data)
 
                 api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
-                post_uris = requestIt("POST", api, json_data, True)
+                post_uris = requestIt("POST", api, json_data, getItem("jwt"), True)
                 if post_uris.status_code >= 200:
                     print("AI playlist refreshed !")
                     setValue("ai_playlist", True)
@@ -783,7 +783,7 @@ def CreateNewPlaylist(playlistname):
           "\ncreate_playlist_url :", create_playlist_url)
 
     api = "/v1/users/" + spotifyUserId + "/playlists"
-    create_playlist = requestSpotify("POST", api, json_data)
+    create_playlist = requestSpotify("POST", api, json_data, getItem('spotify_access_token'))
     # create_playlist_response = create_playlist.json()
     if create_playlist.status_code >= 200:
         # response = create_playlist.json()
@@ -835,7 +835,7 @@ def addTrackToPlaylist(trackid, playlistid, play_list_name):
     payload = json.dumps({"uris": ["spotify:track:"+trackid], "position": 0})
 
     api = "/v1/playlists/"+playlistid+"/tracks"
-    resp = requestSpotify("POST", api, payload)
+    resp = requestSpotify("POST", api, payload, getItem('spotify_access_token'))
     if resp.status_code == 201:
         print("success", resp.text)
         msg = "Track added to "+ '"' +play_list_name+ '"'

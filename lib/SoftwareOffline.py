@@ -154,7 +154,7 @@ def fetchCodeTimeMetricsDashboard(summary):
         if isWindows() is True or isMac() is True:
             islinux = "false"
         api = '/dashboard?linux=' + islinux + '&showToday=false'
-        response = requestIt("GET", api, None, False)
+        response = requestIt("GET", api, None, getItem("jwt"), False)
 
         summaryContent = ""
         try:
@@ -221,9 +221,9 @@ def fetchDailyKpmSessionInfo(forceRefresh):
 
         # api to fetch the session kpm info
         api = '/sessions/summary'
-        response = requestIt("GET", api, None, True)
+        response = requestIt("GET", api, None, getItem("jwt"), True)
 
-        if (response is not None and isResponseOk(response)):
+        if (response is not None):
             sessionSummaryData = response
 
             # update the file
@@ -305,14 +305,14 @@ def sendOfflineData():
                 for i in range(length):
                     payload = payloads[i]
                     if (len(batch) >= 50):
-                        requestIt("POST", "/data/batch", json.dumps(batch), True)
+                        requestIt("POST", "/data/batch", json.dumps(batch), getItem("jwt"), True)
                         # send batch
                         batch = []
                     batch.append(payload)
 
                 # send remaining batch
                 if (len(batch) > 0):
-                    requestIt("POST", "/data/batch", json.dumps(batch), True)
+                    requestIt("POST", "/data/batch", json.dumps(batch), getItem("jwt"), True)
 
     # update the statusbar
     fetchDailyKpmSessionInfo(True)

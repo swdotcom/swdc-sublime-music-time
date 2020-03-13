@@ -23,7 +23,7 @@ def launchConnectSlack():
 # connectSlack(jwt)
 def getSlackTokens():
     api = '/users/plugin/state'
-    getauth0 = requestIt("GET", api, None, True)
+    getauth0 = requestIt("GET", api, None, getItem("jwt"), True)
     try:
         if getauth0.status_code >= 200:
             # authinfo = getauth0.json()
@@ -50,7 +50,7 @@ def getSlackTokens():
 def disconnectSlack():
     try:
         api = '/auth/slack/disconnect'
-        disconnect = requestIt("PUT", api, None, True)
+        disconnect = requestIt("PUT", api, None, getItem("jwt"), True)
         if disconnect.status_code == 200:
             # print(disconnect.text)
             print("Music Time: Slack Disconnected !")
@@ -66,7 +66,7 @@ def disconnectSlack():
 def getSlackChannels():
 
     api = "/api/conversations.list"
-    get_channels = requestSlack("GET", api)
+    get_channels = requestSlack("GET", api, None, getItem("slack_access_token"))
     if get_channels.status_code == 200:
         # channels_data = get_channels.json()
         ids = []
@@ -89,7 +89,7 @@ def sendSlackMessage(channel_id, track_id):
     payload_data = {"channel": channel_id, "text": txt}
 
     api = "/api/chat.postMessage"
-    requestSlack("POST", api, payload_data)
+    requestSlack("POST", api, payload_data, getItem("slack_access_token"))
     if post_msg.status_code == 200:
         print("Music Time: Slack share succeed !\n", post_msg)
     else:

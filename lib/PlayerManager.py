@@ -33,7 +33,7 @@ def checkSpotifyUser():
 def getSpotifyDevice():
 
     api = "/v1/me/player/devices"
-    getdevs = requestSpotify("GET", api)
+    getdevs = requestSpotify("GET", api, None, getItem('spotify_access_token'))
 #     print(getdevs.text)
     device_list = []
 
@@ -55,7 +55,7 @@ def getSpotifyDevice():
 def getSpotifyActiveDevice():
 
     api = "/v1/me/player/devices"
-    getdevs = requestSpotify("GET", api)
+    getdevs = requestSpotify("GET", api, None, getItem('spotify_access_token'))
     ACTIVE_DEVICE = {}  # {"device_name":"","device_id":""}
 
     if getdevs.status_code == 200:
@@ -341,7 +341,7 @@ def transferPlayback(deviceid):
     print("payload for transfer device:", payload)
 
     api = "/v1/me/player"
-    transfer = requestSpotify("PUT", api, payload)
+    transfer = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
     if transfer.status_code == 204:
         print("playback transferred to device_id", deviceid)
         # time.sleep(5)
