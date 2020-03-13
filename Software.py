@@ -559,11 +559,15 @@ def plugin_loaded():
 def initializeUser():
     # check if the session file is there
     serverAvailable = checkOnline()
-    fileExists = softwareSessionFileExists()
+    # fileExists = softwareSessionFileExists()
     jwt = getItem("jwt")
-    log("JWT VAL: %s" % jwt)
-    checkUserState()
-    initializePlugin(False, serverAvailable)
+    initializedAnonUser = False
+    if (jwt is None):
+        # create the anon user
+        jwt = createAnonymousUser(serverAvailable)
+        if (jwt is not None):
+            initializedAnonUser = True
+    initializePlugin(initializedAnonUser, serverAvailable)
 
 
 def initializePlugin(initializedAnonUser, serverAvailable):
@@ -575,6 +579,8 @@ def initializePlugin(initializedAnonUser, serverAvailable):
         showStatus("Music Time")
 
     setItem("sublime_lastUpdateTime", None)
+
+    checkUserState()
 
     # fire off timer tasks (seconds, task)
 
@@ -650,7 +656,7 @@ def checkUserState():
     try:
         api = "/users/plugin/state"
         resp_data = requestIt("GET", api, None, getItem("jwt"), True)
-        
+        print("plugin state response: %s" % resp_data)
         if resp_data is not None and resp_data['state'] == "OK":
 
             for i in range(len(resp_data['user']['auths'])):

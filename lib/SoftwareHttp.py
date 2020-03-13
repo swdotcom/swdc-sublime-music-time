@@ -118,7 +118,7 @@ def requestSlack(method, api, payload, slack_access_token):
         return None
 
 # send the request.
-def requestIt(method, api, payload, jwt, returnJson, tries = 0):
+def requestIt(method, api, payload, jwt, returnJson = True, tries = 0):
 
     api_endpoint = getValue("software_api_endpoint", SOFTWARE_API)
     telemetry = getValue("software_telemetry_on", True)
