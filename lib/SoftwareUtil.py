@@ -742,8 +742,8 @@ def updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
 def userMeInfo():
     api = '/v1/me'
     spotifyUserInfo = requestSpotify("GET", api, None, getItem('spotify_access_token'))
-    print("spotify result: %s" % spotify)
-    if spotify["status"] == 200 and spotify["uri"] is not None:
+    print("spotify result: %s" % spotifyUserInfo)
+    if spotifyUserInfo["status"] == 200 and spotifyUserInfo["uri"] is not None:
         return spotifyUserInfo
     else:
         refreshSpotifyToken()
