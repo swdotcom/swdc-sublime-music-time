@@ -741,17 +741,13 @@ def updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN):
 
 def userMeInfo():
     api = '/v1/me'
-    spotify = requestSpotify("GET", api, None, getItem('spotify_access_token'))
-    spotifyUserInfo = {}
+    spotifyUserInfo = requestSpotify("GET", api, None, getItem('spotify_access_token'))
     print("spotify result: %s" % spotify)
-    if spotify["status"] == 200 and len(spotify["text"]) > 0:
-        # spotifyUserInfo = spotify.json()
-        spotifyUserInfo = spotify
+    if spotify["status"] == 200 and spotify["uri"] is not None:
+        return spotifyUserInfo
     else:
         refreshSpotifyToken()
-        spotifyUserInfo = userMeInfo()
-
-    return spotifyUserInfo
+        return userMeInfo()
 
 # check user type premium/ non-premium
 
@@ -810,12 +806,11 @@ def refreshSpotifyToken():
     spotify_refresh_token = getItem("spotify_refresh_token")
     spotify_access_token = getItem("spotify_access_token")
     CLIENT_ID, CLIENT_SECRET = getClientCredentials()
-    print("client id: " + CLIENT_ID + ", client secret: " + CLIENT_SECRET)
-    response = refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, spotify_refresh_token)
-    print("refresh spotify access response: %s" % response)
+
+    response = requestSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, spotify_refresh_token)
+
     if response["status"] == 200:
         # obj = response.json()
-
         setItem("spotify_access_token", response['access_token'])
         setItem("spotify_refresh_token", spotify_refresh_token)
         setItem("jwt", jwt)

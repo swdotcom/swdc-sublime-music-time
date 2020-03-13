@@ -1,7 +1,8 @@
 {
    "*": {
       "*": [
-         "python-six"
+         "python-six",
+         "requests"
       ]
    }
 }

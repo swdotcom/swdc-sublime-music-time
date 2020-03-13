@@ -7,6 +7,7 @@ import sublime_plugin
 import sublime
 import six
 import base64
+import requests
 
 from ..Constants import *
 from ..Software import *
@@ -64,36 +65,30 @@ def isUnauthenticated(response):
         return True
     return False
 
-def refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, spotify_refresh_token):
-    payload = {}
-    obj = {}
+def requestSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, spotify_refresh_token):
+    payload = {
+        "refresh_token": spotify_refresh_token,
+        "grant_type": "refresh_token",
+    }
 
-    payload['grant_type'] = 'refresh_token'
-    payload['refresh_token'] = spotify_refresh_token
+    auth_header = base64.b64encode(
+        six.text_type(CLIENT_ID + ":" + CLIENT_SECRET).encode("ascii")
+    )
+    headers = {"Authorization": "Basic %s" % auth_header.decode("ascii")}
 
-    # self.msg.encode('ascii')
-    msg = CLIENT_ID + ':' + CLIENT_SECRET
-    auth_header = base64.b64encode(six.text_type(CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
-    headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
-    ## auth_header = base64.b64encode(six.text_type(msg).encode('ascii'))
-    ## headers = {'Content-Type': 'application/json','Authorization': 'Basic %s' % auth_header.decode('ascii')}
-    api = "/api/token"
-
-    try:
-
-        connection = http.client.HTTPSConnection(SPOTIFY_REFRESH_API)
-        if (payload is None):
-            payload = {}
-
-        connection.request("POST", api, payload, headers)
-        response = connection.getresponse()
-        print("Spotify request: " + SPOTIFY_API + "" + api + " Response (%d)" % response.status)
-        jsonData = json.loads(response.read().decode('utf-8'))
-        jsonData["status"] = response.status
-        return jsonData
-    except Exception as ex:
-        print("Music Time: " + api + " Network error: %s" % ex)
+    response = requests.post(
+        SPOTIFY_REFRESH_URL,
+        data=payload,
+        headers=headers,
+        verify=True,
+    )
+    if response.status_code != 200:
+        print("couldn't refresh token: code:%d reason:%s" % (response.status_code, response.reason))
         return None
+
+    token_info = response.json()
+    token_info["status"] = response.status_code
+    return token_info
 
 def requestSpotify(method, api, payload, spotify_access_token):
     headers = {"Authorization": "Bearer {}".format(spotify_access_token)}
