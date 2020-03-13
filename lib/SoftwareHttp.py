@@ -6,6 +6,7 @@ import sys
 import sublime_plugin
 import sublime
 import base64
+import six
 
 from ..Constants import *
 from ..Software import *
@@ -70,7 +71,9 @@ def refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, sp
     payload['grant_type'] = 'refresh_token'
     payload['refresh_token'] = spotify_refresh_token
 
-    auth_header = base64.b64encode(str(CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
+    # self.msg.encode('ascii')
+    msg = CLIENT_ID + ':' + CLIENT_SECRET
+    auth_header = base64.b64encode(six.text_type(msg).encode('ascii'))
     headers = {'Content-Type': 'application/json','Authorization': 'Basic %s' % auth_header.decode('ascii')}
     api = "/api/token"
 
