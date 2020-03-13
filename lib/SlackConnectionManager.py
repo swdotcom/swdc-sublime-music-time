@@ -25,7 +25,7 @@ def getSlackTokens():
     api = '/users/plugin/state'
     getauth0 = requestIt("GET", api, None, getItem("jwt"), True)
     try:
-        if getauth0["status"] >= 200:
+        if getauth0 is not None and getauth0["status"] >= 200:
             # authinfo = getauth0.json()
             print("getSlackTokens:authinfo:", getauth0)
 
@@ -51,8 +51,8 @@ def disconnectSlack():
     try:
         api = '/auth/slack/disconnect'
         disconnect = requestIt("PUT", api, None, getItem("jwt"), True)
-        if disconnect["status"] == 200:
-            # print(disconnect["text"])
+        if disconnect is not None and disconnect["status"] == 200:
+            # print(disconnect)
             print("Music Time: Slack Disconnected !")
             setValue("slack_logged_on", False)
         else:

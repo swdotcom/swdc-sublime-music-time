@@ -61,8 +61,6 @@ class BackgroundWorker():
             self.queue.task_done()
 
 # kpm payload data structure
-
-
 class PluginData():
     __slots__ = ('source', 'keystrokes', 'start', 'local_start',
                  'project', 'pluginId', 'version', 'os', 'timezone')
@@ -653,7 +651,7 @@ def checkUserState():
         api = "/users/plugin/state"
         resp_data = requestIt("GET", api, None, getItem("jwt"), True)
         
-        if resp_data['state'] == "OK":
+        if resp_data is not None and resp_data['state'] == "OK":
 
             for i in range(len(resp_data['user']['auths'])):
                 if resp_data['user']['auths'][i]['type'] == "spotify":

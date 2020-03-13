@@ -25,11 +25,11 @@ def getMusicTimedashboard():
     if resp["status"] == 200:
         print("Music Time: launching MusicTime.txt")
     else:
-        print('getMusicTimedashboard error\n', resp["text"])
+        print('getMusicTimedashboard error\n', resp)
 
     file = getDashboardFile()
     with open(file, 'w', encoding='utf-8') as f:
-        f.write(resp["text"])
+        f.write(resp)
 
     file = getDashboardFile()
     sublime.active_window().open_file(file)

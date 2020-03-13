@@ -173,6 +173,7 @@ def requestIt(method, api, payload, jwt, returnJson):
 
         if (returnJson is None or returnJson is True):
             jsonData = json.loads(response.read().decode('utf-8'))
+            # add the status to the json dict
             jsonData["status"] = response.status
             # print("http json data: %s" % jsonData)
             return jsonData

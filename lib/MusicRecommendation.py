@@ -293,7 +293,7 @@ def getRecommendationsTracks(value):
         for i, j in enumerate(response['tracks']):
             tracks.append((j['name'], j['id']))
     else:
-        print(response["text"])
+        print(response)
         return []
 
     return tracks
@@ -394,7 +394,7 @@ def playRecommendationTrack(currentDeviceId, track_id):
 
             api = "/v1/me/player/play?device_id=" + currentDeviceId
             plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
-            print(plays["text"])
+            print(plays)
         except Exception as e:
             print("playThisSong", e)
     currentTrackInfo()

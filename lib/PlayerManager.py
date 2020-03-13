@@ -34,7 +34,7 @@ def getSpotifyDevice():
 
     api = "/v1/me/player/devices"
     getdevs = requestSpotify("GET", api, None, getItem('spotify_access_token'))
-#     print(getdevs["text"])
+#     print(getdevs)
     device_list = []
 
     if getdevs["status"] == 200:
@@ -346,7 +346,7 @@ def transferPlayback(deviceid):
         print("playback transferred to device_id", deviceid)
         # time.sleep(5)
     else:
-        print(transfer["text"])
+        print(transfer)
 
 
 def getNonWebPlayerId(device_list):

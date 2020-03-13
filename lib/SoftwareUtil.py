@@ -678,8 +678,8 @@ def getAuthInfo():
 
     api = "/users/plugin/state"
     getauth = requestIt("GET", api, None, getItem("jwt"), True)
-    if getauth["status"] == 200:
-        print(getauth["text"])
+    if getauth is not None and getauth["status"] == 200:
+        print(getauth)
         # authinfo = {}
         # authinfo = getauth.json()
         try:
@@ -791,7 +791,7 @@ def getClientCredentials():
     print("get client creds response: %s" % get_client_creds)
     clientId = None
     clientSecret = None
-    if (get_client_creds["status"] < 300):
+    if (get_client_creds is not None and get_client_creds["status"] < 300):
         # clientId = get_client_creds.json()['clientId']
         clientId = get_client_creds["clientId"]
         # clientSecret = get_client_creds.json()['clientSecret']
