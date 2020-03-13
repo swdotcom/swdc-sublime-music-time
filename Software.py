@@ -24,6 +24,9 @@ from .lib.SoftwareUtil import *
 from .lib.SoftwareMusic import *
 from .lib.SoftwareOffline import *
 from .lib.SoftwareSettings import *
+from .lib.SocialShareManager import *
+from .lib.PlayerManager import *
+from .lib.MusicRecommendation import *
 
 # SOFTWARE_API = Constants.SOFTWARE_API
 # SPOTIFY_API = Constants.SPOTIFY_API
@@ -32,7 +35,8 @@ ACCESS_TOKEN = ''
 REFRESH_TOKEN = ''
 EMAIL = ''
 user_type = ''
-spotifyUserId = ""
+spotifyUserId = ''
+slack = False
 
 # DEFAULT_DURATION = 60
 # PROJECT_DIR = None
@@ -324,53 +328,53 @@ class PluginData():
 # connect spotify menu
 class ConnectSpotify(sublime_plugin.TextCommand):
     def run(self, edit):
-        # try:
-        launchSpotifyLoginUrl()
-        # authinfo = getAuthInfo()
-        # print("Music time: /auth/spotify/user: ", authinfo)
+        try:
+            authinfo = getAuthInfo()
+            print("Music time: /auth/spotify/user: ", authinfo)
 
-        # EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
-        # updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN)
+            EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
+            updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN)
 
-        # user_type = userTypeInfo()
-        # print("Music Time: Usertype: ", user_type)
+            user_type = userTypeInfo()
+            print("Music Time: Usertype: ", user_type)
 
-        # message_dialog = sublime.message_dialog("Spotify Connected !")
+            message_dialog = sublime.message_dialog("Spotify Connected !")
 
-        # # Condition for MAC users
-        # if isMac() is True and user_type == "non-premium":
-        #     try:
-        #         msg = subprocess.Popen(
-        #             ["open", "-a", "spotify"], stdout=subprocess.PIPE)
-        #         if msg == "Unable to find application named 'spotify'":
-        #             message_dialog = sublime.message_dialog(
-        #                 "Desktop player didn't opened. Please check whether \
-        #                 Spotify Desktop player is installed correctly \
-        #                 or Connect using Premium")
-        #             showStatus("Connect Premium")
-        #         else:
-        #             print("getSpotifyTrackState", getSpotifyTrackState())
-        #             print("getTrackInfo", getTrackInfo())
+            # # Condition for non premium MAC users
+            # if isMac() is True and user_type == "non-premium":
+            #     try:
+            #         msg = subprocess.Popen(
+            #             ["open", "-a", "spotify"], stdout=subprocess.PIPE)
+            #         if msg == "Unable to find application named 'spotify'":
+            #             message_dialog = sublime.message_dialog(
+            #                 "Desktop player didn't opened. Please check whether \
+            #                 Spotify Desktop player is installed correctly \
+            #                 or Connect using Premium")
+            #             showStatus("Connect Premium")
+            #         else:
+            #             print("getSpotifyTrackState", getSpotifyTrackState())
+            #             print("getTrackInfo", getTrackInfo())
 
-        #         currentTrackInfo()
-        #     except Exception as e:
-        #         print("Music Time: Desktop player didn't opened")
-        #         message_dialog = sublime.message_dialog(
-        #             "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
+            #         # currentTrackInfo()
+            #     except Exception as e:
+            #         print("Music Time: Desktop player didn't opened")
+            #         message_dialog = sublime.message_dialog(
+            #             "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
 
-        # setValue("logged_on", True)
-        # showStatus("Spotify Connected")
-        # print("USER_id:", spotifyUserId)
-        # getActiveDeviceInfo()
-        # checkAIPlaylistid()
-        # getUserPlaylists()
+            setValue("logged_on", True)
+            showStatus("Spotify Connected")
+            print("USER_id:", spotifyUserId)
+            # getActiveDeviceInfo()
 
-        # except Exception as E:
-        #     print("Music Time: Unable to connect")
-        #     message_dialog = sublime.message_dialog(
-        #         "Please try to connect after some time !")
-        #     showStatus("Connect Spotify")
-
+        except Exception as E:
+            print("Music Time: Unable to connect")
+            message_dialog = sublime.message_dialog(
+                "Please retry by clicking on Connect Spotify option")
+                # "Please try to connect after some time !")
+            showStatus("Connect Spotify")
+        checkAIPlaylistid()
+        getUserPlaylists()
+        # autoRefreshPlaylist()
         # getActiveDeviceInfo()
         # refreshStatusBar()
 
@@ -646,10 +650,12 @@ def setOnlineStatus():
 
     # run the check in another 1 minute
     timer = Timer(60 * 1, setOnlineStatus)
-    timer.start()
+    timer.start()  
 
 
 def checkUserState():
+    global spotifyUserId
+    global slack
     try:
         jwt = getItem("jwt")
         headers = {'content-type': 'application/json', 'Authorization': jwt}
@@ -657,10 +663,22 @@ def checkUserState():
         resp = requests.get(check_state_url, headers=headers)
         resp_data = resp.json()
         if resp_data['state'] == "OK":
-            # setItem(resp_data['jwt'], jwt)
+            for i in range(len(resp_data['user']['auths'])):
+                if resp_data['user']['auths'][i]['type'] == "spotify":
+                    spotifyUserId = resp_data['user']['auths'][i]['authId']
+
+                if resp_data['user']['auths'][i]['type'] == "slack":
+                    setValue("slack_logged_on", True)
+                    slack = True
+                else:
+                    setValue("slack_logged_on", False)
+            
+            print("spotifyUserId",spotifyUserId)
+            
             setValue("logged_on", True) 
             showStatus("Spotify Connected")
             # getActiveDeviceInfo()
+            # getUserPlaylists()
             try:
                 checkAIPlaylistid()
             except Exception as e:
@@ -670,15 +688,15 @@ def checkUserState():
             autoRefreshAccessToken()
             # refreshStatusBar()
             print('_'*40)
-            print(' * logged_on: True', '\n * Email:', resp_data['email'])
+            print(' * logged_on: True', '\n * Email:', resp_data['email'],"\n * Slack:",slack)
             print('_'*40)
         else:
             setValue("logged_on", False)
-            # print('_\n'*40)
             print('logged_on:False')
     except Exception as e:
-        # print('checkUserState',e)
+        print('checkUserState',e)
         print('logged_on:False')
         setValue("logged_on", False)
         pass
+
 

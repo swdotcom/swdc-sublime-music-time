@@ -18,7 +18,19 @@
                         "caption": "Disconnect Spotify"
                     },
                     {
-                        "caption": "Learn More ...",
+                        "caption": "-",
+                        "id": "software0"
+                    },
+                    {
+                        "command": "select_player",
+                        "caption": "Connect to a Spotify device"
+                    },
+                    {
+                        "caption": "-",
+                        "id": "software1"
+                    },
+                    {
+                        "caption": "Learn More ",
                         "command": "readme_please"
                     },
                     {
@@ -30,12 +42,41 @@
                         "caption": "Send Feedback to cody@software.com"
                     },
                     {
-                        "command": "refresh_playlist",
-                        "caption": "Refresh Playlist"
+                        "caption": "-",
+                        "id": "software2"
+                    },
+                    {
+                        "command": "launch_music_time_metrics",
+                        "caption": "Music Time Dashboard"
+                    },
+                    {
+                        "command": "see_web_analytics",
+                        "caption": "See Web Analytics"
+                    },
+                    {
+                        "caption": "-",
+                        "id": "software5"
                     },
                     {
                         "caption": "My Playlists",
                         "children": [
+                            {
+                                "command": "refresh_playlist",
+                                "caption": "Refresh Playlist"
+                            },
+                            {
+                                "caption": "Sort Playlist",
+                                "children":[
+                                    {
+                                        "command": "sort_az",
+                                        "caption": "Sort A-Z"
+                                    },
+                                    {   
+                                        "command": "sort_latest",
+                                        "caption": "Sort by Latest"
+                                    },
+                                ]
+                            },
                             {
                                 "command": "open_playlists",
                                 "caption": "Open Playlists"
@@ -45,24 +86,33 @@
                                 "caption": "Open Songs"
                             },
                             {
-                                "command": "sort_playlist",
-                                "caption": "Sort Playlist A-Z"
+                                "caption": "-",
+                                "id": "software8"
                             },
                             {
-                                "command": "launch_music_time_metrics",
-                                "caption": "Music Time Dashboard"
+                                "command": "like_unlike_song",
+                                "caption": "Like / Unlike Song"
+
                             },
                             {
-                                "command": "see_web_analytics",
-                                "caption": "See Web Analytics"
+                                "command": "create_add_playlist",
+                                "caption": "Add or create playlist"
+                            },
+                            {
+                                "caption": "-",
+                                "id": "software7"
                             },
                             {
                                 "command": "generate_ai_playlist",
-                                "caption": "Generate AI Playlist"
+                                "caption": "Generate My AI Playlist"
                             },
                             {
                                 "command": "refresh_ai_playlist",
-                                "caption": "Refresh AI Playlist"
+                                "caption": "Refresh My AI Playlist"
+                            },
+                            {
+                                "caption": "-",
+                                "id": "software6"
                             },
                             {
                                 "command": "connect_slack",
@@ -70,9 +120,34 @@
                             },
                             {
                                 "command": "disconnect_slack",
-                                "caption": "Disonnect Slack"
+                                "caption": "Disconnect Slack"
                             },
+                            {
+                                "command": "share_song",
+                                "caption": "Share Song"
+                            },
+
                         ]
+                    },
+                    {
+                        "caption": "-",
+                        "id": "software3"
+                    },
+                    {
+                        "command": "open_moodlist",
+                        "caption": "Filter by mood"
+                    },
+                    {
+                        "command": "open_genrelist",
+                        "caption": "Filter by genre"
+                    },
+                    {
+                        "command": "opentracks",
+                        "caption": "Open recommended songs"
+                    },
+                    {
+                        "caption": "-",
+                        "id": "software4"
                     },
                     {   "caption": "Songs Controls",
                         "children": [
@@ -95,11 +170,6 @@
 
                         ]
                     },
-                    {
-                        "command": "connection_status",
-                        "caption": "Connection Status"
-                    }
-
                         ]
                 }
             

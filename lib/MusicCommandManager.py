@@ -17,12 +17,14 @@ from .MusicControlManager import *
 from .SlackConnectionManager import *
 
 
+
 # Open Readme file 
 class ReadmePleaseCommand(sublime_plugin.WindowCommand):
     def description(self):
         """Quick access to packages README."""
 
     def run(self):
+        # Static values
         info = ['swdc-sublime-music-time', 'README.md',
                 'Packages/swdc-sublime-music-time/README.md']
         sublime.active_window().run_command("open_file", {
@@ -127,6 +129,8 @@ class RefreshPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
             getUserPlaylists()
+            checkAIPlaylistid()
+            message_dialog = sublime.message_dialog("Playlists Refreshed !")
         except Exception as E:
             print("Music Time: RefreshPlaylist:", E)
 
@@ -134,34 +138,114 @@ class RefreshPlaylist(sublime_plugin.TextCommand):
         return (getValue("logged_on", True) is True)
 
 
-class SortPlaylist(sublime_plugin.TextCommand):
+class SortAz(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
-            getSortedUserPlaylists()
+            sortPlaylistByAz()
+            message_dialog = sublime.message_dialog("Playlists Sorted by A-Z !")
         except Exception as e:
-            print("Music Time: SortPlaylist", e)
+            print("Music Time: sortPlaylistByAz", e)
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
+
+class SortLatest(sublime_plugin.TextCommand):
+    def run(self, edit):
+        try:
+            sortPlaylistByLatest()
+            message_dialog = sublime.message_dialog("Playlists Sorted by Latest !")
+        except Exception as e:
+            print("Music Time: sortPlaylistbyLatest", e)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)
 
 
-# Generate AI playlist
-class GenerateAIPlaylist(sublime_plugin.TextCommand):
+class RefreshAiPlaylist(sublime_plugin.TextCommand):
     def run(self, edit):
-        player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+        print("Music Time: Refreshing My AI Playlist !")
+        try:
+            refreshMyAIPlaylist()
+            getUserPlaylists()
+        except Exception as E:
+            print("RefreshPlaylist:", E)
+        pass
+
+    def is_enabled(self):
+        logged_on = getValue("logged_on", True)
+        # ai_playlist = getValue("ai_playlist", False)
+        try:
+            if logged_on is False:
+                return False
+            else:
+                return (getValue("ai_playlist", True) is True)
+        except Exception as e:
+            print("Refresh AI",e)
+            # if logged_on is True and ai_playlist is False:
+            #     return False
+            # elif logged_on is True and ai_playlist is True:
+            #     return True
+            # else:
+            #     return False
+
+
+# Command to re-enable Console message
+class GenerateAiPlaylist(sublime_plugin.TextCommand):
+    def run(self, edit):
+        print("Music Time: Generating My AI Playlist !")
+        try:
+            generateMyAIPlaylist()
+            getUserPlaylists()
+        except Exception as E:
+            print("generateMyAIPlaylist:", E)
+        setValue("ai_playlist", True)
+
+    def is_enabled(self):
+        logged_on = getValue("logged_on", True)
+        # ai_playlist = getValue("ai_playlist", False)
+        # print("logged_on",logged_on)
+        # print("ai_playlist",ai_playlist)
+        try:
+            if logged_on is False:
+                return False
+            else:
+                return (getValue("ai_playlist", True) is False)
+        except Exception as e:
+            print("Generate ai",e)
+            # return (getValue("logged_on", True) is True)
+            # if logged_on is True and ai_playlist is True:
+            #     return False
+            # else:
+            #     return True
+
+        # if logged_on is True:
+        #     return (getValue("ai_playlist", True) is False)
+
+
+'''
+    ai_playlist = getValue("ai_playlist", False)
+    if logged_on is True:
+        if ai_playlist is True:
+            return True
+'''
+
+# Generate AI playlist
+# class GenerateAIPlaylist(sublime_plugin.TextCommand):
+#     def run(self, edit):
+#         player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
         # try:
         #     generateMyAIPlaylist()
         #     getUserPlaylists()
         # except Exception as E:
         #     print("generateMyAIPlaylist:", E)
-        pass
+        # pass
     
-    def is_enabled(self):
-        return True
+    # def is_enabled(self):
+        # return True
             # return (getValue("logged_on", True) is True)
-    #     # return (getValue("my_ai_playlist", True) is False)
+    #     # return (getValue("ai_playlist", True) is False)
     #     logged_on = getValue("logged_on", True)
-    #     ai_playlist = getValue("my_ai_playlist", False)
+    #     ai_playlist = getValue("ai_playlist", False)
 
     #     if logged_on is True and ai_playlist is False:
     #         return True
@@ -172,9 +256,9 @@ class GenerateAIPlaylist(sublime_plugin.TextCommand):
 
 
 # Refresh AI playlist
-class RefreshAIPlaylist(sublime_plugin.TextCommand):
-    def run(self, edit):
-        player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
+# class RefreshAIPlaylist(sublime_plugin.TextCommand):
+    # def run(self, edit):
+        # player = sublime.ok_cancel_dialog("Please open Spotify player", "Ok")
         # try:
         #     refreshMyAIPlaylist()
         #     getUserPlaylists()
@@ -185,9 +269,9 @@ class RefreshAIPlaylist(sublime_plugin.TextCommand):
 
     # def is_enabled(self):
     #     pass
-    #     return (getValue("my_ai_playlist", True) is True)
+    #     return (getValue("ai_playlist", True) is True)
     #     # logged_on = getValue("logged_on", True)
-    #     # ai_playlist = getValue("my_ai_playlist", False)
+    #     # ai_playlist = getValue("ai_playlist", False)
 
     #     # if logged_on is True and ai_playlist is False:
     #     #     return False
@@ -199,6 +283,10 @@ class RefreshAIPlaylist(sublime_plugin.TextCommand):
 
 class ConnectionStatus(sublime_plugin.TextCommand):
     def run(self, edit):
+        # try:
+        #     SelectPlayer(self,)
+        # except Exception as e:
+        #     print(e)
         self.view.show_popup(myToolTip(),) # max_width=300, max_height=1000
     
     def navigate(self,href):
@@ -206,6 +294,9 @@ class ConnectionStatus(sublime_plugin.TextCommand):
             pass
         else:
             pass
+            
+    def is_enabled(self):
+        return (getValue("logged_on", True) is True)
 
 
 # Slack connectivtiy
@@ -213,19 +304,47 @@ class ConnectSlack(sublime_plugin.TextCommand):
     def run(self, edit):
         launchConnectSlack()
         getSlackTokens()
-        # infoMsg = "Development in Progess."
-        # clickAction = sublime.ok_cancel_dialog(infoMsg, "OK")
-        pass
+        infoMsg = "Successfully connected to Slack."
+        clickAction = sublime.message_dialog(infoMsg)
 
     def is_enabled(self):
-        return (getValue("logged_on", True) is False)
+        logged_on = getValue("logged_on", True)
+        try:
+            if logged_on is False:
+                return False
+            else:
+                return (getValue("slack_logged_on", True) is False)
+        except Exception as e:
+            print("ConnectSlack",e)
+        
 
 
 class DisconnectSlack(sublime_plugin.TextCommand):
     def run(self, edit):
-        infoMsg = "Slack Disconnected"
-        clickAction = sublime.ok_cancel_dialog(infoMsg, "OK")
+        disconnectSlack()
+        infoMsg = "Successfully disconnected your Slack connection."
+        clickAction = sublime.message_dialog(infoMsg)
         pass
+
+    def is_enabled(self):
+        logged_on = getValue("logged_on", True)
+        try:
+            if logged_on is False:
+                return False
+            else:
+                return (getValue("slack_logged_on", True) is True)
+        except Exception as e:
+            print("DisConnectSlack",e)
+
+
+class ShareOnFacebook(sublime_plugin.TextCommand):
+    def run(self, edit):
+        pass
+        # try:
+        #     pass
+        #     # message_dialog = sublime.message_dialog("Playlists Refreshed !")
+        # except Exception as E:
+        #     print("Music Time: ShareOnFacebook:", E)
 
     def is_enabled(self):
         return (getValue("logged_on", True) is True)

@@ -5,4 +5,9 @@
   {"keys": ["ctrl+alt+b"],"command":"prev_song"},
   {"keys": ["ctrl+alt+l"],"command":"open_playlists"},
   {"keys": ["ctrl+alt+r"],"command":"refresh_playlist"},
+  {"keys": ["ctrl+alt+c"],"command":"connection_status"},
+  {"keys": ["ctrl+alt+s"],"command":"share_song"},
+  {"keys": ["ctrl+alt+o"],"command":"like_unlike_song"},
+  {"keys": ["ctrl+alt+d"],"command":"select_player"},
+  {"keys": ["ctrl+alt+a"],"command":"create_add_playlist"},
 ]
