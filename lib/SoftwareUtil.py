@@ -745,9 +745,12 @@ def userMeInfo():
     print("spotify result: %s" % spotifyUserInfo)
     if spotifyUserInfo["status"] == 200 and spotifyUserInfo["uri"] is not None:
         return spotifyUserInfo
-    else:
+    elif spotifyUserInfo["status"] != 429:
         refreshSpotifyToken()
         return userMeInfo()
+    else:
+        print("unable to get spotify user information")
+        return None
 
 # check user type premium/ non-premium
 

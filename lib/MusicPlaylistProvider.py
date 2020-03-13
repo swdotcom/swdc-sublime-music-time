@@ -569,6 +569,8 @@ def checkAIPlaylistid():
     # global playlist_info
     spotifyUserId = userMeInfo().get('id')
 
+    print("spotify user id: %s" % spotifyUserId)
+
     # Check for ai_playlist in software backend
     api = "/music/playlist/generated"
     get_ai_playlistid = requestIt("GET", api, None, getItem("jwt"), True)

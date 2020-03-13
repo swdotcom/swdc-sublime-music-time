@@ -53,23 +53,13 @@ def showStatus(msg):
     except RuntimeError:
         httpLog(msg)
 
-
-def isResponseOk(response):
-    if (response is not None and int(response.status) < 300):
-        return True
-    return False
-
-
-def isUnauthenticated(response):
-    if (response is not None and int(response.status) == 401):
-        return True
-    return False
-
 def requestSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, spotify_refresh_token):
     payload = {
         "refresh_token": spotify_refresh_token,
         "grant_type": "refresh_token",
     }
+
+    print("Refreshing spotify access token using clientid and secret: %s : %s" % (CLIENT_ID, CLIENT_SECRET))
 
     auth_header = base64.b64encode(
         six.text_type(CLIENT_ID + ":" + CLIENT_SECRET).encode("ascii")
@@ -90,22 +80,23 @@ def requestSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, sp
     token_info["status"] = response.status_code
     return token_info
 
-def requestSpotify(method, api, payload, spotify_access_token):
+def requestSpotify(method, api, payload, spotify_access_token, tries = 0):
     headers = {"Authorization": "Bearer {}".format(spotify_access_token)}
     try:
+        api = SPOTIFY_API + "" + api
+        resp = executeRequest(method, api, headers, payload)
 
-        connection = http.client.HTTPSConnection(SPOTIFY_API)
-        if (payload is None):
-            payload = {}
+        if (resp.status_code == 429 and tries < 3):
+            time.sleep(1)
+            tries += 1
+            return requestIt(method, api, payload, jwt, returnJson, tries)
 
-        connection.request(method, api, payload, headers)
-        response = connection.getresponse()
-        print("Spotify request: " + SPOTIFY_API + "" + api + " Response (%d)" % response.status)
-
-        jsonData = json.loads(response.read().decode('utf-8'))
-        jsonData["status"] = response.status
-        print("SPOTIFY response status from the dict: %s" % jsonData["status"])
-        return jsonData
+        if (resp is not None):
+            jsonData = resp.json()
+            jsonData['status'] = resp.status_code
+            print("SPOTIFY reponse for api %s %s" % (api, jsonData["status"]))
+            return jsonData
+        return resp
     except Exception as ex:
         print("Music Time: " + api + " Network error: %s" % ex)
         return None
@@ -114,21 +105,20 @@ def requestSlack(method, api, payload, slack_access_token):
     headers = {"Content-Type": "application/x-www-form-urlencoded",
                      "Authorization": "Bearer {}".format(slack_access_token)}
     try:
-        connection = http.client.HTTPSConnection(SLACK_API)
-        if (payload is None):
-            payload = {}
-        connection.request(method, api, payload, headers)
-        response = connection.getresponse()
-        httpLog("Slack request: " + SLACK_API + "" + api + " Response (%d)" % response.status)
-        jsonData = json.loads(response.read().decode('utf-8'))
-        jsonData["status"] = response.status
-        return jsonData
+        api = SLACK_API + "" + api
+        resp = executeRequest(method, api, headers, payload)
+        if (resp is not None):
+            jsonData = resp.json()
+            jsonData['status'] = resp.status_code
+            print("Slack reponse for api %s %s" % (api, jsonData["status"]))
+            return jsonData
+        return resp
     except Exception as ex:
         print("Music Time: " + api + " Network error: %s" % ex)
         return None
 
 # send the request.
-def requestIt(method, api, payload, jwt, returnJson):
+def requestIt(method, api, payload, jwt, returnJson, tries = 0):
 
     api_endpoint = getValue("software_api_endpoint", SOFTWARE_API)
     telemetry = getValue("software_telemetry_on", True)
@@ -139,52 +129,42 @@ def requestIt(method, api, payload, jwt, returnJson):
 
     # try to update kpm data.
     try:
-        connection = None
-        # create the connection
-        if ('localhost' in api_endpoint):
-            connection = http.client.HTTPConnection(api_endpoint)
-        else:
-            connection = http.client.HTTPSConnection(api_endpoint)
-
-        headers = {'Content-Type': 'application/json',
-                   'User-Agent': USER_AGENT}
-
+        headers = {'content-type': 'application/json', 'User-Agent': USER_AGENT}
         if (jwt is not None):
             headers['Authorization'] = jwt
-        elif (method is 'POST' and jwt is None):
-            httpLog(
-                "Code Time: no auth token available to post kpm data: %s" % payload)
-            return None
 
-        # make the request
-        if (payload is None):
-            payload = {}
-            httpLog(
-                "Music Time: Requesting [" + method + ": " + api_endpoint + "" + api + "]")
-        else:
-            httpLog("Music Time: Sending [" + method + ": " + api_endpoint + "" +
-                    api + ", headers: " + json.dumps(headers) + "] payload: %s" % payload)
-
-        # send the request
-        connection.request(method, api, payload, headers)
-
-        response = connection.getresponse()
-        # print("Code Time: " + api_endpoint + "" + api + " Response (%d)" % response.status)
+        api = SOFTWARE_API + "" + api
+        resp = executeRequest(method, api, headers, payload)
 
         if (returnJson is None or returnJson is True):
-            jsonData = json.loads(response.read().decode('utf-8'))
-            # add the status to the json dict
-            jsonData["status"] = response.status
-            # print("http json data: %s" % jsonData)
+            jsonData = resp.json()
+            jsonData['status'] = resp.status_code
+            print("APP reponse for api %s %s" % (api, jsonData["status"]))
             return jsonData
         else:
-            contentData = response.read().decode('utf-8')
-            # print("http content data: %s" % contentData)
-            return contentData
+            jsonText = resp.text
+            print("app api text respons: %s" % jsonText)
+            return jsonText
     except Exception as ex:
         print("Music Time: " + api + " Network error: %s" % ex)
         return None
 
+def executeRequest(method, api, headers, payload):
+    try:
+        resp = None
+        if (method.lower() == "get"):
+            resp = requests.get(api, headers=headers)
+        elif (method.lower() == "post"):
+            resp = requests.post(api, headers=headers, data=payload)
+        elif (method.lower() == "put"):
+            resp = requests.put(api, headers=headers, data=payload)
+        elif (method.lower() == "delete"):
+            resp = requests.delete(api, headers=headers)
+
+        return resp
+    except Exception as ex:
+        print("Music Time: " + api + " Network error: %s" % ex)
+        return None
 
 def isMusicTime():
     plugin = getValue("plugin", "music-time")
