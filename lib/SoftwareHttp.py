@@ -86,15 +86,18 @@ def requestSpotify(method, api, payload, spotify_access_token, tries = 0):
         api = SPOTIFY_API + "" + api
         resp = executeRequest(method, api, headers, payload)
 
+        print("SPOTIFY reponse for api %s %s" % (api, resp.status_code))
+
         if (resp.status_code == 429 and tries < 3):
             time.sleep(1)
             tries += 1
-            return requestIt(method, api, payload, jwt, returnJson, tries)
+            print("Retry spotify api requst: %s" % api)
+            return requestSpotify(method, api, payload, spotify_access_token, tries)
 
         if (resp is not None):
             jsonData = resp.json()
             jsonData['status'] = resp.status_code
-            print("SPOTIFY reponse for api %s %s" % (api, jsonData["status"]))
+            
             return jsonData
         return resp
     except Exception as ex:
