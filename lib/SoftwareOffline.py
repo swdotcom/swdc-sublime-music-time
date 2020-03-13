@@ -266,9 +266,13 @@ def storePayload(payload):
     with open(dataStoreFile, "a") as dsFile:
         dsFile.write(payload + "\n")
 
+def storeKpmDataForMusic(payload) {
+    musicDataFile = getMusicDataFile()
+
+    with open(musicDataFile, "a") as dsFile:
+        dsFile.write(payload + "\n")
+
 # send the data that has been saved offline
-
-
 def sendOfflineData():
     existingJwt = getItem("jwt")
 

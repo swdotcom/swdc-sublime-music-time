@@ -318,7 +318,11 @@ class PluginData():
 # connect spotify menu
 class ConnectSpotify(sublime_plugin.TextCommand):
     def run(self, edit):
+        # let the launch spotify logic lazily check if the user has connected or not
         launchSpotifyLoginUrl()
+
+    def is_enabled(self):
+        return (getValue("logged_on", True) is False)
 
 # connect spotify menu
 # class ConnectSpotify(sublime_plugin.TextCommand):

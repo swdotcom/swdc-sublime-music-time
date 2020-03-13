@@ -141,6 +141,9 @@ def getSoftwareDataStoreFile():
     file = getSoftwareDir(True)
     return os.path.join(file, 'data.json')
 
+def getMusicDataFile():
+    file = getSoftwareDir(True)
+    return os.path.join(file, 'musicData.json')
 
 def getSoftwareDir(autoCreate):
     softwareDataDir = os.path.expanduser('~')
