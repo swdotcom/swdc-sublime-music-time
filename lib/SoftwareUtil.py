@@ -791,11 +791,15 @@ def getClientCredentials():
 
 
     api = '/auth/spotify/clientInfo'
-    get_client_creds = requestSpotify("GET", api, None, getItem('spotify_access_token'))
-    # clientId = get_client_creds.json()['clientId']
-    clientId = get_client_creds["clientId"]
-    # clientSecret = get_client_creds.json()['clientSecret']
-    clientSecret = get_client_creds["clientSecret"]
+    get_client_creds = requestIt("GET", api, None, jwt, True)
+    print("get client creds response: %s" % get_client_creds)
+    clientId = None
+    clientSecret = None
+    if (get_client_creds["status"] < 300):
+        # clientId = get_client_creds.json()['clientId']
+        clientId = get_client_creds["clientId"]
+        # clientSecret = get_client_creds.json()['clientSecret']
+        clientSecret = get_client_creds["clientSecret"]
     return clientId, clientSecret
 
 # Refresh access token after expiry
@@ -804,10 +808,11 @@ def getClientCredentials():
 def refreshSpotifyToken():
     jwt = getItem("jwt")
     spotify_refresh_token = getItem("spotify_refresh_token")
+    spotify_access_token = getItem("spotify_access_token")
     CLIENT_ID, CLIENT_SECRET = getClientCredentials()
-
-    response = refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, getItem("spotify_refresh_token"))
-
+    print("client id: " + CLIENT_ID + ", client secret: " + CLIENT_SECRET)
+    response = refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, spotify_refresh_token)
+    print("refresh spotify access response: %s" % response)
     if response["status"] == 200:
         # obj = response.json()
 

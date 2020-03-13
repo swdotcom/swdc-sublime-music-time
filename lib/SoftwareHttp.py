@@ -5,6 +5,7 @@ import json
 import sys
 import sublime_plugin
 import sublime
+import base64
 
 from ..Constants import *
 from ..Software import *
@@ -79,7 +80,7 @@ def refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, sp
         if (payload is None):
             payload = {}
 
-        connection.request(method, api, payload, headers)
+        connection.request("POST", api, payload, headers)
         response = connection.getresponse()
         print("Spotify request: " + SPOTIFY_API + "" + api + " Response (%d)" % response.status)
         jsonData = json.loads(response.read().decode('utf-8'))
