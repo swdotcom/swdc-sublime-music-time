@@ -109,9 +109,6 @@ def requestSlack(method, api, payload):
 # send the request.
 def requestIt(method, api, payload, returnJson):
 
-    print("PAYLOAD: %s" % payload)
-    print("returnJson: %s" % returnJson)
-
     api_endpoint = getValue("software_api_endpoint", SOFTWARE_API)
     telemetry = getValue("software_telemetry_on", True)
 

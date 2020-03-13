@@ -39,7 +39,7 @@ def getSpotifyDevice():
 
     if getdevs.status_code == 200:
         # devices = getdevs.json()['devices']
-        devices getdevs["devices"]
+        devices = getdevs["devices"]
 
         for i in range(len(devices)):
             device_list.append(

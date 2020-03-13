@@ -91,8 +91,8 @@ def sendSlackMessage(channel_id, track_id):
     api = "/api/chat.postMessage"
     requestSlack("POST", api, payload_data)
     if post_msg.status_code == 200:
-        print("Music Time: Slack share succeed !\n", post_msg
+        print("Music Time: Slack share succeed !\n", post_msg)
     else:
-        print("Music Time: unable to share on Slack !\n", post_msg
+        print("Music Time: unable to share on Slack !\n", post_msg)
 
 
