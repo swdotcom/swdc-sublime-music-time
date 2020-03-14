@@ -42,7 +42,7 @@ def gatherMusicInfo():
     # check if the use has spotify access
     access_token = getItem("spotify_access_token")
     if (access_token is not None):
-        trackInfo = getTrackInfo()
+        trackInfo = getSpotifyTrackInfo()
 
         print("track info: %s" % trackInfo)
 
@@ -62,6 +62,43 @@ def gatherMusicInfo():
 
     t = Timer(6, gatherMusicInfo)
     t.start()
+
+def getSpotifyTrackInfo():
+    api = "/v1/me/player/currently-playing"
+    print("looking for currently playing device using API: %s" % api)
+    track = requestSpotify("GET", api, None, getItem('spotify_access_token'))
+
+    print("fetched track: %s" % track)
+
+    if track is not None and track["status"] == 200:
+        # trackinfo = track.json()['item']['name']
+        trackInfo = track["item"]["name"]
+        # trackstate = track.json()['is_playing']
+        trackState = track["is_playing"]
+        # track_id = track.json()['item']['id']
+        track_id = track["item"]["id"]
+        current_track_id = track_id
+        # print("current_track_id",current_track_id)
+        isLiked = check_liked_songs(track_id)
+        # print("Liked_songs_ids:",Liked_songs_ids,"\nisLiked:",isLiked) 
+
+        if trackstate == True:
+            showStatus("Now Playing "+str(trackinfo) + isLiked)
+            # print("Playing "+trackinfo)
+        else:
+            showStatus("Paused "+str(trackinfo) + isLiked)
+            # print("Paused "+trackinfo)
+
+    elif track is not None and track["status"] == 401:
+        # showStatus("Loading . . . ")
+        showStatus("Spotify Connected")
+        try:
+            refreshSpotifyToken()
+            currentTrackInfo()
+        except KeyError:
+            showStatus("Connect Spotify")
+
+    return track
 
 
 # def gatherMusicInfo():
@@ -286,7 +323,8 @@ def currentTrackInfo():
             if ACTIVE_DEVICE == {}:
                 getActiveDeviceInfo()
 
-            api = "/v1/me/player/currently-playing?" + ACTIVE_DEVICE.get('device_id')
+            # api = "/v1/me/player/currently-playing?" + ACTIVE_DEVICE.get('device_id')
+            api = "/v1/me/player/currently-playing"
             track = requestSpotify("GET", api, None, getItem('spotify_access_token'))
 
             if track["status"] == 200:
