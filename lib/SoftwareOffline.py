@@ -285,6 +285,11 @@ def sendOfflineData():
         # send the offline data
         dataStoreFile = getSoftwareDataStoreFile()
 
+        # delete the music data json since we're sending offline data
+        musicDataFile = getMusicDataFile();
+        if (os.path.exists(musicDataFile))
+            os.remove(musicDataFile)
+
         if (os.path.exists(dataStoreFile)):
             payloads = []
 

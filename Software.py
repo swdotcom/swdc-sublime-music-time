@@ -39,6 +39,8 @@ slack = False
 def post_json(json_data):
     # save the data to the offline data file
     storePayload(json_data)
+    # save the kpm data for music sessions
+    storeKpmDataForMusic(json_data)
 
     PluginData.reset_source_data()
 
