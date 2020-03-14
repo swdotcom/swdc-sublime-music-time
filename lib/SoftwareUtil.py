@@ -670,6 +670,7 @@ def launchSpotifyLoginUrl():
 def refetchSpotifyStatusLazily(tryCountUntilFoundUser):
     getauth = getAuthInfo()
     if (getauth is not None or tryCountUntilFoundUser <= 0):
+        # done
         return
 
     # start the time
@@ -678,17 +679,17 @@ def refetchSpotifyStatusLazily(tryCountUntilFoundUser):
     t.start()
 
 # get user authentication data
-
-
 def getAuthInfo():
+    spotify_access_token = getItem("spotify_access_token")
+
+    if (spotify_access_token is not None):
+        return {access_token: spotify_access_token}
+
     api = "/users/plugin/state"
     authinfo = requestIt("GET", api, None, getItem("jwt"), True)
     if authinfo is not None and authinfo["status"] == 200:
         try:
-            # authinfo = getauth.json()
             if authinfo['state'] == "OK":
-                print("succeed")
-                # authinfo = getauth.json()
                 print("<<<<<<<<<<<<<<->>>>>>>>>\n\n", authinfo)
                 EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
                 if (EMAIL is None or ACCESS_TOKEN is None or REFRESH_TOKEN is None):
@@ -704,7 +705,7 @@ def getAuthInfo():
                 showStatus("Spotify Connected")
                 checkAIPlaylistid()
                 getUserPlaylists()
-                return getauth
+                return authinfo
             else:
                 print("STATE_NOT_FOUND")
 

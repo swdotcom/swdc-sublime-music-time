@@ -10,7 +10,7 @@ from ..Software import *
 from .MusicPlaylistProvider import *
 from .SoftwareMusic import *
 
-current_track = {}
+existing_track = {}
 ACTIVE_DEVICE = {}
 DEVICES = []
 Liked_songs_ids = []
@@ -34,11 +34,8 @@ def getMusicTimedashboard():
     file = getDashboardFile()
     sublime.active_window().open_file(file)
 
-def isCurrentTrackSet():
-    global current_track
-
 def gatherMusicInfo():
-    global current_track
+    global existing_track
 
     sendTrackSession = False
 
@@ -49,12 +46,15 @@ def gatherMusicInfo():
 
         print("track info: %s" % trackInfo)
 
-        if (current_track["id"] is None and trackInfo is not None and trackInfo["id"] is not None):
+        currentTrackId = (trackInfo is not None) if trackInfo.get("id", None) else None
+        existingTrackId = (existing_track is not None) if existing_track.get("id", None) else None
+
+        if (existingTrackId is None and currentTrackId is not None):
             # set the current track
-            current_track = trackInfo
-        elif (current_track["id"] is not None and trackInfo is not None and trackInfo["id"] != current_track["id"]):
+            existing_track = trackInfo
+        elif (existingTrackId is not None and currentTrackId != currentTrackId):
             sendTrackSession = True
-        elif (current_track["id"] is not None and (trackInfo is None or trackInfo["id"] is None)):
+        elif (existingTrackId is not None and currentTrackId is None):
             sendTrackSession = True
 
         if (sendTrackSession == True):
