@@ -44,7 +44,7 @@ def gatherMusicInfo():
     if (access_token is not None):
         trackInfo = getSpotifyTrackInfo()
 
-        print("track info: %s" % trackInfo)
+        # print("track info: %s" % trackInfo)
 
         currentTrackId = None
         if (trackInfo is not None):
@@ -62,6 +62,7 @@ def gatherMusicInfo():
         elif (existingTrackId is not None and currentTrackId is None):
             sendTrackSession = True
 
+        print("SEND track session: %s" % sendTrackSession)
         if (sendTrackSession == True):
             gatherCodingDataAndSendSongSession()
 
@@ -73,7 +74,7 @@ def getSpotifyTrackInfo():
     print("looking for currently playing device using API: %s" % api)
     track = requestSpotify("GET", api, None, getItem('spotify_access_token'))
 
-    print("fetched track: %s" % track)
+    # print("fetched track: %s" % track)
 
     if track is not None and track.get("status", 0) == 200:
         # trackinfo = track.json()['item']['name']
@@ -88,7 +89,7 @@ def getSpotifyTrackInfo():
         # print("Liked_songs_ids:",Liked_songs_ids,"\nisLiked:",isLiked) 
 
         if trackState == True:
-            showStatus("laying "+str(trackInfoName) + isLiked)
+            showStatus("Now Playing "+str(trackInfoName) + isLiked)
             # print("Playing "+trackinfo)
         else:
             showStatus("Paused "+str(trackInfoName) + isLiked)
