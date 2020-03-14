@@ -814,23 +814,15 @@ def getClientCredentials():
 
 def refreshSpotifyToken():
     jwt = getItem("jwt")
-    spotify_access_token = getItem("spotify_access_token")
+    spotify_refresh_token = getItem("spotify_refresh_token")
     CLIENT_ID, CLIENT_SECRET = getClientCredentials()
 
-    response = requestSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_refresh_token)
+    response = refreshSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_refresh_token)
 
-    if response["status"] == 200:
+    if response is not None and response["status"] == 200:
         # obj = response.json()
         setItem("spotify_access_token", response['access_token'])
-        setItem("spotify_refresh_token", spotify_refresh_token)
-        setItem("jwt", jwt)
         print("Music Time: Spotify Access token updated !",str(time.localtime()[3:6]))
-
-    else:
-# except Exception as e:
-        print("Music Time: Refresh token not found !", response)
-        setItem("jwt", jwt)
-        setItem("spotify_refresh_token", spotify_refresh_token)
 
 
 def autoRefreshAccessToken():

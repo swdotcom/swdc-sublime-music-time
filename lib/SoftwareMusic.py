@@ -46,8 +46,13 @@ def gatherMusicInfo():
 
         print("track info: %s" % trackInfo)
 
-        currentTrackId = (trackInfo is not None) if trackInfo.get("id", None) else None
-        existingTrackId = (existing_track is not None) if existing_track.get("id", None) else None
+        currentTrackId = None
+        if (trackInfo is not None):
+            currentTrackId = trackInfo.get("id", None)
+
+        existingTrackId = None
+        if (existing_track is not None):
+            existingTrackId = existing_track.get("id", None)
 
         if (existingTrackId is None and currentTrackId is not None):
             # set the current track
@@ -70,9 +75,9 @@ def getSpotifyTrackInfo():
 
     print("fetched track: %s" % track)
 
-    if track is not None and track["status"] == 200:
+    if track is not None and track.get("status", 0) == 200:
         # trackinfo = track.json()['item']['name']
-        trackInfo = track["item"]["name"]
+        trackInfoName = track["item"]["name"]
         # trackstate = track.json()['is_playing']
         trackState = track["is_playing"]
         # track_id = track.json()['item']['id']
@@ -82,14 +87,14 @@ def getSpotifyTrackInfo():
         isLiked = check_liked_songs(track_id)
         # print("Liked_songs_ids:",Liked_songs_ids,"\nisLiked:",isLiked) 
 
-        if trackstate == True:
-            showStatus("Now Playing "+str(trackinfo) + isLiked)
+        if trackState == True:
+            showStatus("laying "+str(trackInfoName) + isLiked)
             # print("Playing "+trackinfo)
         else:
-            showStatus("Paused "+str(trackinfo) + isLiked)
+            showStatus("Paused "+str(trackInfoName) + isLiked)
             # print("Paused "+trackinfo)
 
-    elif track is not None and track["status"] == 401:
+    elif track is not None and track.get("status", 0) == 401:
         # showStatus("Loading . . . ")
         showStatus("Spotify Connected")
         try:
