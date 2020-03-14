@@ -54,15 +54,18 @@ def gatherMusicInfo():
         if (existing_track is not None):
             existingTrackId = existing_track.get("id", None)
 
+        print("existing track id: %s" % existingTrackId)
+        print("current track id: %s" % currentTrackId)
+
         if (existingTrackId is None and currentTrackId is not None):
             # set the current track
             existing_track = trackInfo
-        elif (existingTrackId is not None and currentTrackId != currentTrackId):
+        elif (existingTrackId is not None and currentTrackId != existingTrackId):
             sendTrackSession = True
         elif (existingTrackId is not None and currentTrackId is None):
             sendTrackSession = True
 
-        print("SEND track session: %s" % sendTrackSession)
+        print("sendTrackSession: %s" % sendTrackSession)
         if (sendTrackSession == True):
             gatherCodingDataAndSendSongSession()
 
@@ -71,22 +74,24 @@ def gatherMusicInfo():
 
 def getSpotifyTrackInfo():
     api = "/v1/me/player/currently-playing"
-    print("looking for currently playing device using API: %s" % api)
-    track = requestSpotify("GET", api, None, getItem('spotify_access_token'))
+    trackData = requestSpotify("GET", api, None, getItem('spotify_access_token'))
 
     # print("fetched track: %s" % track)
-
-    if track is not None and track.get("status", 0) == 200:
+    track = None
+    if trackData is not None and trackData.get("status", 0) == 200:
+        track = trackData["item"]
+        track["is_playing"] = trackData["is_playing"]
+        
         # trackinfo = track.json()['item']['name']
-        trackInfoName = track["item"]["name"]
+        trackInfoName = trackData["item"]["name"]
         # trackstate = track.json()['is_playing']
-        trackState = track["is_playing"]
+        trackState = trackData["is_playing"]
         # track_id = track.json()['item']['id']
-        track_id = track["item"]["id"]
+        track_id = trackData["item"]["id"]
         current_track_id = track_id
         # print("current_track_id",current_track_id)
         isLiked = check_liked_songs(track_id)
-        # print("Liked_songs_ids:",Liked_songs_ids,"\nisLiked:",isLiked) 
+        # print("Liked_songs_ids:",Liked_songs_ids,"\nisLiked:",isLiked)
 
         if trackState == True:
             showStatus("Now Playing "+str(trackInfoName) + isLiked)
@@ -209,11 +214,11 @@ def getSpotifyTrackInfo():
 #     pass
 
 def gatherCodingDataAndSendSongSession():
-    global current_track_info
+    global existing_track
 
-    print("current track info: %s" % current_track_info)
+    print("current track info: %s" % existing_track)
     # end current keystroke data gathering
-    PluginData.sendKeystrokeDataIntervalHandler()
+    # sendKeystrokeDataIntervalHandler
 
 
 # Fetch Active device  and Devices(all device including inactive devices)
