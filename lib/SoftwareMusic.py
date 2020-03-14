@@ -10,7 +10,7 @@ from ..Software import *
 from .MusicPlaylistProvider import *
 from .SoftwareMusic import *
 
-current_track_info = {}
+current_track = {}
 ACTIVE_DEVICE = {}
 DEVICES = []
 Liked_songs_ids = []
@@ -34,112 +34,143 @@ def getMusicTimedashboard():
     file = getDashboardFile()
     sublime.active_window().open_file(file)
 
+def isCurrentTrackSet():
+    global current_track
 
 def gatherMusicInfo():
+    global current_track
+
+    sendTrackSession = False
+
+    # check if the use has spotify access
+    access_token = getItem("spotify_access_token")
+    if (access_token is not None):
+        trackInfo = getTrackInfo()
+
+        print("track info: %s" % trackInfo)
+
+        if (current_track["id"] is None and trackInfo is not None and trackInfo["id"] is not None):
+            # set the current track
+            current_track = trackInfo
+        elif (current_track["id"] is not None and trackInfo is not None and trackInfo["id"] != current_track["id"]):
+            sendTrackSession = True
+        elif (current_track["id"] is not None and (trackInfo is None or trackInfo["id"] is None)):
+            sendTrackSession = True
+
+        if (sendTrackSession == True):
+            gatherCodingDataAndSendSongSession()
+
+    t = Timer(6, gatherMusicInfo)
+    t.start()
+
+
+# def gatherMusicInfo():
+#     global current_track_info
+
+#     # get the music track playing
+#     # the trackInfo should be a dictionary
+#     trackInfo = getTrackInfo()
+#     now = round(time.time())
+#     start = now
+#     local_start = now - time.timezone
+
+#     # state = "nice" if is_nice else "not nice"
+#     currentTrackId = current_track_info.get("id", None)
+#     trackId = trackInfo.get("id", None)
+#     trackType = trackInfo.get("type", None)
+
+#     if (trackId is not None and trackType == "itunes"):
+#         itunesTrackState = getItunesTrackState()
+#         trackInfo["state"] = itunesTrackState
+#         try:
+#             # check if itunes is found, if not it'll raise a ValueError
+#             idx = trackId.index("itunes")
+#             if (idx == -1):
+#                 trackId = "itunes:track:" + str(trackId)
+#                 trackInfo["id"] = trackId
+#         except ValueError:
+#             # set the trackId to "itunes:track:"
+#             trackId = "itunes:track:" + str(trackId)
+#             trackInfo["id"] = trackId
+#     elif (trackId is not None and trackType == "spotify"):
+#         spotifyTrackState = getSpotifyTrackState()
+#         trackInfo["state"] = spotifyTrackState
+
+#     trackState = trackInfo.get("state", None)
+#     duration = trackInfo.get("duration", None)
+
+#     if (duration is not None):
+#         duration_val = float(duration)
+#         if (duration_val > 1000):
+#             trackInfo["duration"] = duration_val / 1000
+#         else:
+#             trackInfo["duration"] = duration_val
+#     '''
+#     conditions:
+#     1) if the currentTrackInfo doesn't have data and trackInfo does
+#        that means we should send it as a new song starting
+#     2) if the currentTrackInfo has data and the trackInfo does
+#        and has the same trackId, then don't send the payload
+#     3) if the currentTrackInfo has data and the trackInfo has data
+#        and doesn't have the same trackId then send a payload
+#        to close the old song and send a payload to start the new song
+#     '''
+#     if (trackId is not None):
+#         isPaused = False
+
+#         if (trackState != "playing"):
+#             isPaused = True
+
+#         if (currentTrackId is not None and (currentTrackId != trackId or isPaused is True)):
+#             # update the end time of the previous track and post it
+#             current_track_info["end"] = start - 1
+#             gatherCodingDataAndSendSongSession()
+#             payload = json.dumps(current_track_info)
+#             response = requestIt("POST", "/data/music", payload, getItem("jwt"), True)
+#             if (response is None):
+#                 log("Code Time: error closing previous track")
+#             # re-initialize the current track info to an empty object
+#             current_track_info = {}
+
+#         if (isPaused is False and (currentTrackId is None or currentTrackId != trackId)):
+#             # starting a new song
+#             trackInfo["start"] = start
+#             trackInfo["local_start"] = local_start
+#             trackInfo["end"] = 0
+#             gatherCodingDataAndSendSongSession(current_track_info)
+#             payload = json.dumps(current_track_info)
+#             response = requestIt("POST", "/data/music", payload, getItem("jwt"), True)
+#             if (response is None):
+#                 log("Code Time: error sending new track")
+
+#             # clone the trackInfo to the current_track_info
+#             for key, value in trackInfo.items():
+#                 current_track_info[key] = value
+#     else:
+#         if (currentTrackId is not None):
+#             # update the end time since there are no songs coming
+#             # in and the previous one is stil available
+#             current_track_info["end"] = start - 1
+#             gatherCodingDataAndSendSongSession(current_track_info)
+#             payload = json.dumps(current_track_info)
+#             response = requestIt("POST", "/data/music", payload, getItem("jwt"), True)
+#             if (response is None):
+#                 log("Code Time: error closing previous track")
+
+#         # re-initialize the current track info to an empty object
+#         current_track_info = {}
+
+#     # fetch the daily kpm session info in 15 seconds
+#     gatherMusicInfoTimer = Timer(15, gatherMusicInfo)
+#     gatherMusicInfoTimer.start()
+#     pass
+
+def gatherCodingDataAndSendSongSession():
     global current_track_info
 
-    # get the music track playing
-    # the trackInfo should be a dictionary
-    trackInfo = getTrackInfo()
-    now = round(time.time())
-    start = now
-    local_start = now - time.timezone
-
-    # state = "nice" if is_nice else "not nice"
-    currentTrackId = current_track_info.get("id", None)
-    trackId = trackInfo.get("id", None)
-    trackType = trackInfo.get("type", None)
-
-    if (trackId is not None and trackType == "itunes"):
-        itunesTrackState = getItunesTrackState()
-        trackInfo["state"] = itunesTrackState
-        try:
-            # check if itunes is found, if not it'll raise a ValueError
-            idx = trackId.index("itunes")
-            if (idx == -1):
-                trackId = "itunes:track:" + str(trackId)
-                trackInfo["id"] = trackId
-        except ValueError:
-            # set the trackId to "itunes:track:"
-            trackId = "itunes:track:" + str(trackId)
-            trackInfo["id"] = trackId
-    elif (trackId is not None and trackType == "spotify"):
-        spotifyTrackState = getSpotifyTrackState()
-        trackInfo["state"] = spotifyTrackState
-
-    trackState = trackInfo.get("state", None)
-    duration = trackInfo.get("duration", None)
-
-    if (duration is not None):
-        duration_val = float(duration)
-        if (duration_val > 1000):
-            trackInfo["duration"] = duration_val / 1000
-        else:
-            trackInfo["duration"] = duration_val
-    '''
-    conditions:
-    1) if the currentTrackInfo doesn't have data and trackInfo does
-       that means we should send it as a new song starting
-    2) if the currentTrackInfo has data and the trackInfo does
-       and has the same trackId, then don't send the payload
-    3) if the currentTrackInfo has data and the trackInfo has data
-       and doesn't have the same trackId then send a payload
-       to close the old song and send a payload to start the new song
-    '''
-    if (trackId is not None):
-        isPaused = False
-
-        if (trackState != "playing"):
-            isPaused = True
-
-        if (currentTrackId is not None and (currentTrackId != trackId or isPaused is True)):
-            # update the end time of the previous track and post it
-            current_track_info["end"] = start - 1
-            gatherCodingDataAndSendSongSession(current_track_info)
-            payload = json.dumps(current_track_info)
-            response = requestIt("POST", "/data/music", payload, getItem("jwt"), True)
-            if (response is None):
-                log("Code Time: error closing previous track")
-            # re-initialize the current track info to an empty object
-            current_track_info = {}
-
-        if (isPaused is False and (currentTrackId is None or currentTrackId != trackId)):
-            # starting a new song
-            trackInfo["start"] = start
-            trackInfo["local_start"] = local_start
-            trackInfo["end"] = 0
-            gatherCodingDataAndSendSongSession(current_track_info)
-            payload = json.dumps(current_track_info)
-            response = requestIt("POST", "/data/music", payload, getItem("jwt"), True)
-            if (response is None):
-                log("Code Time: error sending new track")
-
-            # clone the trackInfo to the current_track_info
-            for key, value in trackInfo.items():
-                current_track_info[key] = value
-    else:
-        if (currentTrackId is not None):
-            # update the end time since there are no songs coming
-            # in and the previous one is stil available
-            current_track_info["end"] = start - 1
-            gatherCodingDataAndSendSongSession(current_track_info)
-            payload = json.dumps(current_track_info)
-            response = requestIt("POST", "/data/music", payload, getItem("jwt"), True)
-            if (response is None):
-                log("Code Time: error closing previous track")
-
-        # re-initialize the current track info to an empty object
-        current_track_info = {}
-
-    # fetch the daily kpm session info in 15 seconds
-    gatherMusicInfoTimer = Timer(15, gatherMusicInfo)
-    gatherMusicInfoTimer.start()
-    pass
-
-def gatherCodingDataAndSendSongSession(current_track_info):
     print("current track info: %s" % current_track_info)
     # end current keystroke data gathering
-    PluginData.send_all_datas()
+    PluginData.sendKeystrokeDataIntervalHandler()
 
 
 # Fetch Active device  and Devices(all device including inactive devices)

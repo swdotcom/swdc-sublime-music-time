@@ -682,16 +682,16 @@ def refetchSpotifyStatusLazily(tryCountUntilFoundUser):
 
 def getAuthInfo():
     api = "/users/plugin/state"
-    getauth = requestIt("GET", api, None, getItem("jwt"), True)
-    if getauth is not None and getauth["status"] == 200:
+    authinfo = requestIt("GET", api, None, getItem("jwt"), True)
+    if authinfo is not None and authinfo["status"] == 200:
         try:
             # authinfo = getauth.json()
-            if getauth['state'] == "OK":
+            if authinfo['state'] == "OK":
                 print("succeed")
                 # authinfo = getauth.json()
-                print("<<<<<<<<<<<<<<->>>>>>>>>\n\n", getauth)
-                MAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
-                if (MAIL is None or ACCESS_TOKEN is None or REFRESH_TOKEN is None):
+                print("<<<<<<<<<<<<<<->>>>>>>>>\n\n", authinfo)
+                EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
+                if (EMAIL is None or ACCESS_TOKEN is None or REFRESH_TOKEN is None):
                     return None
 
                 # still ok, save them
@@ -813,11 +813,10 @@ def getClientCredentials():
 
 def refreshSpotifyToken():
     jwt = getItem("jwt")
-    spotify_refresh_token = getItem("spotify_refresh_token")
     spotify_access_token = getItem("spotify_access_token")
     CLIENT_ID, CLIENT_SECRET = getClientCredentials()
 
-    response = requestSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, spotify_refresh_token)
+    response = requestSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_refresh_token)
 
     if response["status"] == 200:
         # obj = response.json()

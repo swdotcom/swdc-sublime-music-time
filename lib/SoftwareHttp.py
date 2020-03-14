@@ -17,6 +17,9 @@ from .SoftwareSettings import *
 lastMsg = ''
 windowView = None
 plugin = ''
+latest_spotify_access_token = None
+client_id = ''
+client_secret = ''
 
 
 def httpLog(message):
@@ -53,16 +56,26 @@ def showStatus(msg):
     except RuntimeError:
         httpLog(msg)
 
-def requestSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, spotify_refresh_token):
+def requestSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_refresh_token):
+    global latest_spotify_access_token
+    global client_id
+    global client_secret
+    global latest_spority_refresh_token
+
+    if (client_id is None):
+        client_id = CLIENT_ID
+        client_secret = CLIENT_SECRET
+        latest_spority_refresh_token = spotify_refresh_token
+
     payload = {
-        "refresh_token": spotify_refresh_token,
+        "refresh_token": latest_spority_refresh_token,
         "grant_type": "refresh_token",
     }
 
-    print("Refreshing spotify access token using clientid and secret: %s : %s" % (CLIENT_ID, CLIENT_SECRET))
+    print("Refreshing spotify access token using clientid and secret: %s : %s" % (client_id, client_secret))
 
     auth_header = base64.b64encode(
-        six.text_type(CLIENT_ID + ":" + CLIENT_SECRET).encode("ascii")
+        six.text_type(client_id + ":" + client_secret).encode("ascii")
     )
     headers = {"Authorization": "Basic %s" % auth_header.decode("ascii")}
 
@@ -75,13 +88,24 @@ def requestSpotifyAccessToken(CLIENT_ID, CLIENT_SECRET, spotify_access_token, sp
     if response.status_code != 200:
         print("couldn't refresh token: code:%d reason:%s" % (response.status_code, response.reason))
         return None
+    else:
+        latest_spotify_access_token = response['access_token']
 
     token_info = response.json()
     token_info["status"] = response.status_code
+
     return token_info
 
 def requestSpotify(method, api, payload, spotify_access_token, tries = 0):
-    headers = {"Authorization": "Bearer {}".format(spotify_access_token)}
+    global latest_spotify_access_token
+    global client_id
+    global client_secret
+    global latest_spority_refresh_token
+
+    if (latest_spotify_access_token is None):
+        latest_spotify_access_token = spotify_access_token
+
+    headers = {"Authorization": "Bearer {}".format(latest_spotify_access_token)}
     try:
         api = SPOTIFY_API + "" + api
         resp = executeRequest(method, api, headers, payload)
@@ -92,7 +116,13 @@ def requestSpotify(method, api, payload, spotify_access_token, tries = 0):
             time.sleep(1)
             tries += 1
             print("Retry spotify api requst: %s" % api)
-            return requestSpotify(method, api, payload, spotify_access_token, tries)
+            return requestSpotify(method, api, payload, latest_spotify_access_token, tries)
+        elif (resp.status_code == 401 and tries < 1):
+            # spotify result: {'status': 401, 'error': {'status': 401, 'message': 'Invalid access token'}}
+            # refresh the token then call again
+            tries += 1
+            requestSpotifyAccessToken(client_id, client_secret, latest_spority_refresh_token)
+            requestSpotify(method, api, payload, spotify_access_token, tries)
 
         if (resp is not None):
             jsonData = resp.json()

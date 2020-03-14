@@ -244,9 +244,14 @@ class PluginData():
 
     @staticmethod
     def send_all_datas():
-        print("SENDING ALL DATA")
         for dir in PluginData.active_datas:
             PluginData.active_datas[dir].send()
+
+    def sendKeystrokeDataIntervalHandler():
+        print("-- sendKeystrokeDataIntervalHandler --")
+        for dir in PluginData.active_datas:
+            PluginData.active_datas[dir].send()
+
 
     # public async sendKeystrokeDataIntervalHandler() {
     #     //
@@ -638,7 +643,7 @@ def initializePlugin(initializedAnonUser, serverAvailable):
     # sendOfflineDataTimer = Timer(10, sendOfflineData)
     # sendOfflineDataTimer.start()
 
-    gatherMusicTimer = Timer(45, gatherMusicInfo)
+    gatherMusicTimer = Timer(10, gatherMusicInfo)
     gatherMusicTimer.start()
 
     hourlyTimer = Timer(60, hourlyTimerHandler)

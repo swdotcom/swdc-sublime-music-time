@@ -266,7 +266,7 @@ def storePayload(payload):
     with open(dataStoreFile, "a") as dsFile:
         dsFile.write(payload + "\n")
 
-def storeKpmDataForMusic(payload) {
+def storeKpmDataForMusic(payload):
     musicDataFile = getMusicDataFile()
 
     with open(musicDataFile, "a") as dsFile:
