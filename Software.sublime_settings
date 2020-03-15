@@ -10,4 +10,5 @@
     "plugin": "music-time",
     "ai_playlist": false,
     "slack_logged_on": false,
+    "keystroke_count": {}
 }

@@ -32,6 +32,7 @@ timezone = ''
 CLIENT_ID = ''
 CLIENT_SECRET = ''
 user_type = ""
+active_data = {}
 
 
 # log the message.
@@ -43,6 +44,18 @@ def log(message):
 def getUrlEndpoint():
     return getValue("software_dashboard_url", SOFTWARE_URL)
 
+def updateActiveData(activeData):
+    global active_data
+
+    active_data = activeData
+    print("updated active data: %s" % active_data)
+
+def getActiveData():
+    global active_data
+
+    if (active_data is None):
+        return {}
+    return active_data
 
 def getOsUsername():
     homedir = os.path.expanduser('~')

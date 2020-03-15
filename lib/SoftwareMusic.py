@@ -68,7 +68,7 @@ def gatherMusicInfo():
             # no track playing but existing one is not empty, send it
             sendTrackSession = True
 
-        # print("sendTrackSession: %s" % sendTrackSession)
+        # print("sendTrackSession: %s" % sendTrackSession)..........
 
         resetExistingTrack = False
         # send the song session if we've detected a new track
@@ -132,9 +132,13 @@ def getSpotifyTrackInfo():
     return track
 
 def gatherCodingDataAndSendSongSession(songSession):
+
     # print("current track: %s" % songSession)
     payloads = getKpmPayloads()
-    aggregatedSource = {}
+    aggregatedSource = getActiveData()
+
+    print("current aggregated source: %s" % aggregatedSource)
+
     if (payloads is not None and len(payloads) > 0):
         for i in range(len(payloads)):
             minutePayload = payloads[i]
@@ -222,7 +226,7 @@ def getActiveDeviceInfo():
 
     # refreshDeviceStatus()
 
-# Function to check whether current track is liked or not
+# Function to check whether current track is liked or not.
 check_liked_songs = lambda x :"  ❤️" if (x in Liked_songs_ids) else " "
 # ❤️ https://emojipedia.org/red-heart/
 # ♥️ https://emojipedia.org/heart-suit/

@@ -85,9 +85,7 @@ class PluginData():
         self.os = getOs()
 
     def json(self):
-
         # make sure all file end times are set
-
         dict_data = {key: getattr(self, key, None)
                      for key in self.__slots__}
 
@@ -106,12 +104,12 @@ class PluginData():
             return True
         for fileName in self.source:
             fileInfo = self.source[fileName]
-            if (fileInfo['close'] > 0 or
-                fileInfo['open'] > 0 or
-                fileInfo['paste'] > 0 or
-                fileInfo['delete'] > 0 or
-                fileInfo['add'] > 0 or
-                    fileInfo['netkeys'] > 0):
+            if (fileInfo.get("close", 0) > 0 or
+                fileInfo.get("open", 0) > 0 or
+                fileInfo.get("paste", 0) > 0 or
+                fileInfo.get("delete", 0) > 0 or
+                fileInfo.get("add", 0) > 0 or
+                    fileInfo.get("netkeys", 0) > 0):
                 return True
         return False
 
@@ -229,7 +227,7 @@ class PluginData():
 
         return fileInfoData
 
-    #
+    # ......
     @staticmethod
     def endUnendedFileEndTimes():
         now = round(time.time())
@@ -249,53 +247,18 @@ class PluginData():
         for dir in PluginData.active_datas:
             PluginData.active_datas[dir].send()
 
-    def sendKeystrokeDataIntervalHandler():
-        print("-- sendKeystrokeDataIntervalHandler --")
-        for dir in PluginData.active_datas:
-            PluginData.active_datas[dir].send()
+    @staticmethod
+    def update_global_keystroke_count():
+        if (len(PluginData.active_datas) > 0):
+            for dir in PluginData.active_datas:
+                keystrokeCountObj = PluginData.active_datas[dir]
+                print("keystrokeCountObj: %s" % keystrokeCountObj)
+                updateActiveData(keystrokeCountObj)
+                break
+        else:
+            updateActiveData(None)
 
-
-    # public async sendKeystrokeDataIntervalHandler() {
-    #     //
-    #     // Go through all keystroke count objects found in the map and send
-    #     // the ones that have data (data is greater than 1), then clear the map
-    #     // And only if code time is not instaled, post the data
-    #     //
-    #     let latestPayloads = [];
-    #     if (_keystrokeMap && !isEmptyObj(_keystrokeMap)) {
-    #         let keys = Object.keys(_keystrokeMap);
-    #         // use a normal for loop since we have an await within the loop
-    #         for (let i = 0; i < keys.length; i++) {
-    #             const key = keys[i];
-    #             const keystrokeCount = _keystrokeMap[key];
-
-    #             const hasData = keystrokeCount.hasData();
-
-    #             if (hasData) {
-    #                 // post the payload offline until the batch interval sends it out
-
-    #                 // get the payload
-    #                 const payload = keystrokeCount.getLatestPayload();
-
-    #                 // post it to the file right away so the song session can obtain it
-    #                 if (!codeTimeExtInstalled()) {
-    #                     await keystrokeCount.postData(payload);
-    #                 }
-    #                 await keystrokeCount.postMusicData(payload);
-    #             }
-    #         }
-    #     }
-
-    #     // clear out the keystroke map
-    #     _keystrokeMap = {};
-
-    #     // clear out the static info map
-    #     _staticInfoMap = {};
-
-    #     return latestPayloads;
-    # }
-
-    # .........
+    # ........
     @staticmethod
     def initialize_file_info(keystrokeCount, fileName):
         if keystrokeCount is None:
@@ -370,62 +333,6 @@ class ConnectSpotify(sublime_plugin.TextCommand):
 
     def is_enabled(self):
         return (getValue("logged_on", True) is False)
-
-# connect spotify menu
-# class ConnectSpotify(sublime_plugin.TextCommand):
-#     def run(self, edit):
-#         try:
-#             authinfo = getAuthInfo()
-#             print("Music time: /auth/spotify/user: ", authinfo)
-
-#             EMAIL, ACCESS_TOKEN, REFRESH_TOKEN = getTokens(authinfo)
-#             updateTokens(EMAIL, ACCESS_TOKEN, REFRESH_TOKEN)
-
-#             user_type = userTypeInfo()
-#             print("Music Time: Usertype: ", user_type)
-
-#             message_dialog = sublime.message_dialog("Spotify Connected !")
-
-#             # # Condition for non premium MAC users
-#             # if isMac() is True and user_type == "non-premium":
-#             #     try:
-#             #         msg = subprocess.Popen(
-#             #             ["open", "-a", "spotify"], stdout=subprocess.PIPE)
-#             #         if msg == "Unable to find application named 'spotify'":
-#             #             message_dialog = sublime.message_dialog(
-#             #                 "Desktop player didn't opened. Please check whether \
-#             #                 Spotify Desktop player is installed correctly \
-#             #                 or Connect using Premium")
-#             #             showStatus("Connect Premium")
-#             #         else:
-#             #             print("getSpotifyTrackState", getSpotifyTrackState())
-#             #             print("getTrackInfo", getTrackInfo())
-
-#             #         # currentTrackInfo()
-#             #     except Exception as e:
-#             #         print("Music Time: Desktop player didn't opened")
-#             #         message_dialog = sublime.message_dialog(
-#             #             "Desktop player didn't opened. Please check whether Spotify Desktop player is installed correctly or Connect using Premium")
-
-#             setValue("logged_on", True)
-#             showStatus("Spotify Connected")
-#             print("USER_id:", spotifyUserId)
-#             # getActiveDeviceInfo()
-
-#         except Exception as E:
-#             print("Music Time: Unable to connect")
-#             message_dialog = sublime.message_dialog(
-#                 "Please retry by clicking on Connect Spotify option")
-#                 # "Please try to connect after some time !")
-#             showStatus("Connect Spotify")
-#         checkAIPlaylistid()
-#         getUserPlaylists()
-#         # autoRefreshPlaylist()
-#         # getActiveDeviceInfo()
-#         # refreshStatusBar()
-
-#     def is_enabled(self):
-#         return (getValue("logged_on", True) is False)
 
 
 # Disconnect spotify
@@ -603,10 +510,10 @@ class EventListener(sublime_plugin.EventListener):
         # "netkeys" = add - delete
         fileInfoData['netkeys'] = fileInfoData['add'] - fileInfoData['delete']
 
+        PluginData.update_global_keystroke_count()
+
 #
 # Iniates the plugin tasks once the it's loaded into Sublime.
-
-
 def plugin_loaded():
     initializeUser()
 
