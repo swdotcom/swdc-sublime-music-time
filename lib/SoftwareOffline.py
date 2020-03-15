@@ -272,6 +272,26 @@ def storeKpmDataForMusic(payload):
     with open(musicDataFile, "a") as dsFile:
         dsFile.write(payload + "\n")
 
+def getKpmPayloads():
+    payloads = []
+
+    dataStoreFile = getSoftwareDataStoreFile()
+
+    if (os.path.exists(dataStoreFile)):
+
+        try:
+            with open(dataStoreFile) as fp:
+                for line in fp:
+                    if (line and line.strip()):
+                        line = line.rstrip()
+                        # convert to object
+                        json_obj = json.loads(line)
+                        # convert to json to send
+                        payloads.append(json_obj)
+        except Exception:
+            log("Unable to read offline data file %s" % dataStoreFile)
+    return payloads
+
 # send the data that has been saved offline
 def sendOfflineData():
     existingJwt = getItem("jwt")
@@ -284,11 +304,6 @@ def sendOfflineData():
     if (serverAvailable):
         # send the offline data
         dataStoreFile = getSoftwareDataStoreFile()
-
-        # delete the music data json since we're sending offline data
-        musicDataFile = getMusicDataFile();
-        if (os.path.exists(musicDataFile))
-            os.remove(musicDataFile)
 
         if (os.path.exists(dataStoreFile)):
             payloads = []
@@ -330,21 +345,4 @@ def sendOfflineData():
     sendOfflineDataTimer = Timer(60 * 30, sendOfflineData)
     sendOfflineDataTimer.start()
 
-# def showLoginPrompt():
-#     serverAvailable = checkOnline()
 
-#     if (serverAvailable):
-#         if isMusicTime == True:
-#             infoMsg = "To use Music Time, please connect to Spotify."
-#             clickAction = sublime.ok_cancel_dialog(infoMsg, LOGIN_LABEL)
-#             if (clickAction):
-#                 launchSpotifyLoginUrl()
-
-#         else:
-#             # set the last update time so we don't try to ask too frequently
-#             infoMsg = "To see your coding data in Code Time, please log in to your account."
-
-#             clickAction = sublime.ok_cancel_dialog(infoMsg, LOGIN_LABEL)
-#             if (clickAction):
-#                 # launch the login view
-#                 launchLoginUrl()
