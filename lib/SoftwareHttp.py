@@ -1,53 +1,37 @@
-
 # Copyright (c) 2018 by Software.com
 
 import http
 import json
 import sys
-# sys.path.append('../')
 import sublime_plugin
 import sublime
-from .SoftwareSettings import *
-from .SoftwareUtil import *
-# from SoftwareUtil import isMusicTime
+import six
+import base64
+import requests
+
+from ..Constants import *
 from ..Software import *
+from .SoftwareSettings import *
 
-# import SoftwareUtil as sd
-# import SoftwareUtil
-# from .SoftwareMusic import *
-# from .SoftwareRepo import *
-# from .SoftwareOffline import *
-# from .SoftwareSettings import *
 
-USER_AGENT = 'Code Time Sublime Plugin'
-lastMsg = None
+lastMsg = ''
 windowView = None
 plugin = ''
+latest_spotify_access_token = None
+latest_spotify_refresh_token = None
+client_id = ''
+client_secret = ''
 
 
 def httpLog(message):
     if (getValue("software_logging_on", True)):
         print(message)
+        pass
 
 
 def redispayStatus():
     global lastMsg
     showStatus(lastMsg)
-
-
-def toggleStatus():
-    global lastMsg
-    showStatusVal = getValue("show_code_time_status", True)
-
-    if (showStatusVal is True):
-        showStatus(lastMsg)
-    elif (ismusictime is True):
-        showStatus("🎧")
-    else:
-        # show clock icon unicode
-        showStatus("⏱")
-
-# update the status bar message
 
 
 def showStatus(msg):
@@ -59,10 +43,12 @@ def showStatus(msg):
 
         if (showStatusVal is False):
             msg = "⏱"
-        elif (ismusictime is True):
-            msg = "Connect Spotify"
+        elif (isMusicTime is True):
+            if getValue("logged_on", True) is True:
+                msg = "Spotify Connected"
         else:
-            lastMsg = msg
+            pass
+            # currenttrackinfo()
 
         if (active_window is not None):
             for view in active_window.views():
@@ -71,24 +57,100 @@ def showStatus(msg):
     except RuntimeError:
         httpLog(msg)
 
+def refreshSpotifyAccessToken(spotify_client_id, spotify_client_secret, spotify_refresh_token):
+    global client_id
+    global client_secret
+    global latest_spotify_refresh_token
 
-def isResponsOk(response):
-    if (response is not None and int(response.status) < 300):
-        return True
-    return False
+    if (client_id is None or latest_spotify_refresh_token is None):
+        client_id = spotify_client_id
+        client_secret = spotify_client_secret
+        latest_spotify_refresh_token = spotify_refresh_token
+
+    payload = {}
+    payload['grant_type'] = 'refresh_token'
+    payload['refresh_token'] = spotify_refresh_token
+    refresh_token_url = "https://accounts.spotify.com/api/token"
+
+    auth_header = base64.b64encode(six.text_type(
+        client_id + ':' + client_secret).encode('ascii'))
+    headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
+    response = requests.post(
+        refresh_token_url, data=payload, headers=headers)
+
+    print("refreshSpotifyAccessToken: response code: %d" % response.status_code)
+
+    if response.status_code != 200:
+        print("refreshSpotifyAccessToken: couldn't refresh token: code: %d reason: %s" % (response.status_code, response.reason))
+        return None
+
+    token_info = response.json()
+    token_info["status"] = response.status_code
+    latest_spotify_access_token = token_info["access_token"]
+    print("refreshSpotifyAccessToken: refresh token info: %s" % token_info)
+
+    return token_info
 
 
-def isUnauthenticated(response):
-    if (response is not None and int(response.status) == 401):
-        return True
-    return False
+def requestSpotify(method, api, payload, spotify_access_token, tries = 0):
+    global latest_spotify_access_token
+    global client_id
+    global client_secret
+    global latest_spotify_refresh_token
+
+    if (latest_spotify_access_token is None):
+        latest_spotify_access_token = spotify_access_token
+
+    headers = {"Authorization": "Bearer {}".format(latest_spotify_access_token)}
+    try:
+        api = SPOTIFY_API + "" + api
+        resp = executeRequest(method, api, headers, payload)
+
+        print("requestSpotify: reponse for api %s %s" % (api, resp.status_code))
+
+        if (resp.status_code == 429 and tries < 3):
+            time.sleep(1)
+            tries += 1
+            print("requestSpotify: Retry spotify api requst: %s" % api)
+            return requestSpotify(method, api, payload, latest_spotify_access_token, tries)
+        elif (resp.status_code == 401 and tries < 1):
+            # spotify result: {'status': 401, 'error': {'status': 401, 'message': 'Invalid access token'}}
+            # refresh the token then call again
+            print("requestSpotify: Trying to refresh the access token")
+            tries += 1
+            refreshSpotifyAccessToken(client_id, client_secret, latest_spotify_refresh_token)
+            requestSpotify(method, api, payload, spotify_access_token, tries)
+
+        if (resp is not None):
+            jsonData = resp.json()
+            jsonData['status'] = resp.status_code
+            
+            return jsonData
+        return resp
+    except Exception as ex:
+        print("requestSpotify: request error for " + api + ": %s" % ex)
+        return None
+
+def requestSlack(method, api, payload, slack_access_token):
+    headers = {"Content-Type": "application/x-www-form-urlencoded",
+                     "Authorization": "Bearer {}".format(slack_access_token)}
+    try:
+        api = SLACK_API + "" + api
+        resp = executeRequest(method, api, headers, payload)
+        if (resp is not None):
+            jsonData = resp.json()
+            jsonData['status'] = resp.status_code
+            print("Slack reponse for api %s %s" % (api, jsonData["status"]))
+            return jsonData
+        return resp
+    except Exception as ex:
+        print("Music Time: " + api + " Network error: %s" % ex)
+        return None
 
 # send the request.
+def requestIt(method, api, payload, jwt, returnJson = True, tries = 0):
 
-
-def requestIt(method, api, payload, jwt):
-
-    api_endpoint = getValue("software_api_endpoint", "api.software.com")
+    api_endpoint = getValue("software_api_endpoint", SOFTWARE_API)
     telemetry = getValue("software_telemetry_on", True)
 
     if (telemetry is False):
@@ -97,47 +159,46 @@ def requestIt(method, api, payload, jwt):
 
     # try to update kpm data.
     try:
-        connection = None
-        # create the connection
-        if ('localhost' in api_endpoint):
-            connection = http.client.HTTPConnection(api_endpoint)
-        else:
-            connection = http.client.HTTPSConnection(api_endpoint)
-
-        headers = {'Content-Type': 'application/json',
-                   'User-Agent': USER_AGENT}
-
+        headers = {'content-type': 'application/json', 'User-Agent': USER_AGENT}
         if (jwt is not None):
             headers['Authorization'] = jwt
-        elif (method is 'POST' and jwt is None):
-            httpLog(
-                "Code Time: no auth token available to post kpm data: %s" % payload)
-            return None
 
-        # make the request
-        if (payload is None):
-            payload = {}
-            httpLog(
-                "Code Time: Requesting [" + method + ": " + api_endpoint + "" + api + "]")
+        api = SOFTWARE_API + "" + api
+        resp = executeRequest(method, api, headers, payload)
+
+        if (returnJson is None or returnJson is True):
+            jsonData = resp.json()
+            jsonData['status'] = resp.status_code
+            print("APP reponse for api %s %s" % (api, jsonData["status"]))
+            return jsonData
         else:
-            httpLog("Code Time: Sending [" + method + ": " + api_endpoint + "" +
-                    api + ", headers: " + json.dumps(headers) + "] payload: %s" % payload)
-
-        # send the request
-        connection.request(method, api, payload, headers)
-
-        response = connection.getresponse()
-        # httpLog("Code Time: " + api_endpoint + "" + api + " Response (%d)" % response.status)
-        return response
+            jsonText = resp.text
+            print("app api text respons: %s" % jsonText)
+            return jsonText
     except Exception as ex:
-        print("Code Time: " + api + " Network error: %s" % ex)
+        print("Music Time: " + api + " Network error: %s" % ex)
         return None
 
+def executeRequest(method, api, headers, payload):
+    try:
+        resp = None
+        if (method.lower() == "get"):
+            resp = requests.get(api, headers=headers)
+        elif (method.lower() == "post"):
+            resp = requests.post(api, headers=headers, data=payload)
+        elif (method.lower() == "put"):
+            resp = requests.put(api, headers=headers, data=payload)
+        elif (method.lower() == "delete"):
+            resp = requests.delete(api, headers=headers)
 
-def ismusictime():
+        return resp
+    except Exception as ex:
+        print("Music Time: " + api + " Network error: %s" % ex)
+        return None
+
+def isMusicTime():
     plugin = getValue("plugin", "music-time")
     # print(">><<",plugin)
-    # plugin = getItem("plugin")
     if plugin == "music-time":
         return True
     else:

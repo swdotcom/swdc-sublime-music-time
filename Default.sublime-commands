@@ -24,15 +24,24 @@
         "caption": "Send feedback to cody@software.com"
     },
     {
-        "command": "connect_slack",
-        "caption": "Log in slack"
-    },
-    {
         "command": "open_playlists",
-        "caption": "Open playlists"
+        "caption": "Open Playlists"
     },
     {
         "command": "open_songs",
-        "caption": "Open songs"
-    }
+        "caption": "Open Songs"
+    },
+    {
+        "command": "open_moodlist",
+        "caption": "Filter by mood"
+    },
+    {
+        "command": "open_genrelist",
+        "caption": "Filter by genre"
+    },
+    {
+        "command": "opentracks",
+        "caption": "Open recommended songs"
+    },
+     
 ]

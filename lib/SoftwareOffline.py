@@ -6,28 +6,14 @@ import os.path
 import time
 import datetime
 import math
-import six
+
+from ..Constants import *
 from .SoftwareUtil import *
 from .SoftwareSettings import *
-# from .SoftwareMusic import *
-# from .SoftwareRepo import *
-# from .SoftwareOffline import *
-# from .SoftwareSettings import *
+from .SoftwareHttp import *
 
-# Constants
-sessionSummaryData = None
-lastDayOfMonth = 0
-SERVICE_NOT_AVAIL = "Our service is temporarily unavailable.\n\nPlease try again later.\n"
-ONE_MINUTE_IN_SEC = 60
-SECONDS_PER_HOUR = 60 * 60
-LONG_THRESHOLD_HOURS = 12
-SHORT_THRESHOLD_HOURS = 4
-NO_TOKEN_THRESHOLD_HOURS = 2
-LOGIN_LABEL = "Log in"
 
 # init the session summary data
-
-
 def initSessionSumaryData():
     global sessionSummaryData
     sessionSummaryData = {
@@ -38,18 +24,16 @@ def initSessionSumaryData():
         "liveshareMinutes": None
     }
 
+
 # get the session summary data
-
-
 def getSessionSummaryData():
     global sessionSummaryData
     if (sessionSummaryData is None):
         sessionSummaryData = getSessionSummaryFileAsJson()
     return sessionSummaryData
 
+
 # get the session summary file
-
-
 def getSessionSummaryFile():
     file = getSoftwareDir(True)
     return os.path.join(file, 'sessionSummary.json')
@@ -67,8 +51,6 @@ def incrementSessionSummaryData(minutes, keystrokes):
     sessionSummaryData["currentDayMinutes"] += minutes
     sessionSummaryData["currentDayKeystrokes"] += keystrokes
 
-#
-
 
 def updateStatusBarWithSummaryData():
     global sessionSummaryData
@@ -77,21 +59,21 @@ def updateStatusBarWithSummaryData():
     currentDayInfo = getCurrentDayTime(sessionSummaryData)
     averageDailyInfo = getAverageDailyTime(sessionSummaryData)
 
-    if ismusictime is False:
+    if isMusicTime is False:
         inFlowIcon = ""
-        if (currentDayInfo.get("data", 0) > averageDailyInfo.get("data", 0)) and ismusictime() != True:
+        if (currentDayInfo.get("data", 0) > averageDailyInfo.get("data", 0)) and isMusicTime() != True:
             inFlowIcon = "🚀"
 
         statusMsg = inFlowIcon + "" + currentDayInfo["formatted"]
-        if (averageDailyInfo.get("data", 0) > 0) and ismusictime() != True:
+        if (averageDailyInfo.get("data", 0) > 0) and isMusicTime() != True:
             statusMsg += " | " + averageDailyInfo["formatted"]
 
     elif getValue("logged_on", True) == True:
-        statusMsg = "🎧 Spotify connected"
+        statusMsg = "Spotify Connected"
 
     # for displaying current playback track
     else:
-        statusMsg = "🎧 Connect Spotify"
+        statusMsg = "Connect Spotify"
 
     showStatus(statusMsg)
 
@@ -126,8 +108,6 @@ def saveSessionSummaryToDisk(sessionSummaryData):
     with open(sessionFile, 'w') as f:
         f.write(content)
 
-#
-
 
 def getSessionSummaryFileAsJson():
     global sessionSummaryData
@@ -142,7 +122,8 @@ def getSessionSummaryFileAsJson():
 
 def launchCodeTimeMetrics():
     global sessionSummaryData
-    online = getValue("online", True)
+
+    online = checkOnline()
     sessionSummaryData = getSessionSummaryData()
     if (sessionSummaryData.get("currentDayMinutes", 0) == 0):
         if (online):
@@ -174,11 +155,11 @@ def fetchCodeTimeMetricsDashboard(summary):
         if isWindows() is True or isMac() is True:
             islinux = "false"
         api = '/dashboard?linux=' + islinux + '&showToday=false'
-        response = requestIt("GET", api, None, getItem("jwt"))
+        response = requestIt("GET", api, None, getItem("jwt"), False)
 
         summaryContent = ""
         try:
-            summaryContent = response.read().decode('utf-8')
+            summaryContent = response
         except Exception as ex:
             summaryContent = SERVICE_NOT_AVAIL
             log("Code Time: Unable to read response data: %s" % ex)
@@ -233,7 +214,7 @@ def fetchDailyKpmSessionInfo(forceRefresh):
     sessionSummaryData = getSessionSummaryFileAsJson()
     currentDayMinutes = sessionSummaryData.get("currentDayMinutes", 0)
     if (currentDayMinutes == 0 or forceRefresh is True):
-        online = getValue("online", True)
+        online = checkOnline()
         if (online is False):
             # update the status bar with offline data
             updateStatusBarWithSummaryData()
@@ -241,10 +222,10 @@ def fetchDailyKpmSessionInfo(forceRefresh):
 
         # api to fetch the session kpm info
         api = '/sessions/summary'
-        response = requestIt("GET", api, None, getItem("jwt"))
+        response = requestIt("GET", api, None, getItem("jwt"), True)
 
-        if (response is not None and isResponsOk(response)):
-            sessionSummaryData = json.loads(response.read().decode('utf-8'))
+        if (response is not None):
+            sessionSummaryData = response
 
             # update the file
             saveSessionSummaryToDisk(sessionSummaryData)
@@ -262,8 +243,6 @@ def fetchDailyKpmSessionInfo(forceRefresh):
         return {"data": sessionSummaryData, "status": "OK"}
 
 # store the payload offline...
-
-
 def storePayload(payload):
 
     # calculate it and call add to the minutes
@@ -288,9 +267,33 @@ def storePayload(payload):
     with open(dataStoreFile, "a") as dsFile:
         dsFile.write(payload + "\n")
 
+def storeKpmDataForMusic(payload):
+    musicDataFile = getMusicDataFile()
+
+    with open(musicDataFile, "a") as dsFile:
+        dsFile.write(payload + "\n")
+
+def getKpmPayloads():
+    payloads = []
+
+    dataStoreFile = getSoftwareDataStoreFile()
+
+    if (os.path.exists(dataStoreFile)):
+
+        try:
+            with open(dataStoreFile) as fp:
+                for line in fp:
+                    if (line and line.strip()):
+                        line = line.rstrip()
+                        # convert to object
+                        json_obj = json.loads(line)
+                        # convert to json to send
+                        payloads.append(json_obj)
+        except Exception:
+            log("Unable to read offline data file %s" % dataStoreFile)
+    return payloads
+
 # send the data that has been saved offline
-
-
 def sendOfflineData():
     existingJwt = getItem("jwt")
 
@@ -327,16 +330,14 @@ def sendOfflineData():
                 for i in range(length):
                     payload = payloads[i]
                     if (len(batch) >= 50):
-                        requestIt("POST", "/data/batch",
-                                  json.dumps(batch), getItem("jwt"))
+                        requestIt("POST", "/data/batch", json.dumps(batch), getItem("jwt"))
                         # send batch
                         batch = []
                     batch.append(payload)
 
                 # send remaining batch
                 if (len(batch) > 0):
-                    requestIt("POST", "/data/batch",
-                              json.dumps(batch), getItem("jwt"))
+                    requestIt("POST", "/data/batch", json.dumps(batch), getItem("jwt"))
 
     # update the statusbar
     fetchDailyKpmSessionInfo(True)
@@ -345,21 +346,4 @@ def sendOfflineData():
     sendOfflineDataTimer = Timer(60 * 30, sendOfflineData)
     sendOfflineDataTimer.start()
 
-# def showLoginPrompt():
-#     serverAvailable = checkOnline()
 
-#     if (serverAvailable):
-#         if isMusicTime == True:
-#             infoMsg = "To use Music Time, please connect to Spotify."
-#             clickAction = sublime.ok_cancel_dialog(infoMsg, LOGIN_LABEL)
-#             if (clickAction):
-#                 launchSpotifyLoginUrl()
-
-#         else:
-#             # set the last update time so we don't try to ask too frequently
-#             infoMsg = "To see your coding data in Code Time, please log in to your account."
-
-#             clickAction = sublime.ok_cancel_dialog(infoMsg, LOGIN_LABEL)
-#             if (clickAction):
-#                 # launch the login view
-#                 launchLoginUrl()

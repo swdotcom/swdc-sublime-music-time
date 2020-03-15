@@ -18,12 +18,20 @@
                         "caption": "Disconnect Spotify"
                     },
                     {
-                        "command": "launch_music_time_metrics",
-                        "caption": "Music Time Dashboard"
+                        "caption": "-",
+                        "id": "software0"
                     },
                     {
-                        "command": "software_top_forty",
-                        "caption": "Software Top 40"
+                        "command": "select_player",
+                        "caption": "Connect to a Spotify device"
+                    },
+                    {
+                        "caption": "-",
+                        "id": "software1"
+                    },
+                    {
+                        "caption": "Learn More ",
+                        "command": "readme_please"
                     },
                     {
                         "command": "submit_issue_github",
@@ -31,26 +39,140 @@
                     },
                     {
                         "command": "submit_feedback",
-                        "caption": "Send feedback to cody@software.com"
+                        "caption": "Send Feedback to cody@software.com"
                     },
                     {
-                        "command": "connect_slack",
-                        "caption": "Connect Slack"
+                        "caption": "-",
+                        "id": "software2"
                     },
                     {
-                        "command": "disconnect_slack",
-                        "caption": "Disonnect Slack"
+                        "command": "launch_music_time_metrics",
+                        "caption": "Music Time Dashboard"
                     },
                     {
-                        "command": "open_playlists",
-                        "caption": "Open playlists"
+                        "command": "see_web_analytics",
+                        "caption": "See Web Analytics"
                     },
                     {
-                        "command": "open_songs",
-                        "caption": "Open songs"
-                    }
-                ]
-            }
+                        "caption": "-",
+                        "id": "software5"
+                    },
+                    {
+                        "caption": "My Playlists",
+                        "children": [
+                            {
+                                "command": "refresh_playlist",
+                                "caption": "Refresh Playlist"
+                            },
+                            {
+                                "caption": "Sort Playlist",
+                                "children":[
+                                    {
+                                        "command": "sort_az",
+                                        "caption": "Sort A-Z"
+                                    },
+                                    {   
+                                        "command": "sort_latest",
+                                        "caption": "Sort by Latest"
+                                    },
+                                ]
+                            },
+                            {
+                                "command": "open_playlists",
+                                "caption": "Open Playlists"
+                            },
+                            {
+                                "command": "open_songs",
+                                "caption": "Open Songs"
+                            },
+                            {
+                                "caption": "-",
+                                "id": "software8"
+                            },
+                            {
+                                "command": "like_unlike_song",
+                                "caption": "Like / Unlike Song"
+
+                            },
+                            {
+                                "command": "create_add_playlist",
+                                "caption": "Add or create playlist"
+                            },
+                            {
+                                "caption": "-",
+                                "id": "software7"
+                            },
+                            {
+                                "command": "generate_ai_playlist",
+                                "caption": "Generate My AI Playlist"
+                            },
+                            {
+                                "command": "refresh_ai_playlist",
+                                "caption": "Refresh My AI Playlist"
+                            },
+                            {
+                                "caption": "-",
+                                "id": "software6"
+                            },
+                            {
+                                "command": "connect_slack",
+                                "caption": "Connect Slack"
+                            },
+                            {
+                                "command": "disconnect_slack",
+                                "caption": "Disconnect Slack"
+                            },
+                            {
+                                "command": "share_song",
+                                "caption": "Share Song"
+                            },
+
+                        ]
+                    },
+                    {
+                        "caption": "-",
+                        "id": "software3"
+                    },
+                    {
+                        "command": "open_moodlist",
+                        "caption": "Filter by mood"
+                    },
+                    {
+                        "command": "open_genrelist",
+                        "caption": "Filter by genre"
+                    },
+                    {
+                        "command": "opentracks",
+                        "caption": "Open recommended songs"
+                    },
+                    {
+                        "caption": "-",
+                        "id": "software4"
+                    },
+                    {   "caption": "Songs Controls",
+                        "children": [
+                            {
+                                "command": "play_song",
+                                "caption": "Play"
+                            },
+                            {
+                                "command": "pause_song",
+                                "caption": "Pause"
+                            },
+                            {
+                                "command": "next_song",
+                                "caption": "Next"
+                            },
+                            {
+                                "command": "prev_song",
+                                "caption": "Previous"
+                            }
+
+                        ]
+                    },
+                        ]
+                }
+            
         ]
     }
 ]
