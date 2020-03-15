@@ -22,7 +22,7 @@ current_track_id = ""
 # To fetch and show music-time dashboard
 def getMusicTimedashboard():
     api = "/dashboard/music"
-    resp = requestIt("GET", api, None, getItem("jwt"), True)
+    resp = requestIt("GET", api, None, getItem("jwt"))
     if resp["status"] == 200:
         print("Music Time: launching MusicTime.txt")
     else:
@@ -137,7 +137,7 @@ def gatherCodingDataAndSendSongSession(songSession):
     payloads = getKpmPayloads()
     aggregatedSource = getActiveData()
 
-    print("current aggregated source: %s" % aggregatedSource)
+    # print("current aggregated source: %s" % aggregatedSource)
 
     if (payloads is not None and len(payloads) > 0):
         for i in range(len(payloads)):

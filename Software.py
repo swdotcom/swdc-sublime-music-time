@@ -570,7 +570,7 @@ def checkUserState():
     global slack
     try:
         api = "/users/plugin/state"
-        resp_data = requestIt("GET", api, None, getItem("jwt"), True)
+        resp_data = requestIt("GET", api, None, getItem("jwt"))
         print("plugin state response: %s" % resp_data)
         if resp_data is not None and resp_data['state'] == "OK":
 

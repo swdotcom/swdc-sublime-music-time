@@ -573,7 +573,7 @@ def checkAIPlaylistid():
 
     # Check for ai_playlist in software backend
     api = "/music/playlist/generated"
-    get_ai_playlistid = requestIt("GET", api, None, getItem("jwt"), True)
+    get_ai_playlistid = requestIt("GET", api, None, getItem("jwt"))
     print("get_ai_playlistid: %s" % get_ai_playlistid)
     if get_ai_playlistid is not None and get_ai_playlistid["status"] == 200:
         # get_ai_playlistid_data = get_ai_playlistid.json()
@@ -595,7 +595,7 @@ def checkAIPlaylistid():
                 print("Ai playlist not found")
                 # Delete backend ai playlistid
                 api = "/music/playlist/generated/" + backend_ai_playlistid
-                delete_ai_playlistid = requestIt("DELETE", api, None, getItem("jwt"), True)
+                delete_ai_playlistid = requestIt("DELETE", api, None, getItem("jwt"))
                 if delete_ai_playlistid is not None and delete_ai_playlistid["status"] == 200:
                     # print("Deleted ai playlistid: ", delete_ai_playlistid)
                     # Enable Generate AI button
@@ -652,13 +652,13 @@ def generateMyAIPlaylist():
         json_data = json.dumps(data)
 
         api = "/music/playlist/generated"
-        update_playlist = requestIt("POST", api, json_data, getItem("jwt"), True)
+        update_playlist = requestIt("POST", api, json_data, getItem("jwt"))
 
         if update_playlist is not None and update_playlist["status"] >= 200:
             print("update_playlist id to software backend :", update_playlist)
 
             api = "/music/recommendations?limit=40"
-            get_recommends = requestIt("GET", api, None, getItem("jwt"), True)
+            get_recommends = requestIt("GET", api, None, getItem("jwt"))
 
             if get_recommends is not None and get_recommends["status"] >= 200:
                 print("get_recommends :\n", get_recommends)
@@ -672,7 +672,7 @@ def generateMyAIPlaylist():
                 json_data = json.dumps(uris_data)
 
                 api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
-                post_uris = requestIt("POST", api, json_data, getItem("jwt"), True)
+                post_uris = requestIt("POST", api, json_data, getItem("jwt"))
 
                 if post_uris is not None and post_uris["status"] >= 200:
                     print("post_uris", post_uris)
@@ -700,7 +700,7 @@ def refreshMyAIPlaylist():
     software_recommend = SOFTWARE_API + "/music/recommendations?limit=40"
 
     api = "/music/recommendations?limit=40"
-    get_recommends = requestIt("GET", api, None, getItem("jwt"), True)
+    get_recommends = requestIt("GET", api, None, getItem("jwt"))
 
     print("get_recommends: %s" % get_recommends)
     if get_recommends is not None and get_recommends["status"] >= 200:
@@ -720,7 +720,7 @@ def refreshMyAIPlaylist():
             # print("wipe_uris", wipe_uris)
 
             api = "/music/recommendations?limit=40"
-            get_recommends = requestIt("GET", api, None, getItem("jwt"), True)
+            get_recommends = requestIt("GET", api, None, getItem("jwt"))
 
             if get_recommends is not None and get_recommends["status"] >= 200:
                 # recommends_song_list = get_recommends.json()
@@ -732,7 +732,7 @@ def refreshMyAIPlaylist():
                 json_data = json.dumps(uris_data)
 
                 api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
-                post_uris = requestIt("POST", api, json_data, getItem("jwt"), True)
+                post_uris = requestIt("POST", api, json_data, getItem("jwt"))
                 if post_uris is not None and post_uris["status"] >= 200:
                     print("AI playlist refreshed !")
                     setValue("ai_playlist", True)

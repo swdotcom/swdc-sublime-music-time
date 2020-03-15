@@ -50,7 +50,7 @@ def getSlackTokens():
 def disconnectSlack():
     try:
         api = '/auth/slack/disconnect'
-        disconnect = requestIt("PUT", api, None, getItem("jwt"), True)
+        disconnect = requestIt("PUT", api, None, getItem("jwt"))
         if disconnect is not None and disconnect["status"] == 200:
             # print(disconnect)
             print("Music Time: Slack Disconnected !")

@@ -35,7 +35,7 @@ user_type = ""
 active_data = {}
 
 
-# log the message.
+# log the message..
 def log(message):
     if (getValue("software_logging_on", True)):
         print(message)
@@ -48,7 +48,7 @@ def updateActiveData(activeData):
     global active_data
 
     active_data = activeData
-    print("updated active data: %s" % active_data)
+    # print("updated active data: %s" % active_data)
 
 def getActiveData():
     global active_data
@@ -357,7 +357,7 @@ def getResourceInfo(rootDir):
 
 def checkOnline():
     # non-authenticated ping, no need to set the Authorization header
-    response = requestIt("GET", "/ping", None, getItem("jwt"), True)
+    response = requestIt("GET", "/ping", None, getItem("jwt"))
     if (response is not None and response.get("data", None) is not None):
         return True
     else:
@@ -445,7 +445,7 @@ def getAppJwt():
     if (serverAvailable):
         now = round(time.time())
         api = "/data/apptoken?token=" + str(now)
-        response = requestIt("GET", api, None, getItem("jwt"), True)
+        response = requestIt("GET", api, None, getItem("jwt"))
         if (response is not None):
             try:
                 responseObj = response
@@ -481,7 +481,7 @@ def createAnonymousUser():
 
         api = "/data/onboard"
         try:
-            response = requestIt("POST", api, json.dumps(payload), getItem("jwt"), True)
+            response = requestIt("POST", api, json.dumps(payload), getItem("jwt"))
             if (response is not None):
                 try:
                     responseObj = response
@@ -501,7 +501,7 @@ def getUser(serverAvailable):
     jwt = getItem("jwt")
     if (jwt and serverAvailable):
         api = "/users/me"
-        response = requestIt("GET", api, None, jwt, True)
+        response = requestIt("GET", api, None, jwt)
         if (responseObj.get("data", None) is not None):
             try:
                 responseObj = response
@@ -530,7 +530,7 @@ def isLoggedOn(serverAvailable):
             return True
 
         api = "/users/plugin/state"
-        response = requestIt("GET", api, None, jwt, True)
+        response = requestIt("GET", api, None, jwt)
 
         if (response.get("state", None) is not None):
             try:
@@ -598,7 +598,7 @@ def sendHeartbeat(reason):
 
         api = "/data/heartbeat"
         try:
-            response = requestIt("POST", api, json.dumps(payload), jwt, True)
+            response = requestIt("POST", api, json.dumps(payload), jwt)
         except Exception as ex:
             log("Music Time: Unable to send heartbeat: %s" % ex)
 
@@ -699,7 +699,7 @@ def getAuthInfo():
         return {access_token: spotify_access_token}
 
     api = "/users/plugin/state"
-    authinfo = requestIt("GET", api, None, getItem("jwt"), True)
+    authinfo = requestIt("GET", api, None, getItem("jwt"))
     if authinfo is not None and authinfo["status"] == 200:
         try:
             if authinfo['state'] == "OK":
@@ -805,13 +805,13 @@ def getClientCredentials():
     jwt = getItem("jwt")
     if jwt is None or jwt == "":
         api = '/data/apptoken?token=' + str(round(time.time()))
-        get_JWT = requestIt("GET", api, None, None, True)
+        get_JWT = requestIt("GET", api, None, None)
         # jwt = get_JWT.json()['jwt']
         jwt = get_JWT["jwt"]
 
 
     api = '/auth/spotify/clientInfo'
-    get_client_creds = requestIt("GET", api, None, jwt, True)
+    get_client_creds = requestIt("GET", api, None, jwt)
     print("get client creds response: %s" % get_client_creds)
     clientId = None
     clientSecret = None
