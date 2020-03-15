@@ -252,8 +252,8 @@ class PluginData():
         if (len(PluginData.active_datas) > 0):
             for dir in PluginData.active_datas:
                 keystrokeCountObj = PluginData.active_datas[dir]
-                print("keystrokeCountObj: %s" % keystrokeCountObj)
-                updateActiveData(keystrokeCountObj)
+                print("keystrokeCountObj: %s" % keystrokeCountObj.json())
+                updateActiveData(keystrokeCountObj.json())
                 break
         else:
             updateActiveData(None)
