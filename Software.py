@@ -612,20 +612,18 @@ def plugin_loaded():
 
 
 def initializeUser():
-    # check if the session file is there
-    serverAvailable = checkOnline()
     # fileExists = softwareSessionFileExists()
     jwt = getItem("jwt")
     initializedAnonUser = False
     if (jwt is None):
         # create the anon user
-        jwt = createAnonymousUser(serverAvailable)
+        jwt = createAnonymousUser()
         if (jwt is not None):
             initializedAnonUser = True
-    initializePlugin(initializedAnonUser, serverAvailable)
+    initializePlugin(initializedAnonUser)
 
 
-def initializePlugin(initializedAnonUser, serverAvailable):
+def initializePlugin(initializedAnonUser):
     PACKAGE_NAME = __name__.split('.')[0]
     log('Music Time: Loaded v%s of package name: %s' % (VERSION, PACKAGE_NAME))
     if (isMusicTime() == False):
@@ -637,21 +635,11 @@ def initializePlugin(initializedAnonUser, serverAvailable):
 
     checkUserState()
 
-    # fire off timer tasks (seconds, task)
-
-    setOnlineStatusTimer = Timer(2, setOnlineStatus)
-    setOnlineStatusTimer.start()
-
     # sendOfflineDataTimer = Timer(10, sendOfflineData)
     # sendOfflineDataTimer.start()
 
     gatherMusicTimer = Timer(10, gatherMusicInfo)
     gatherMusicTimer.start()
-
-    hourlyTimer = Timer(60, hourlyTimerHandler)
-    hourlyTimer.start()
-
-    # initializeUserInfo(initializedAnonUser)
 
 
 def plugin_unloaded():
@@ -665,44 +653,9 @@ def sendInitializedHeartbeat():
 # gather the git commits, repo members, heatbeat ping
 
 
-def hourlyTimerHandler():
-    sendHeartbeat("HOURLY")
-
-    # process commits in a minute
-    processCommitsTimer = Timer(60, processCommits)
-    processCommitsTimer.start()
-
-    # run the handler in another hour
-    hourlyTimer = Timer(60 * 60, hourlyTimerHandler)
-    hourlyTimer.start()
-
-# ...
-
-
-def processCommits():
-    log("processing commits")
-#     global PROJECT_DIR
-#     gatherCommits(PROJECT_DIR)
-
-
 # def showOfflinePrompt():
 #     infoMsg = "Our service is temporarily unavailable. We will try to reconnect again in 10 minutes. Your status bar will not update at this time."
 #     sublime.message_dialog(infoMsg)
-
-
-def setOnlineStatus():
-    online = checkOnline()
-    # log(plugin_name + ": Checking online status...")
-    if (online is True):
-        setValue("online", True)
-        # log(plugin_name + ": Online")
-    else:
-        setValue("online", False)
-        # log(plugin_name + ": Offline")
-
-    # run the check in another 1 minute
-    timer = Timer(60 * 1, setOnlineStatus)
-    timer.start()  
 
 
 def checkUserState():

@@ -122,7 +122,8 @@ def getSessionSummaryFileAsJson():
 
 def launchCodeTimeMetrics():
     global sessionSummaryData
-    online = getValue("online", True)
+
+    online = checkOnline()
     sessionSummaryData = getSessionSummaryData()
     if (sessionSummaryData.get("currentDayMinutes", 0) == 0):
         if (online):
@@ -213,7 +214,7 @@ def fetchDailyKpmSessionInfo(forceRefresh):
     sessionSummaryData = getSessionSummaryFileAsJson()
     currentDayMinutes = sessionSummaryData.get("currentDayMinutes", 0)
     if (currentDayMinutes == 0 or forceRefresh is True):
-        online = getValue("online", True)
+        online = checkOnline()
         if (online is False):
             # update the status bar with offline data
             updateStatusBarWithSummaryData()

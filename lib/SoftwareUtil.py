@@ -417,7 +417,7 @@ def fetchCustomDashboard(date_range):
 
 
 def launchCustomDashboard():
-    online = getValue("online", True)
+    online = checkOnline()
     date_range = getValue("date_range", "04/24/2019, 05/01/2019")
     if (online):
         fetchCustomDashboard(date_range)
@@ -452,9 +452,9 @@ def createToken():
     return uid.hex
 
 
-def createAnonymousUser(serverAvailable):
+def createAnonymousUser():
     appJwt = getAppJwt()
-    if (serverAvailable and appJwt):
+    if (appJwt):
         setItem("jwt", appJwt)
         username = getOsUsername()
         timezone = getTimezone()

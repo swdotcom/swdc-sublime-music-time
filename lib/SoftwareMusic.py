@@ -148,14 +148,14 @@ def gatherCodingDataAndSendSongSession(songSession):
                             if (aggregatedSource.get(key, None) is None):
                                 aggregatedSource[key] = fileInfo
                             else:
-                                aggregatedSource['paste'] += fileInfo['paste']
-                                aggregatedSource['open'] += fileInfo['open']
-                                aggregatedSource['close'] += fileInfo['close']
-                                aggregatedSource['delete'] += fileInfo['delete']
-                                aggregatedSource['netkeys'] += fileInfo['netkeys']
-                                aggregatedSource['add'] += fileInfo['add']
-                                aggregatedSource['linesAdded'] += fileInfo['linesAdded']
-                                aggregatedSource['linesRemoved'] += fileInfo['linesRemoved']
+                                aggregatedSource['paste'] += fileInfo.get("paste", 0)
+                                aggregatedSource['open'] += fileInfo.get("open", 0)
+                                aggregatedSource['close'] += fileInfo.get("close", 0)
+                                aggregatedSource['delete'] += fileInfo.get("delete", 0)
+                                aggregatedSource['netkeys'] += fileInfo.get("netkeys", 0)
+                                aggregatedSource['add'] += fileInfo.get("add", 0)
+                                aggregatedSource['linesAdded'] += fileInfo.get("linesAdded", 0)
+                                aggregatedSource['linesRemoved'] += fileInfo.get("linesRemoved", 0)
     
     # print("aggregated source: %s" % aggregatedSource)
     songSession["source"] = aggregatedSource
