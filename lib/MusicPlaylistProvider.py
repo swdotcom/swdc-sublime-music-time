@@ -332,7 +332,7 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
             else:
                 pass
 
-        print("device",playstr)
+        # print("device",playstr)
         data = {}
         try:
             data["context_uri"] = "spotify:playlist:" + playlist_id
@@ -382,20 +382,20 @@ def getUserPlaylistInfo(spotifyUserId):
             # playlistname = playlist.json()
             names = []
             ids = []
-            playlist = {}
+            playlists = {}
             playlist_names = []
             for i in playlist['items']:
 
                 names.append(i['name'])
                 ids.append(i['id'])
-                playlist = dict(zip(names, ids))
+                playlists = dict(zip(names, ids))
 
         playlist_names = list(names)
         print("In def playlist_names", playlist_names)
     except Exception as e:
         print("getUserPlaylistInfo err", e)
 
-    return playlist
+    return playlists
 
 
 # get tracks data using playlist id
