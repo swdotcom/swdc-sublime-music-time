@@ -293,9 +293,10 @@ def currentTrackInfo():
 
             # api = "/v1/me/player/currently-playing?" + ACTIVE_DEVICE.get('device_id')
             api = "/v1/me/player/currently-playing"
-            track = requestSpotify("GET", api, None, getItem('spotify_access_token'))
+            # method, api, payload, access token, tries, allowRetry
+            track = requestSpotify("GET", api, None, getItem('spotify_access_token'), 0, False)
 
-            if track["status"] == 200:
+            if track is not None and track["status"] == 200:
                 # trackinfo = track.json()['item']['name']
                 trackInfo = track["item"]["name"]
                 # trackstate = track.json()['is_playing']

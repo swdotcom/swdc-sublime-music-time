@@ -92,7 +92,7 @@ def refreshSpotifyAccessToken(spotify_client_id, spotify_client_secret, spotify_
     return token_info
 
 
-def requestSpotify(method, api, payload, spotify_access_token, tries = 0):
+def requestSpotify(method, api, payload, spotify_access_token, tries = 0, allowRetry = True):
     global latest_spotify_access_token
     global client_id
     global client_secret
@@ -106,14 +106,18 @@ def requestSpotify(method, api, payload, spotify_access_token, tries = 0):
         api = SPOTIFY_API + "" + api
         resp = executeRequest(method, api, headers, payload)
 
-        print("requestSpotify: reponse for api %s %s" % (api, resp.status_code))
+        if (resp is not None and resp.status_code is not None):
+            print("requestSpotify: reponse for api %s %s" % (api, resp.status_code))
+        else:
+            print("requestSpotify: unable to fetch a spotify response")
 
-        if (resp.status_code == 429 and tries < 3):
+        if (resp is not None and resp.status_code == 429 and tries < 2 and allowRetry is True):
             time.sleep(1)
             tries += 1
             print("requestSpotify: Retry spotify api requst: %s" % api)
             return requestSpotify(method, api, payload, latest_spotify_access_token, tries)
-        elif (resp.status_code == 401 and tries < 1):
+        elif (resp is not None and resp.status_code == 401 and tries < 1):
+            time.sleep(1)
             # spotify result: {'status': 401, 'error': {'status': 401, 'message': 'Invalid access token'}}
             # refresh the token then call again
             print("requestSpotify: Trying to refresh the access token")

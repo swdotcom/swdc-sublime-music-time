@@ -252,7 +252,7 @@ class PluginData():
         if (len(PluginData.active_datas) > 0):
             for dir in PluginData.active_datas:
                 keystrokeCountObj = PluginData.active_datas[dir]
-                print("keystrokeCountObj: %s" % keystrokeCountObj.json())
+                # print("keystrokeCountObj: %s" % keystrokeCountObj.json())
                 updateActiveData(keystrokeCountObj.json())
                 break
         else:
@@ -572,7 +572,7 @@ def checkUserState():
     try:
         api = "/users/plugin/state"
         resp_data = requestIt("GET", api, None, getItem("jwt"))
-        print("plugin state response: %s" % resp_data)
+        # print("plugin state response: %s" % resp_data)
         if resp_data is not None and resp_data['state'] == "OK":
 
             for i in range(len(resp_data['user']['auths'])):

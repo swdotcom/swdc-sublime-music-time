@@ -696,7 +696,7 @@ def getAuthInfo():
     spotify_access_token = getItem("spotify_access_token")
 
     if (spotify_access_token is not None):
-        return {access_token: spotify_access_token}
+        return {'access_token': spotify_access_token}
 
     api = "/users/plugin/state"
     authinfo = requestIt("GET", api, None, getItem("jwt"))
