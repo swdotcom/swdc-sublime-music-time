@@ -17,7 +17,24 @@ def launchConnectSlack():
           qryStr, "\nendpoint_url:", endpoint)
     webbrowser.open(endpoint)
     # refetchUserStatusLazily(10)
-    time.sleep(20)
+    t = Timer(10, refetchSlackStatusLazily, [30])
+    t.start()
+    # time.sleep(20)
+
+
+def refetchSlackStatusLazily(tryCountUntilFoundUser):
+    # getauth = getAuthInfo()
+    getslackauth = getSlackTokens()
+    if (getslackauth is not None or tryCountUntilFoundUser <= 0):
+        # done
+        return
+
+    # start the time
+    tryCountUntilFoundUser -= 1
+    t = Timer(10, refetchSlackStatusLazily, [tryCountUntilFoundUser])
+    t.start()
+    if getValue("slack_logged_on", True) is True:
+        t.cancel()
 
 
 # connectSlack(jwt)
@@ -36,6 +53,8 @@ def getSlackTokens():
                     setValue("slack_logged_on", True)
                     setItem("slack_access_token", slack_access_token)
                     print("Music Time: Got slack access token !")
+                    infoMsg = "Successfully connected to Slack."
+                    clickAction = sublime.message_dialog(infoMsg)
 
                     # infoMsg = "Unable to connect slack "
                     # clickAction = sublime.message_dialog(infoMsg)
@@ -45,6 +64,7 @@ def getSlackTokens():
         print("Music Time: Unable to connect")
         infoMsg = "Please try after some time unable to connect slack at this moment."
         clickAction = sublime.message_dialog(infoMsg)
+        return None
 
 
 def disconnectSlack():
@@ -89,7 +109,7 @@ def sendSlackMessage(channel_id, track_id):
     payload_data = {"channel": channel_id, "text": txt}
 
     api = "/api/chat.postMessage"
-    requestSlack("POST", api, payload_data, getItem("slack_access_token"))
+    post_msg = requestSlack("POST", api, payload_data, getItem("slack_access_token"))
     if post_msg["status"] == 200:
         print("Music Time: Slack share succeed !\n", post_msg)
     else:

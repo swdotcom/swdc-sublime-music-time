@@ -765,7 +765,7 @@ class CreatePlaylist(sublime_plugin.WindowCommand):
         newplaylistid = CreateNewPlaylist(providedname)
         if len(newplaylistid) == 22:
             print("playlist created !")
-            current_song_id, current_song_name = getSpotifyTrackId()
+            current_song_id, current_song_name = getSpotifyCurrentTrack()
             print("current_song_id", current_song_id)
             addTrackToPlaylist(current_song_id, newplaylistid, providedname)
 
@@ -822,7 +822,7 @@ class CreateAddPlaylist(sublime_plugin.WindowCommand):
             print("Adding track to existing playlist")
             playlist_name = playlist_items[id]
             playlist_id = playlist_info.get(playlist_name)
-            current_song_id, current_song_name = getSpotifyTrackId()
+            current_song_id, current_song_name = getSpotifyCurrentTrack()
             print("playlist name:", playlist_name, " id:",
                   playlist_id, "current_song_id", current_song_id)
             addTrackToPlaylist(current_song_id, playlist_id,playlist_name)

@@ -7,7 +7,7 @@ SOFTWARE_URL = "https://app.software.com"
 SPOTIFY_API = "https://api.spotify.com"
 SPOTIFY_REFRESH_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_WEB_PLAYER = "https://open.spotify.com"
-SLACK_API = "slack.com"
+SLACK_API = "https://slack.com"
 
 ST3_GITHUB_URL = "https://github.com/swdotcom/music-time-sublime/issues"
 FEEDBACK_MAIL_ID = "mailto:cody@software.com"

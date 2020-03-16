@@ -298,9 +298,9 @@ class ConnectionStatus(sublime_plugin.TextCommand):
 class ConnectSlack(sublime_plugin.TextCommand):
     def run(self, edit):
         launchConnectSlack()
-        getSlackTokens()
-        infoMsg = "Successfully connected to Slack."
-        clickAction = sublime.message_dialog(infoMsg)
+        # getSlackTokens()
+        # infoMsg = "Successfully connected to Slack."
+        # clickAction = sublime.message_dialog(infoMsg)
 
     def is_enabled(self):
         logged_on = getValue("logged_on", True)

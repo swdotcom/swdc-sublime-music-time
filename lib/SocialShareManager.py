@@ -14,7 +14,7 @@ def encodeUrl(url):
     return urllib.parse.quote(url)
 
 
-def getSpotifyTrackId():
+def getSpotifyCurrentTrack():
     try:
         api = "/v1/me/player/currently-playing?" + ACTIVE_DEVICE.get('device_id')
         track = requestSpotify("GET", api, None, getItem('spotify_access_token'))
@@ -28,7 +28,7 @@ def getSpotifyTrackId():
             track_id = track["item"]["id"]
             return track_id, trackname
     except Exception as e:
-        print("getSpotifyTrackId", e)
+        print("getSpotifyCurrentTrack", e)
         pass
 
     return "", ""
@@ -83,7 +83,7 @@ class ShareSong(sublime_plugin.WindowCommand):
                 items[id_1][1], lambda id_2: self.on_done2(id_2, id_1, items))
 
     def on_done2(self, id_2, id_1, items):
-        current_track_id = getSpotifyTrackId()[0]
+        current_track_id = getSpotifyCurrentTrack()[0]
         print("current_track_id", current_track_id)
         if current_track_id:
             # Slack

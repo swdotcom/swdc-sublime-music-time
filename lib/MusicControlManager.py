@@ -135,26 +135,26 @@ def openDesktopPlayer():
 def likeSong(track_id):
     try:
 
-        payload_data1 = {'ids': [track_id]}
-        print("payload_data1",payload_data1)
-        payload1 = json.dumps(payload_data1)
+        # payload_data1 = {'ids': [track_id]}
+        # print("payload_data1",payload_data1)
+        payload1 = json.dumps({'ids': [track_id]})
         print("payload1",payload1)
 
         api = "/v1/me/tracks"
         put_like_url = requestSpotify("PUT", api, payload1, getItem('spotify_access_token'))
-        print("put_like_url",put_like_url)
+        # print("put_like_url",put_like_url)
         if put_like_url["status"] == 200:
             
             #  call the software API PUT `/music/liked/track/${trackId}?type=${type}` with a payload of 
 
-            payload_data2 = {"liked": True}
-            print("payload_data2",payload_data2)
-            payload2 = json.dumps(payload_data2)
+            # payload_data2 = {"liked": True}
+            # print("payload_data2",payload_data2)
+            payload2 = json.dumps({"liked": True})
             print("payload2",payload2)
 
             api = "/music/liked/track/"+ track_id +"?type=spotify"
             swdc_put_like_url = requestIt("PUT", api, payload2, getItem("jwt"))
-            print("swdc_put_like_url",swdc_put_like_url)
+            # print("swdc_put_like_url",swdc_put_like_url)
             if swdc_put_like_url is not None and swdc_put_like_url["status"] == 200:
                 print("Music Time: Song Liked !")
         #     else:
@@ -168,25 +168,25 @@ def likeSong(track_id):
 def unLikeSong(track_id):
     try:
 
-        payload_data1 = {'ids': [track_id]}
-        print("payload_data1",payload_data1)
-        payload1 = json.dumps(payload_data1)
+        # payload_data1 = {'ids': [track_id]}
+        # print("payload_data1",payload_data1)
+        payload1 = json.dumps({'ids': [track_id]})
         print("payload1",payload1)
 
         api = "/v1/me/tracks"
         put_unlike_url = requestSpotify("DELETE", api, payload1, getItem('spotify_access_token'))
-        print("put_unlike_url",put_unlike_url)
+        # print("put_unlike_url",put_unlike_url)
         if put_unlike_url is not None and put_unlike_url["status"] == 200:
             #  call the software API PUT `/music/liked/track/${trackId}?type=${type}` with a payload of 
 
-            payload_data2 = {"liked": False}
-            print("payload_data2",payload_data2)
-            payload2 = json.dumps(payload_data2)
+            # payload_data2 = {"liked": False}
+            # print("payload_data2",payload_data2)
+            payload2 = json.dumps({"liked": False})
             print("payload2",payload2)
 
             api = "/music/liked/track/"+ track_id +"?type=spotify"
             swdc_put_unlike_url = requestIt("PUT", api, payload2, getItem("jwt"))
-            print("swdc_put_unlike_url",swdc_put_unlike_url)
+            # print("swdc_put_unlike_url",swdc_put_unlike_url)
             if swdc_put_unlike_url is not None and swdc_put_unlike_url["status"] == 200:
                 print("Music Time: Song Unliked !")
         #     else:
@@ -198,7 +198,7 @@ def unLikeSong(track_id):
 
 
 def checkLikedSong():
-    track_id = getSpotifyTrackId()[0]
+    track_id = getSpotifyCurrentTrack()[0]
     Liked_songs_ids = getLikedSongsIds()#getLikedSongs()
     print("checkLikedSong Liked_songs_ids",Liked_songs_ids)
     if track_id:
