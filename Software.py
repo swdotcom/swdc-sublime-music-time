@@ -515,7 +515,8 @@ class EventListener(sublime_plugin.EventListener):
 #
 # Iniates the plugin tasks once the it's loaded into Sublime.
 def plugin_loaded():
-    initializeUser()
+    t = Timer(1, initializeUser)
+    t.start()
 
 
 def initializeUser():

@@ -136,6 +136,8 @@ def gatherCodingDataAndSendSongSession(songSession):
     # print("current track: %s" % songSession)
     payloads = getKpmPayloads()
     aggregatedSource = getActiveData()
+    if (aggregatedSource is None):
+        aggregatedSource = {}
 
     # print("current aggregated source: %s" % aggregatedSource)
 
