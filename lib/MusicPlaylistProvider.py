@@ -783,8 +783,7 @@ def CreateNewPlaylist(playlistname):
 
     # "public": True, "description": ""
     json_data = json.dumps({"name": playlistname, })
-    print("json_data :", json_data, "\nheaders :", headers,
-          "\ncreate_playlist_url :", create_playlist_url)
+    print("json_data :", json_data,)
 
     api = "/v1/users/" + spotifyUserId + "/playlists"
     create_playlist = requestSpotify("POST", api, json_data, getItem('spotify_access_token'))
