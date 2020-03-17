@@ -8,6 +8,8 @@ from .SoftwareSettings import *
 from .SoftwareMusic import *
 from .SlackConnectionManager import *
 from .SoftwareHttp import *
+from .PlayerManager import *
+
 
 
 def encodeUrl(url):
@@ -15,18 +17,18 @@ def encodeUrl(url):
 
 
 def getSpotifyCurrentTrack():
+    ACTIVE_DEVICE = getSpotifyActiveDevice()
+    # print("getSpotifyCurrentTrack ACTIVE_DEVICE",ACTIVE_DEVICE)
     try:
         api = "/v1/me/player/currently-playing?" + ACTIVE_DEVICE.get('device_id')
         track = requestSpotify("GET", api, None, getItem('spotify_access_token'))
 
         if track["status"] == 200:
-            # trackname = track.json()['item']['name']
             trackname = track["item"]["name"]
-            # trackstate = track.json()['is_playing']
             trackstate = track["is_playing"]
-            # track_id = track.json()['item']['id']
-            track_id = track["item"]["id"]
-            return track_id, trackname
+            trackid = track["item"]["id"]
+            return trackid, trackname
+    
     except Exception as e:
         print("getSpotifyCurrentTrack", e)
         pass
@@ -87,6 +89,11 @@ class ShareSong(sublime_plugin.WindowCommand):
         print("current_track_id", current_track_id)
         if current_track_id:
             # Slack
+            # slack_channel = getSlackChannels()
+            # print("slack_channel:", slack_channel)
+            # slack_channel_names = list(slack_channel)
+            # print("slack_channel_names:", slack_channel_names)
+
             if id_2 >= 0:
 
                 try:
@@ -130,7 +137,7 @@ class ShareSong(sublime_plugin.WindowCommand):
                 elif share_id == "Twitter":
 
                     twitter_Url = "https://twitter.com/intent/tweet/?text="
-                    Endcoded_msg = encodeUrl("Check out this Song ")
+                    Endcoded_msg = encodeUrl("Check out this track I’m listening to using #MusicTime @software_hq")
                     EncodedURL = encodeUrl(
                         "https://open.spotify.com/track/" + current_track_id)
                     twitter_shareUrl = twitter_Url + Endcoded_msg + \
@@ -141,7 +148,7 @@ class ShareSong(sublime_plugin.WindowCommand):
                 elif share_id == "Whatsapp":
 
                     whatsapp_Url = "https://api.whatsapp.com/send?text="
-                    Endcoded_msg = encodeUrl("Check out this Song ")
+                    Endcoded_msg = encodeUrl("Check out this track I’m listening to using Music Time. Created by Software (www.software.com). ")
                     EncodedURL = encodeUrl(
                         "https://open.spotify.com/track/" + current_track_id)
                     whatsapp_shareUrl = whatsapp_Url + Endcoded_msg + EncodedURL

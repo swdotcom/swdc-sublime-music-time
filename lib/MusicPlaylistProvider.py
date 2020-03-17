@@ -128,7 +128,7 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
         if len(current_playlist_name) > 0:
             listoftracks = getSongsInPlaylist(current_playlist_name)
             if listoftracks == []:
-                return [("It's a bit empty here...","")]
+                return [("Your tracks will appear here.","")]
                 # msg = "a bit empty here"
                 # message_dialog = sublime.message_dialog("This playlist is a bit empty here.")
             else:
@@ -422,7 +422,7 @@ def getTracks(playlist_id):
 def getUserPlaylists():
     global playlist_info
     spotifyUserId = userMeInfo().get('id')
-    print("spotifyUserId: ", spotifyUserId)
+    # print("spotifyUserId: ", spotifyUserId)
     global playlist_data
     '''
     playlist data should be in this form
@@ -431,7 +431,7 @@ def getUserPlaylists():
     '''
     try:
         playlist_info = getUserPlaylistInfo(spotifyUserId)
-        print("List of Playlists: ", playlist_info)
+        # print("List of Playlists: ", playlist_info)
     except Exception as e:
         print("Music Time: getuserPlaylistinfoerror", e)
 
@@ -461,11 +461,10 @@ def getUserPlaylists():
                 # print("got user playlist",k," ",v)
 
         liked_songs = getLikedSongs()
-        if liked_songs != []:
-            playlist_data.append(
-                {'id': '000', 'name': 'Liked songs', 'playlistTypeId': 3, 'songs': liked_songs})
-            print("got liked songs")
-        print("No liked songs")
+        playlist_data.append(
+            {'id': '000', 'name': 'Liked songs', 'playlistTypeId': 3, 'songs': liked_songs})
+        print("got liked songs")
+
         print("No of playlist :", len(playlist_data))
         try:
             sortPlaylistByAz()
@@ -481,7 +480,7 @@ def sortPlaylistByLatest():
     global sortby
     sortby = "time"
 
-    print("got inside loop: playlist_names", playlist_names)
+    # print("got inside loop: playlist_names", playlist_names)
     sec_one = []  # Software top 40 and AI playlist
 
     sec_three = []  # user playlist
@@ -498,12 +497,12 @@ def sortPlaylistByLatest():
         sec_one[0], sec_one[1] = sec_one[1], sec_one[0]
 
     liked_songs = getLikedSongs()
-    if liked_songs != []:
-        sec_two = ["Liked songs"]  # Liked songs
+    # if liked_songs != []:
+    sec_two = ["Liked songs"]  # Liked songs
         # Final list with (1)Software top 40 (2)AI playlist (3)Liked songs (4)user playlist
-        final_list = sec_one + sec_two + sec_three
-    else:
-        final_list = sec_one + sec_three
+    final_list = sec_one + sec_two + sec_three
+    # else:
+        # final_list = sec_one + sec_three
 
     playlist_data = []
     for i in final_list:
@@ -569,7 +568,7 @@ def checkAIPlaylistid():
     # global playlist_info
     spotifyUserId = userMeInfo().get('id')
 
-    print("spotify user id: %s" % spotifyUserId)
+    # print("spotify user id: %s" % spotifyUserId)
 
     # Check for ai_playlist in software backend
     api = "/music/playlist/generated"
@@ -678,7 +677,7 @@ def generateMyAIPlaylist():
                     print("post_uris", post_uris)
                     setValue("ai_playlist", True)
                     message_dialog = sublime.message_dialog(
-                        "AI playlist Generated !")
+                        "My AI Playlist Generated")
 
                 else:
                     print("post_uris failed", post_uris)
@@ -737,7 +736,7 @@ def refreshMyAIPlaylist():
                     print("AI playlist refreshed !")
                     setValue("ai_playlist", True)
                     message_dialog = sublime.message_dialog(
-                        "AI playlist Refreshed !")
+                        "My AI Playlist Refreshed")
                 else:
                     print("Unable to to refresh\n", post_uris)
                     pass

@@ -125,7 +125,7 @@ class RefreshPlaylist(sublime_plugin.TextCommand):
         try:
             getUserPlaylists()
             checkAIPlaylistid()
-            message_dialog = sublime.message_dialog("Playlists Refreshed !")
+            message_dialog = sublime.message_dialog("Your playlists were successfully refreshed")
         except Exception as E:
             print("Music Time: RefreshPlaylist:", E)
 
@@ -137,7 +137,7 @@ class SortAz(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
             sortPlaylistByAz()
-            message_dialog = sublime.message_dialog("Playlists Sorted by A-Z !")
+            message_dialog = sublime.message_dialog("Playlists sorted alphabetically from A-Z")
         except Exception as e:
             print("Music Time: sortPlaylistByAz", e)
 
@@ -148,7 +148,7 @@ class SortLatest(sublime_plugin.TextCommand):
     def run(self, edit):
         try:
             sortPlaylistByLatest()
-            message_dialog = sublime.message_dialog("Playlists Sorted by Latest !")
+            message_dialog = sublime.message_dialog("Playlists sorted by latest created")
         except Exception as e:
             print("Music Time: sortPlaylistbyLatest", e)
 

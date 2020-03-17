@@ -30,16 +30,16 @@
                         "id": "software1"
                     },
                     {
-                        "caption": "Learn More ",
+                        "caption": "Learn more ",
                         "command": "readme_please"
                     },
                     {
                         "command": "submit_issue_github",
-                        "caption": "Submit an Issue on GitHub"
+                        "caption": "Submit an issue on GitHub"
                     },
                     {
                         "command": "submit_feedback",
-                        "caption": "Send Feedback to cody@software.com"
+                        "caption": "Send feedback"
                     },
                     {
                         "caption": "-",
@@ -47,25 +47,25 @@
                     },
                     {
                         "command": "launch_music_time_metrics",
-                        "caption": "Music Time Dashboard"
+                        "caption": "Music Time dashboard"
                     },
                     {
                         "command": "see_web_analytics",
-                        "caption": "See Web Analytics"
+                        "caption": "See web analytics"
                     },
                     {
                         "caption": "-",
                         "id": "software5"
                     },
                     {
-                        "caption": "My Playlists",
+                        "caption": "My playlists",
                         "children": [
                             {
                                 "command": "refresh_playlist",
-                                "caption": "Refresh Playlist"
+                                "caption": "Refresh playlists"
                             },
                             {
-                                "caption": "Sort Playlist",
+                                "caption": "Sort playlists",
                                 "children":[
                                     {
                                         "command": "sort_az",
@@ -79,11 +79,11 @@
                             },
                             {
                                 "command": "open_playlists",
-                                "caption": "Open Playlists"
+                                "caption": "Open playlists"
                             },
                             {
                                 "command": "open_songs",
-                                "caption": "Open Songs"
+                                "caption": "Open songs"
                             },
                             {
                                 "caption": "-",
@@ -91,8 +91,7 @@
                             },
                             {
                                 "command": "like_unlike_song",
-                                "caption": "Like / Unlike Song"
-
+                                "caption": "Like / Unlike current song"
                             },
                             {
                                 "command": "create_add_playlist",
@@ -104,11 +103,11 @@
                             },
                             {
                                 "command": "generate_ai_playlist",
-                                "caption": "Generate My AI Playlist"
+                                "caption": "Generate My AI TOP 40"
                             },
                             {
                                 "command": "refresh_ai_playlist",
-                                "caption": "Refresh My AI Playlist"
+                                "caption": "Refresh My AI TOP 40"
                             },
                             {
                                 "caption": "-",
@@ -116,7 +115,7 @@
                             },
                             {
                                 "command": "connect_slack",
-                                "caption": "Connect Slack"
+                                "caption": "Connect Slack to share a track"
                             },
                             {
                                 "command": "disconnect_slack",
@@ -124,7 +123,7 @@
                             },
                             {
                                 "command": "share_song",
-                                "caption": "Share Song"
+                                "caption": "Share current song"
                             },
 
                         ]

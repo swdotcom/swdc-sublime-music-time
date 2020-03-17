@@ -246,8 +246,8 @@ def getLikedSongsIds():
         tracks = {}
         for i in tracklist['items']:
             ids.append(i['track']['id'])
-            names.append(i['track']['name'])
-            tracks = tuple(zip(names, ids))
+            # names.append(i['track']['name'])
+            # tracks = tuple(zip(names, ids))
         Liked_songs_ids = ids
         # print("Liked_songs_ids",Liked_songs_ids)
         return Liked_songs_ids

@@ -50,14 +50,14 @@ def getSlackTokens():
                 if getauth0['user']['auths'][i]['type'] == "slack":
                     print("slack_auths: ", getauth0['user']['auths'][i])
                     slack_access_token = getauth0['user']['auths'][i]['access_token']
+                    
                     setValue("slack_logged_on", True)
                     setItem("slack_access_token", slack_access_token)
                     print("Music Time: Got slack access token !")
+                    
                     infoMsg = "Successfully connected to Slack."
                     clickAction = sublime.message_dialog(infoMsg)
 
-                    # infoMsg = "Unable to connect slack "
-                    # clickAction = sublime.message_dialog(infoMsg)
     except Exception as e:
         setValue("slack_logged_on", False)
         # print("Music Time: slack token not found in user auths")
@@ -88,12 +88,13 @@ def getSlackChannels():
     api = "/api/conversations.list"
     get_channels = requestSlack("GET", api, None, getItem("slack_access_token"))
     if get_channels["status"] == 200:
+        print("get_channels",get_channels)
         # channels_data = get_channels.json()
         ids = []
         names = []
 
         for i in get_channels["channels"]:
-            #             print("Id:",i['id'],"|" ,"name:",i['name'])
+            #print("Id:",i['id'],"|" ,"name:",i['name'])
             ids.append(i['id'])
             names.append(i['name'])
             channel_list = dict(zip(names, ids))

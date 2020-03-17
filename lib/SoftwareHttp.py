@@ -169,6 +169,7 @@ def requestIt(method, api, payload, jwt, returnJson = True, tries = 0):
 
         api = SOFTWARE_API + "" + api
         resp = executeRequest(method, api, headers, payload)
+        print("resp in requestIt",resp.text)
 
         if (returnJson is None or returnJson is True):
             jsonData = resp.json()
@@ -202,7 +203,6 @@ def executeRequest(method, api, headers, payload):
 
 def isMusicTime():
     plugin = getValue("plugin", "music-time")
-    # print(">><<",plugin)
     if plugin == "music-time":
         return True
     else:

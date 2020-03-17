@@ -134,21 +134,15 @@ def openDesktopPlayer():
 
 def likeSong(track_id):
     try:
-
-        # payload_data1 = {'ids': [track_id]}
-        # print("payload_data1",payload_data1)
         payload1 = json.dumps({'ids': [track_id]})
         print("payload1",payload1)
 
         api = "/v1/me/tracks"
         put_like_url = requestSpotify("PUT", api, payload1, getItem('spotify_access_token'))
-        # print("put_like_url",put_like_url)
+        print("put_like_url",put_like_url)
         if put_like_url["status"] == 200:
             
             #  call the software API PUT `/music/liked/track/${trackId}?type=${type}` with a payload of 
-
-            # payload_data2 = {"liked": True}
-            # print("payload_data2",payload_data2)
             payload2 = json.dumps({"liked": True})
             print("payload2",payload2)
 
@@ -167,9 +161,6 @@ def likeSong(track_id):
 
 def unLikeSong(track_id):
     try:
-
-        # payload_data1 = {'ids': [track_id]}
-        # print("payload_data1",payload_data1)
         payload1 = json.dumps({'ids': [track_id]})
         print("payload1",payload1)
 
@@ -179,8 +170,6 @@ def unLikeSong(track_id):
         if put_unlike_url is not None and put_unlike_url["status"] == 200:
             #  call the software API PUT `/music/liked/track/${trackId}?type=${type}` with a payload of 
 
-            # payload_data2 = {"liked": False}
-            # print("payload_data2",payload_data2)
             payload2 = json.dumps({"liked": False})
             print("payload2",payload2)
 
