@@ -1,4 +1,4 @@
-7w87IxuO7BDcJ3YUqCyMTTimport sublime_plugin
+import sublime_plugin
 import sublime
 
 from .SoftwareHttp import *
