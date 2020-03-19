@@ -104,8 +104,8 @@ class PlaylistInputHandler(sublime_plugin.ListInputHandler):
         global playlist_id
         current_playlist_name = value
         playlist_id = playlist_info.get(current_playlist_name)
-        print("current_playlist_name:", current_playlist_name,
-              "\nPlaylist_id", playlist_id)
+        # print("current_playlist_name:", current_playlist_name,
+              # "\nPlaylist_id", playlist_id)
 
     def next_input(self, args):
         return SongInputHandler()
@@ -164,7 +164,7 @@ def getPlaylists():
     playlists = []
     for playlist in playlist_data:
         playlists.append(playlist.get("name"))
-    print('playlists', playlists)
+    # print('playlists', playlists)
     return playlists
 
 
@@ -172,7 +172,7 @@ def getSongsInPlaylist(playlist_name):
     global playlist_data
     for playlist in playlist_data:
         if playlist.get("name") == playlist_name:
-            print('playlist.get("songs")',playlist.get("songs"))
+            # print('playlist.get("songs")',playlist.get("songs"))
             return playlist.get("songs")
 
 
@@ -193,11 +193,11 @@ def playThisSong(currentDeviceId, track_id):
 
     else:
 
-        print(Liked_songs_ids)
+        # print(Liked_songs_ids)
         uris_list = []
         for song_id in Liked_songs_ids:
             uris_list.append("spotify:track:"+song_id)
-        print("uris_list", uris_list)
+        # print("uris_list", uris_list)
 
         track_index = uris_list.index("spotify:track:" + track_id)
         print("track_index", track_index)
@@ -212,9 +212,8 @@ def playThisSong(currentDeviceId, track_id):
         try:
             print("track_id", track_id)
             # data = {"uris": ["spotify:track:" + track_id]}
-            data = {"uris": uris_list, "offset": {
-                "position": track_index}}  # {"position": 5}
-            payload = json.dumps(data)
+            # data = {"uris": uris_list, "offset": {"position": track_index}}  # {"position": 5}
+            payload = json.dumps({"uris": uris_list, "offset": {"position": track_index}})
             print("payload", payload)
             print("currentDeviceId", currentDeviceId)
 
@@ -225,7 +224,7 @@ def playThisSong(currentDeviceId, track_id):
 
                 if msg is 1:
                     webbrowser.open("https://open.spotify.com/")
-                    time.sleep(3)
+                    time.sleep(5)
                     try:
                         devices = getSpotifyDevice()
                         print("Launch Web Player:devices", devices)
@@ -236,7 +235,7 @@ def playThisSong(currentDeviceId, track_id):
                         ACTIVE_DEVICE = {}
                         ACTIVE_DEVICE['device_id'] = device_id
                         print(ACTIVE_DEVICE)
-                        transferPlayback(device_id)
+                        transferPlayback(device_id,True)
                         currentDeviceId = device_id
                         time.sleep(1)
                     except Exception as e:
@@ -254,7 +253,7 @@ def playThisSong(currentDeviceId, track_id):
                         ACTIVE_DEVICE = {}
                         ACTIVE_DEVICE['device_id'] = device_id
                         print(ACTIVE_DEVICE)
-                        transferPlayback(device_id)
+                        transferPlayback(device_id,True)
                         currentDeviceId = device_id
                         time.sleep(1)
                     except Exception as e:
@@ -264,7 +263,7 @@ def playThisSong(currentDeviceId, track_id):
 
             api = "/v1/me/player/play?device_id=" + currentDeviceId
             plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
-            print(plays)
+            # print(plays)
         except Exception as e:
             print("playThisSong", e)
     currentTrackInfo()
@@ -287,8 +286,12 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
         pass
 
     else:
+        # if currentDeviceId == None:
+        #     ACTIVE_DEVICE = getSpotifyActiveDevice()
+        print("playSongFromPlaylistACTIVE_DEVICE",ACTIVE_DEVICE)
+        available_devices = getSpotifyDevice() #[0]['device_id']
 
-        if currentDeviceId == None:
+        if currentDeviceId == None or len(available_devices) == 0:# or ACTIVE_DEVICE == {}:
 
             msg = sublime.yes_no_cancel_dialog(
                 "Launch a Spotify device", "Web player", "Desktop player")
@@ -306,7 +309,7 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
                     ACTIVE_DEVICE = {}
                     ACTIVE_DEVICE['device_id'] = device_id
                     print(ACTIVE_DEVICE)
-                    transferPlayback(device_id)
+                    transferPlayback(device_id,True)
                     currentDeviceId = device_id
                     time.sleep(3)
                 except Exception as e:
@@ -324,14 +327,22 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
                     ACTIVE_DEVICE = {}
                     ACTIVE_DEVICE['device_id'] = device_id
                     print(ACTIVE_DEVICE)
-                    transferPlayback(device_id)
+                    transferPlayback(device_id,True)
                     currentDeviceId = device_id
                     time.sleep(3)
                 except Exception as e:
                     print("Launch Desktop Player Error", e)
             else:
                 pass
-
+        else:
+            if ACTIVE_DEVICE:
+                currentDeviceId = ACTIVE_DEVICE.get('device_id')
+            else:
+                currentDeviceId = getSpotifyDevice()[0]['device_id']
+            # print("available_device",available_device)
+            # currentDeviceId = available_device
+                transferPlayback(currentDeviceId,False)
+ 
         # print("device",playstr)
         data = {}
         try:
@@ -342,7 +353,7 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
 
             api = "/v1/me/player/play?device_id=" + currentDeviceId
             plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
-            print(plays)
+            # print(plays)
         except Exception as e:
             print("playSongFromPlaylist", e)
     currentTrackInfo()
@@ -364,7 +375,7 @@ def getLikedSongs():
             names.append(i['track']['name'])
             tracks = tuple(zip(names, ids))
         Liked_songs_ids = ids
-        print("Liked_songs_ids", Liked_songs_ids)
+        # print("Liked_songs_ids", Liked_songs_ids)
     else:
         tracks = []
 #             tracks = dict(zip(names,ids))
@@ -573,10 +584,10 @@ def checkAIPlaylistid():
     # Check for ai_playlist in software backend
     api = "/music/playlist/generated"
     get_ai_playlistid = requestIt("GET", api, None, getItem("jwt"))
-    print("get_ai_playlistid: %s" % get_ai_playlistid)
+    # print("get_ai_playlistid: %s" % get_ai_playlistid)
     if get_ai_playlistid is not None and get_ai_playlistid["status"] == 200:
         # get_ai_playlistid_data = get_ai_playlistid.json()
-        print("get_ai_playlistid_data\n", get_ai_playlistid)
+        # print("get_ai_playlistid_data\n", get_ai_playlistid)
         if len(get_ai_playlistid) > 0:
             backend_ai_playlistid = get_ai_playlistid[0]['playlist_id']
             print("backend_ai_playlistid : ", backend_ai_playlistid)
@@ -634,12 +645,12 @@ def generateMyAIPlaylist():
 
     data = {"name": AI_PLAYLIST_NAME, "public": True, "description": ""}
     json_data = json.dumps(data)
-    print("json_data :", json_data, "\nheaders :", headers,
-          "\ncreate_playlist_url :", create_playlist_url)
+    # print("json_data :", json_data, "\nheaders :", headers,
+          # "\ncreate_playlist_url :", create_playlist_url)
 
     api = "/v1/users/" + spotifyUserId + "/playlists"
     create_my_ai_playlist = requestSpotify("POST", api, json_data, getItem('spotify_access_token'))
-    print("create_my_ai_playlist : %s", create_my_ai_playlist)
+    # print("create_my_ai_playlist : %s", create_my_ai_playlist)
 
     if create_my_ai_playlist["status"] >= 200:
         # print("create_my_ai_playlist :", create_my_ai_playlist)
@@ -654,13 +665,13 @@ def generateMyAIPlaylist():
         update_playlist = requestIt("POST", api, json_data, getItem("jwt"))
 
         if update_playlist is not None and update_playlist["status"] >= 200:
-            print("update_playlist id to software backend :", update_playlist)
+            # print("update_playlist id to software backend :", update_playlist)
 
             api = "/music/recommendations?limit=40"
             get_recommends = requestIt("GET", api, None, getItem("jwt"))
 
             if get_recommends is not None and get_recommends["status"] >= 200:
-                print("get_recommends :\n", get_recommends)
+                # print("get_recommends :\n", get_recommends)
                 # recommends_song_list = get_recommends.json()
                 uris_list = []
                 for i in range(len(get_recommends)):
@@ -701,7 +712,7 @@ def refreshMyAIPlaylist():
     api = "/music/recommendations?limit=40"
     get_recommends = requestIt("GET", api, None, getItem("jwt"))
 
-    print("get_recommends: %s" % get_recommends)
+    # print("get_recommends: %s" % get_recommends)
     if get_recommends is not None and get_recommends["status"] >= 200:
         # recommends_song_list = get_recommends.json()
         uris_list = []
@@ -738,7 +749,7 @@ def refreshMyAIPlaylist():
                     message_dialog = sublime.message_dialog(
                         "My AI Playlist Refreshed")
                 else:
-                    print("Unable to to refresh\n", post_uris)
+                    print("Unable to to refresh\n")
                     pass
 
             else:

@@ -19,7 +19,7 @@ from .SoftwareHttp import *
 
 # Song's Controls: Play
 def playSong():
-    global active_device
+    global ACTIVE_DEVICE
 
     # getActiveDeviceInfo()
     # print("isMac",isMac(),'|',userTypeInfo())
@@ -28,16 +28,16 @@ def playSong():
         currentTrackInfo()
         print("desktop player Working")
     else:
-        active_device = getSpotifyActiveDevice()
+        ACTIVE_DEVICE = getSpotifyActiveDevice()
 
-        if active_device == {}:
+        if ACTIVE_DEVICE == {}:
             current_window = sublime.active_window()
             current_window.run_command("select_player")
 
         api = "/v1/me/player/play?" + ACTIVE_DEVICE.get('device_id')
         plays = requestSpotify("PUT", api, None, getItem('spotify_access_token'))
         # print(plays["status"])
-        print("Web player Working | Playing ... ", plays["status"], "|",plays)
+        print("Web player Working | Playing ... ", )
     currentTrackInfo()
 
 
@@ -53,7 +53,7 @@ def pauseSong():
     else:
         api = "/v1/me/player/pause?" + ACTIVE_DEVICE.get('device_id')
         pause = requestSpotify("PUT", api, None, getItem('spotify_access_token'))
-        print("Web player Working | Paused ...", pause["status"], "|",pause)
+        print("Web player Working | Paused ...",)
     currentTrackInfo()
 
 
@@ -68,7 +68,7 @@ def nextSong():
     else:
         api = "/v1/me/player/next?" + ACTIVE_DEVICE.get('device_id')
         nxt = requestSpotify("POST", api, None, getItem('spotify_access_token'))
-        print("Web player Working | Next ...", nxt["status"], "|",nxt)
+        print("Web player Working | Next ...")
     currentTrackInfo()
 
 # Song's Controls: Previous
@@ -82,8 +82,7 @@ def previousSong():
     else:
         api = "/v1/me/player/previous?" + ACTIVE_DEVICE.get('device_id')
         nxt = requestSpotify("POST", api, None, getItem('spotify_access_token'))
-        print("Web player Working | previous ...", prev["status"], "|",prev)
-        # showStatus("▶️ "+currentTrackInfo()[0])# if currentTrackInfo()[1] is True else print("Paused",currentTrackInfo()[0])
+        print("Web player Working | previous ...")
     currentTrackInfo()
 
 # Launch Spotify player
@@ -139,7 +138,7 @@ def likeSong(track_id):
 
         api = "/v1/me/tracks"
         put_like_url = requestSpotify("PUT", api, payload1, getItem('spotify_access_token'))
-        print("put_like_url",put_like_url)
+        # print("put_like_url",put_like_url)
         if put_like_url["status"] == 200:
             
             #  call the software API PUT `/music/liked/track/${trackId}?type=${type}` with a payload of 

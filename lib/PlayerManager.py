@@ -308,7 +308,7 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                 # time.sleep(5)
                 # Get the device id to transfer the playback
                 try:
-                    transferPlayback(device_id)
+                    transferPlayback(device_id,True)
                     time.sleep(1)
                     # global ACTIVE_DEVICE
                     ACTIVE_DEVICE = {}
@@ -324,7 +324,7 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                 ACTIVE_DEVICE = {}
                 ACTIVE_DEVICE['device_name'] = device
                 ACTIVE_DEVICE['device_id'] = device_id
-                transferPlayback(device_id)
+                transferPlayback(device_id,True)
                 print("ACTIVE_DEVICE", ACTIVE_DEVICE)
                 currentTrackInfo()
 
@@ -335,18 +335,19 @@ class SelectPlayer(sublime_plugin.WindowCommand):
         return (getValue("logged_on", True) is True)
 
 
-def transferPlayback(deviceid):
+def transferPlayback(deviceid,to_play):
     # https://api.spotify.com/v1/me/player
-    payload = json.dumps({"device_ids": [deviceid], "play": True})
+    payload = json.dumps({"device_ids": [deviceid], "play": to_play})
     print("payload for transfer device:", payload)
 
     api = "/v1/me/player"
     transfer = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
+    # print(transfer)
     if transfer["status"] == 204:
         print("playback transferred to device_id", deviceid)
         # time.sleep(5)
     else:
-        print(transfer)
+        print("transfer error",deviceid)
 
 
 def getNonWebPlayerId(device_list):

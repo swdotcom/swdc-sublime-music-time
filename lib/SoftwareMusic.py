@@ -26,7 +26,7 @@ def getMusicTimedashboard():
     if resp["status"] == 200:
         print("Music Time: launching MusicTime.txt")
     else:
-        print('getMusicTimedashboard error\n', resp)
+        print('getMusicTimedashboard error\n')
 
     file = getDashboardFile()
     with open(file, 'w', encoding='utf-8') as f:

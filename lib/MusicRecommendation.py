@@ -1,4 +1,4 @@
-import sublime_plugin
+7w87IxuO7BDcJ3YUqCyMTTimport sublime_plugin
 import sublime
 
 from .SoftwareHttp import *
@@ -180,7 +180,7 @@ class SongsInputHandler(sublime_plugin.ListInputHandler):
         current_track = value
         print("current_track_id", current_track)
         if len(current_track) != 0: 
-
+            print("ACTIVE_DEVICE playRecommendationTrack", ACTIVE_DEVICE)
             playRecommendationTrack(ACTIVE_DEVICE.get('device_id'), current_track)
         else:
             pass
@@ -293,7 +293,7 @@ def getRecommendationsTracks(value):
         for i, j in enumerate(response['tracks']):
             tracks.append((j['name'], j['id']))
     else:
-        print(response)
+        # print(response)
         return []
 
     return tracks
@@ -394,7 +394,7 @@ def playRecommendationTrack(currentDeviceId, track_id):
 
             api = "/v1/me/player/play?device_id=" + currentDeviceId
             plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
-            print(plays)
+            # print(plays)
         except Exception as e:
             print("playThisSong", e)
     currentTrackInfo()
