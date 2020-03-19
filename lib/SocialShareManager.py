@@ -8,6 +8,7 @@ from .SoftwareUtil import *
 from .SoftwareSettings import *
 from .SoftwareMusic import *
 from .SlackConnectionManager import *
+from .PlayerManager import *
 
 
 def encodeUrl(url):
@@ -15,6 +16,7 @@ def encodeUrl(url):
 
 
 def getSpotifyTrackId():
+    ACTIVE_DEVICE = getSpotifyActiveDevice()
     try:
         headers = {"Authorization": "Bearer {}".format(
             getItem('spotify_access_token'))}
