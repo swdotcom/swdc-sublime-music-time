@@ -91,7 +91,7 @@
                             },
                             {
                                 "command": "like_unlike_song",
-                                "caption": "Like / Unlike current song"
+                                "caption": "Like current song"
                             },
                             {
                                 "command": "create_add_playlist",
@@ -148,7 +148,7 @@
                         "caption": "-",
                         "id": "software4"
                     },
-                    {   "caption": "Songs Controls",
+                    {   "caption": "Control music",
                         "children": [
                             {
                                 "command": "play_song",
