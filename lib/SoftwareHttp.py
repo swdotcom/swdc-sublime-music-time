@@ -173,8 +173,14 @@ def requestIt(method, api, payload, jwt, returnJson = True, tries = 0):
 
         if (returnJson is None or returnJson is True):
             jsonData = resp.json()
-            jsonData['status'] = resp.status_code
-            print("APP reponse for api %s %s" % (api, jsonData["status"]))
+            print("jsonData requestIt",jsonData,"type of jsondata",type(jsonData))
+            if str(type(jsonData)) == "<class 'list'>":
+                print("respn obj type list found")
+                jsonData.insert(0,resp.status_code)
+                print("APP reponse for api %s %s" % (api, jsonData[0]))
+            else:
+                jsonData['status'] = resp.status_code
+                print("APP reponse for api %s %s" % (api, jsonData["status"]))
             return jsonData
         else:
             jsonText = resp.text

@@ -585,11 +585,11 @@ def checkAIPlaylistid():
     api = "/music/playlist/generated"
     get_ai_playlistid = requestIt("GET", api, None, getItem("jwt"))
     print("get_ai_playlistid: %s" % get_ai_playlistid)
-    if get_ai_playlistid is not None and get_ai_playlistid["status"] == 200:
+    if get_ai_playlistid is not None and get_ai_playlistid[0] == 200:
         # get_ai_playlistid_data = get_ai_playlistid.json()
         print("get_ai_playlistid_data\n", get_ai_playlistid)
-        if len(get_ai_playlistid) > 0:
-            backend_ai_playlistid = get_ai_playlistid[0]['playlist_id']
+        if len(get_ai_playlistid) > 1:
+            backend_ai_playlistid = get_ai_playlistid[1]['playlist_id']
             print("backend_ai_playlistid : ", backend_ai_playlistid)
 
             playlist_info = {}
