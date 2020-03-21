@@ -105,6 +105,7 @@ def requestSpotify(method, api, payload, spotify_access_token, tries = 0, allowR
     try:
         api = SPOTIFY_API + "" + api
         resp = executeRequest(method, api, headers, payload)
+        # print("resp in requestSpotify",resp.status_code,"|")
 
         if (resp is not None and resp.status_code is not None):
             print("requestSpotify: reponse for api %s %s" % (api, resp.status_code))

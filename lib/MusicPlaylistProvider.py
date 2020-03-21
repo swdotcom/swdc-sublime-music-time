@@ -459,7 +459,6 @@ def getUserPlaylists():
             if "Software" in k:
                 playlist_data.append(
                     {'id': v, 'name': k, 'playlistTypeId': 1, 'songs': getTracks(v)})
-                # print("got software",k," ",v)
 
             elif v == AI_PLAYLIST_ID or k == AI_PLAYLIST_NAME:
                 playlist_data.append(
@@ -470,6 +469,10 @@ def getUserPlaylists():
                 playlist_data.append(
                     {'id': v, 'name': k, 'playlistTypeId': 4, 'songs': getTracks(v)})
                 # print("got user playlist",k," ",v)
+
+        if "Software Top 40" not in list(playlist_info.keys()): #SOFTWARE_TOP_40
+            playlist_data.append(
+                    {'id': SOFTWARE_TOP_40, 'name': "Software Top 40", 'playlistTypeId': 1, 'songs': getTracks(SOFTWARE_TOP_40)})
 
         liked_songs = getLikedSongs()
         playlist_data.append(
@@ -492,26 +495,30 @@ def sortPlaylistByLatest():
     sortby = "time"
 
     # print("got inside loop: playlist_names", playlist_names)
-    sec_one = []  # Software top 40 and AI playlist
-
-    sec_three = []  # user playlist
+    sec_one = []    # Software top 40  
+    sec_two = []    # AI playlist
+    sec_three = []  # Liked
+    sec_four = []  # User playlist
     for k in playlist_names:
         if k == "Software Top 40":
             sec_one.append(k)
         elif k == "My AI Top 40":
-            sec_one.append(k)
+            sec_two.append(k)
         else:
-            sec_three.append(k)
+            sec_four.append(k)
 
-    if len(sec_one) == 2:
-        # Swapping (1)Software top 40 (2)AI playlist
-        sec_one[0], sec_one[1] = sec_one[1], sec_one[0]
+    if len(sec_one) == 0:
+        sec_one.append("Software Top 40")
+
+    # if len(sec_one) == 2:
+    #     # Swapping (1)Software top 40 (2)AI playlist
+    #     sec_one[0], sec_one[1] = sec_one[1], sec_one[0]
 
     liked_songs = getLikedSongs()
     # if liked_songs != []:
-    sec_two = ["Liked songs"]  # Liked songs
+    sec_three = ["Liked songs"]  # Liked songs
         # Final list with (1)Software top 40 (2)AI playlist (3)Liked songs (4)user playlist
-    final_list = sec_one + sec_two + sec_three
+    final_list = sec_one + sec_two + sec_three + sec_four
     # else:
         # final_list = sec_one + sec_three
 
@@ -519,9 +526,10 @@ def sortPlaylistByLatest():
     for i in final_list:
 
         if i == "Software Top 40":
-            #         playlist_data[0] = {'id':playlist_info.get(i),'name':i,'playlistTypeId': 1,'songs': getTracks(playlist_info.get(i))}
-            playlist_data.append({'id': playlist_info.get(
-                i), 'name': i, 'playlistTypeId': 1, 'songs': getTracks(playlist_info.get(i))})
+            playlist_data.append({'id': SOFTWARE_TOP_40, 'name': i, 'playlistTypeId': 1, 'songs': getTracks(SOFTWARE_TOP_40)})
+        # elif "Software Top 40" not in final_list: #SOFTWARE_TOP_40
+            # playlist_data.append({'id': SOFTWARE_TOP_40, 'name': i, 'playlistTypeId': 1, 'songs': getTracks(SOFTWARE_TOP_40)})
+
         elif i == "My AI Top 40" or i == AI_PLAYLIST_NAME:
             #         playlist_data[1] = {'id':playlist_info.get(i),'name':i,'playlistTypeId': 1,'songs': getTracks(playlist_info.get(i))}
             playlist_data.append({'id': playlist_info.get(
@@ -625,9 +633,7 @@ def checkAIPlaylistid():
                 print("AI_PLAYLIST_ID :", AI_PLAYLIST_ID)
                 # Enable Refresh AI button
                 setValue("ai_playlist", True)
-
         else:
-
             AI_PLAYLIST_ID = ""
             # Enable Generate AI button
             print(getValue("ai_playlist", False))
@@ -855,8 +861,8 @@ def addTrackToPlaylist(trackid, playlistid, play_list_name):
         sublime.message_dialog(msg)
         getUserPlaylists()
     else:
-        # msg = resp.json()['error']['message']
-        msg = resp['error']['message']
+        msg = "Please select a track before adding to playlist."
+        # msg = resp['error']['message']
         print("failed", msg)
         msg_body = "Unable to add track.\n"+msg
         sublime.message_dialog(msg_body)

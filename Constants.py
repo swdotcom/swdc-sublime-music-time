@@ -38,5 +38,5 @@ DEFAULT_DURATION = 60
 PROJECT_DIR = None
 check_online_interval_sec = 60 * 10
 retry_counter = 0
-
+SOFTWARE_TOP_40 = "6jCkTED0V5NEuM8sKbGG1Z"
 # 
