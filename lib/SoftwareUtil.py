@@ -20,7 +20,7 @@ from ..Constants import *
 from .SoftwareHttp import *
 from .SoftwareSettings import *
 from ..Software import *
-from .MusicPlaylistProvider import *
+# from .MusicPlaylistProvider import *
 
 
 runningResourceCmd = False
@@ -717,8 +717,12 @@ def getAuthInfo():
                 message_dialog = sublime.message_dialog("Your Spotify account is now connected")
                 setValue("logged_on", True)
                 showStatus("Spotify Connected")
-                checkAIPlaylistid()
-                getUserPlaylists()
+                try:
+                    checkAIPlaylistid()
+                    getUserPlaylists()
+                except Exception as E:
+                    print("get Auth info checkAIPlaylistid",E)
+                
                 return authinfo
             else:
                 print("STATE_NOT_FOUND")

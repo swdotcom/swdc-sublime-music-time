@@ -104,6 +104,7 @@ class PlaylistInputHandler(sublime_plugin.ListInputHandler):
         global playlist_id
         current_playlist_name = value
         playlist_id = playlist_info.get(current_playlist_name)
+
         # print("current_playlist_name:", current_playlist_name,
               # "\nPlaylist_id", playlist_id)
 
@@ -161,7 +162,11 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
 
 
 def getPlaylists():
+    global playlist_data
     playlists = []
+    if playlist_data == []:
+        getUserPlaylists()
+        checkAIPlaylistid()
     for playlist in playlist_data:
         playlists.append(playlist.get("name"))
     # print('playlists', playlists)
@@ -170,6 +175,10 @@ def getPlaylists():
 
 def getSongsInPlaylist(playlist_name):
     global playlist_data
+    print("getSongsInPlaylist: playlist_data",len(playlist_data))
+    # if playlist_data == []:
+        # getUserPlaylists()
+        # checkAIPlaylistid()
     for playlist in playlist_data:
         if playlist.get("name") == playlist_name:
             # print('playlist.get("songs")',playlist.get("songs"))
@@ -386,7 +395,7 @@ def getLikedSongs():
 def getUserPlaylistInfo(spotifyUserId):
     global playlist_names
 
-    api = "/v1/users/" + spotifyUserId + "/playlists"
+    api = "/v1/users/" + spotifyUserId + "/playlists" +"?offset=0&limit=50"
     playlist = requestSpotify("GET", api, None, getItem('spotify_access_token'))
     try:
         if playlist["status"] == 200:
