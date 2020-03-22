@@ -113,11 +113,13 @@ def getSpotifyTrackInfo():
         isLiked = check_liked_songs(track_id)
         # print("Liked_songs_ids:",Liked_songs_ids,"\nisLiked:",isLiked)
 
-        if trackState == True:
-            showStatus("Now Playing "+str(trackInfoName) + isLiked)
-            # print("Playing "+trackinfo)
-        else:
-            showStatus("Paused "+str(trackInfoName) + isLiked)
+        # if trackState == True:
+        #     print("getSpotifyTrackInfo")
+        #     showStatus("Now Playing "+str(trackInfoName) + isLiked)
+        #     # print("Playing "+trackinfo)
+        # else:
+        #     print("getSpotifyTrackInfo")
+        #     showStatus("Paused "+str(trackInfoName) + isLiked)
             # print("Paused "+trackinfo)
 
     elif track is not None and track.get("status", 0) == 401:
@@ -299,20 +301,18 @@ def currentTrackInfo():
             if track is not None and track["status"] == 200:
                 # trackinfo = track.json()['item']['name']
                 trackInfo = track["item"]["name"]
-                # trackstate = track.json()['is_playing']
                 trackState = track["is_playing"]
-                # track_id = track.json()['item']['id']
                 track_id = track["item"]["id"]
                 current_track_id = track_id
                 # print("current_track_id",current_track_id)
                 isLiked = check_liked_songs(track_id)
                 # print("Liked_songs_ids:",Liked_songs_ids,"\nisLiked:",isLiked) 
 
-                if trackstate == True:
-                    showStatus("Now Playing "+str(trackinfo) + isLiked)
+                if trackState == True:
+                    showStatus("Now Playing "+str(trackInfo) + isLiked)
                     # print("Playing "+trackinfo)
                 else:
-                    showStatus("Paused "+str(trackinfo) + isLiked)
+                    showStatus("Paused "+str(trackInfo) + isLiked)
                     # print("Paused "+trackinfo)
 
             elif track["status"] == 401:
@@ -328,7 +328,7 @@ def currentTrackInfo():
         #     print('Music Time: currentTrackInfo', e)
         #     showStatus("Spotify Connected. No Active device found.")
         except Exception as ex:
-            print('Music Time: currentTrackInfo ConnectionError')
+            print('Music Time: currentTrackInfo ConnectionError\n',ex)
             showStatus("Spotify Connected")
             time.sleep(5)
             pass

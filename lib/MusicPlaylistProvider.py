@@ -717,23 +717,31 @@ def refreshMyAIPlaylist():
 
     api = "/music/recommendations?limit=40"
     get_recommends = requestIt("GET", api, None, getItem("jwt"))
-
+    print("refreshMyAIPlaylist get_recommends 1",)
     # print("get_recommends: %s" % get_recommends)
-    if get_recommends is not None and get_recommends["status"] >= 200:
+    if get_recommends is not None and get_recommends[0] == 200:
         # recommends_song_list = get_recommends.json()
+        print("refreshMyAIPlaylist get_recommends 2",)
         uris_list = []
-        for i in range(len(get_recommends)):
-            uris_list.append(get_recommends[i]['uri'])
+        # for i in range(len(get_recommends)):
+            # uris_list.append(get_recommends[i]['uri'])
+        # print("get_recommends >>>>>>>>>>>>>>>>>>>\n",get_recommends,"\n<<<<<<<<<<<<<<<<<<<<<<<<<<")
+        try:
+            for i in get_recommends:
+                if type(i) != int:
+                    uris_list.append(i['uri'])
+        except Exception as E:
+            print("uris_list building error", E)
 
         # wipe out the old track uris
-        uris_data = {"uris": uris_list}
-        json_data = json.dumps(uris_data)
+        # uris_data = {"uris": uris_list}
+        json_data = json.dumps({"uris": uris_list})
 
         api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
         wipe_uris = requestSpotify("PUT", api, json_data, getItem('spotify_access_token'))
-
+        print("refreshMyAIPlaylist get_recommends 3",)
         if wipe_uris["status"] >= 200:
-            # print("wipe_uris", wipe_uris)
+            print("refreshMyAIPlaylist get_recommends 4",)
 
             api = "/music/recommendations?limit=40"
             get_recommends = requestIt("GET", api, None, getItem("jwt"))
@@ -749,6 +757,7 @@ def refreshMyAIPlaylist():
 
                 api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
                 post_uris = requestIt("POST", api, json_data, getItem("jwt"))
+                
                 if post_uris is not None and post_uris["status"] >= 200:
                     print("AI playlist refreshed !")
                     setValue("ai_playlist", True)
