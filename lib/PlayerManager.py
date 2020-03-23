@@ -155,6 +155,7 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                 #     is_desktop = False
 
                 else:
+                    
                     print("when device is not active")
                     for i in items:
                         new_items.append(("Available on "+i[0], [i[1][0]]))
@@ -267,25 +268,6 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                         # currentTrackInfo()
                     except Exception as e:
                         print("Launch Desktop Player Error", e)
-                        # If desktop player didn't work. launch Web player
-                        # print(
-                        #     "Desktop player not found. Opening Web player ...Error:")
-                        # webbrowser.open("https://open.spotify.com/")
-                        # time.sleep(5)
-
-                        # try:
-                        #     devices = getSpotifyDevice()
-                        #     print("Launch Web Player:devices", devices)
-
-                        #     device_id = getWebPlayerId(devices)
-                        #     print("Launch Web Player:device_id", device_id)
-
-                        #     ACTIVE_DEVICE = {}
-                        #     ACTIVE_DEVICE['device_id'] = device_id
-                        #     print(ACTIVE_DEVICE)
-                        #     # currentTrackInfo()
-                        # except Exception as e:
-                        #     print("Launch Web Player", e)
 
                 # If user selects web player to launch
                 elif device == "Launch Web Player":

@@ -104,9 +104,9 @@ class PlaylistInputHandler(sublime_plugin.ListInputHandler):
         global playlist_id
         current_playlist_name = value
         playlist_id = playlist_info.get(current_playlist_name)
-
-        # print("current_playlist_name:", current_playlist_name,
-              # "\nPlaylist_id", playlist_id)
+        
+        print("current_playlist_name:", current_playlist_name,
+              "\nPlaylist_id", playlist_id)
 
     def next_input(self, args):
         return SongInputHandler()
@@ -181,7 +181,8 @@ def getSongsInPlaylist(playlist_name):
         # checkAIPlaylistid()
     for playlist in playlist_data:
         if playlist.get("name") == playlist_name:
-            # print('playlist.get("songs")',playlist.get("songs"))
+            # print('playlist.get("songs")--------',playlist.get("songs"))
+            # print
             return playlist.get("songs")
 
 
@@ -300,10 +301,12 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
         print("playSongFromPlaylistACTIVE_DEVICE",ACTIVE_DEVICE)
         available_devices = getSpotifyDevice() #[0]['device_id']
 
-        if currentDeviceId == None or len(available_devices) == 0:# or ACTIVE_DEVICE == {}:
+        # if currentDeviceId == None or len(available_devices) == 0:# or 
+        if ACTIVE_DEVICE == {}:
 
             msg = sublime.yes_no_cancel_dialog(
                 "Launch a Spotify device", "Web player", "Desktop player")
+            
 
             if msg is 1:
                 webbrowser.open("https://open.spotify.com/")
@@ -346,6 +349,7 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
         else:
             if ACTIVE_DEVICE:
                 currentDeviceId = ACTIVE_DEVICE.get('device_id')
+                
             else:
                 currentDeviceId = getSpotifyDevice()[0]['device_id']
             # print("available_device",available_device)
@@ -451,9 +455,14 @@ def getUserPlaylists():
     '''
     try:
         playlist_info = getUserPlaylistInfo(spotifyUserId)
-        # print("List of Playlists: ", playlist_info)
+        # print("List of Playlists:>>>>>>>>\n ", playlist_info)
     except Exception as e:
         print("Music Time: getuserPlaylistinfoerror", e)
+
+    check_for_swdc40 = [key for key, value in playlist_info.items() if value == "6jCkTED0V5NEuM8sKbGG1Z"]
+    if len(check_for_swdc40) == 0:
+        print("Software top 40 not found. Adding to playlist ...")
+        playlist_info["Software Top 40"] = "6jCkTED0V5NEuM8sKbGG1Z"
 
     if sortby == "time":
         # Sort by latest
@@ -665,11 +674,12 @@ def generateMyAIPlaylist():
 
     api = "/v1/users/" + spotifyUserId + "/playlists"
     create_my_ai_playlist = requestSpotify("POST", api, json_data, getItem('spotify_access_token'))
-    # print("create_my_ai_playlist : %s", create_my_ai_playlist)
-
-    if create_my_ai_playlist["status"] >= 200:
+    print("create_ai_0",)
+    # print("create_my_ai_playlist : %s", create_my_ai_playlist
+    print("create_my_ai_playlist"," <> ",type(create_my_ai_playlist)," <> ",len(create_my_ai_playlist))
+    if create_my_ai_playlist["status"] >= 200 or create_my_ai_playlist[0] == 200:
         # print("create_my_ai_playlist :", create_my_ai_playlist)
-        # response = create_my_ai_playlist.json()
+        print("create_ai_1",)
         AI_PLAYLIST_ID = create_my_ai_playlist['id']
 
         data = {"playlist_id": AI_PLAYLIST_ID,
