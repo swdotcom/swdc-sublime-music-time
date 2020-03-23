@@ -674,13 +674,13 @@ def generateMyAIPlaylist():
 
     api = "/v1/users/" + spotifyUserId + "/playlists"
     create_my_ai_playlist = requestSpotify("POST", api, json_data, getItem('spotify_access_token'))
-    print("create_ai_0",)
+    print("create_ai_0","type",type(create_my_ai_playlist))
     # print("create_my_ai_playlist : %s", create_my_ai_playlist
-    print("create_my_ai_playlist"," <> ",type(create_my_ai_playlist)," <> ",len(create_my_ai_playlist))
-    if create_my_ai_playlist["status"] >= 200 or create_my_ai_playlist[0] == 200:
+    if create_my_ai_playlist["status"] >= 200: #create_my_ai_playlist[0] == 200: or 
         # print("create_my_ai_playlist :", create_my_ai_playlist)
         print("create_ai_1",)
         AI_PLAYLIST_ID = create_my_ai_playlist['id']
+        sublime.message_dialog(AI_PLAYLIST_ID)
 
         data = {"playlist_id": AI_PLAYLIST_ID,
                 "playlistTypeId": 1, "name": AI_PLAYLIST_NAME}
@@ -688,32 +688,46 @@ def generateMyAIPlaylist():
 
         api = "/music/playlist/generated"
         update_playlist = requestIt("POST", api, json_data, getItem("jwt"))
-
+        
+        print("create_ai_2",type(update_playlist))
         if update_playlist is not None and update_playlist["status"] >= 200:
             # print("update_playlist id to software backend :", update_playlist)
 
             api = "/music/recommendations?limit=40"
             get_recommends = requestIt("GET", api, None, getItem("jwt"))
 
-            if get_recommends is not None and get_recommends["status"] >= 200:
+            print("create_ai_3",type(get_recommends))
+            if get_recommends is not None and get_recommends[0] == 200:#get_recommends["status"] >= 200:
                 # print("get_recommends :\n", get_recommends)
                 # recommends_song_list = get_recommends.json()
                 uris_list = []
-                for i in range(len(get_recommends)):
-                    uris_list.append(get_recommends[i]['uri'])
+                try:
+                    for i in get_recommends:
+                        if type(i) != int:
+                            uris_list.append(i['uri'])
+                except Exception as E:
+                    print("uris_list building error", E)
 
-                # headers = {"Authorization": "Bearer {}".format(access_token)}
-                uris_data = {"uris": uris_list, "position": 0}
-                json_data = json.dumps(uris_data)
+                # for i in range(len(get_recommends)):
+                    # uris_list.append(get_recommends[i]['uri'])
+
+                print("create_ai_4\n",uris_list)
+
+                # uris_data = {"uris": uris_list, "position": 0}
+                json_data = json.dumps({"uris": uris_list, "position": 0})
 
                 api = "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
+                # send_uris_url = SPOTIFY_API + "/v1/playlists/" + AI_PLAYLIST_ID + "/tracks"
+                # headers = {"Authorization": "Bearer {}".format(getItem("jwt"))}
+                # post_uris = requests.post(send_uris_url, headers=headers, data=json_data)
                 post_uris = requestIt("POST", api, json_data, getItem("jwt"))
-
-                if post_uris is not None and post_uris["status"] >= 200:
+                # print("post_uris",post_uris.status_code)
+                print("create_ai_5",type(post_uris))
+                if post_uris is not None and post_uris["status"] >= 200: #post_uris.status_code >= 200:
                     print("post_uris", post_uris)
                     setValue("ai_playlist", True)
                     message_dialog = sublime.message_dialog(
-                        "My AI Playlist Generated")
+                        "My AI playlist generated successfully")
 
                 else:
                     print("post_uris failed", post_uris)
