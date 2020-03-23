@@ -103,11 +103,11 @@
                             },
                             {
                                 "command": "generate_ai_playlist",
-                                "caption": "Generate My AI TOP 40"
+                                "caption": "Generate My AI Top 40"
                             },
                             {
                                 "command": "refresh_ai_playlist",
-                                "caption": "Refresh My AI TOP 40"
+                                "caption": "Refresh My AI Top 40"
                             },
                             {
                                 "caption": "-",
@@ -142,7 +142,7 @@
                     },
                     {
                         "command": "opentracks",
-                        "caption": "Open recommended songs"
+                        "caption": "Recommended songs"
                     },
                     {
                         "caption": "-",

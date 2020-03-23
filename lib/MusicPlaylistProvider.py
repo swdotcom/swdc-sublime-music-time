@@ -162,7 +162,7 @@ class SongInputHandler(sublime_plugin.ListInputHandler):
 
 
 def getPlaylists():
-    global playlist_data
+    global playlist_data 
     playlists = []
     if playlist_data == []:
         getUserPlaylists()
@@ -879,10 +879,15 @@ def addTrackToPlaylist(trackid, playlistid, play_list_name):
         sublime.message_dialog(msg)
         getUserPlaylists()
     else:
-        msg = "Please select a track before adding to playlist."
-        # msg = resp['error']['message']
-        print("failed", msg)
-        msg_body = "Unable to add track.\n"+msg
+        # msg = "Please select a track before adding to playlist."
+        msg = resp['error']['message']
+        if msg == "You cannot add tracks to a playlist you don't own.":
+            show_msg = msg
+        else:
+            show_msg = "Please select a track before adding to playlist."
+
+        print("failed", show_msg)
+        msg_body = "Unable to add track.\n" + show_msg
         sublime.message_dialog(msg_body)
 
 

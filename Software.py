@@ -343,7 +343,7 @@ class DisconnectSpotify(sublime_plugin.TextCommand):
         disconnectSpotify()
         setValue("logged_on", False)
         showStatus("Connect Spotify")
-        message_dialog = sublime.message_dialog("Disconnected Spotify !")
+        message_dialog = sublime.message_dialog("Disconnected Spotify")
         showStatus("Connect Spotify")
 
     def is_enabled(self):
