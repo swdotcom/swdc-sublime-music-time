@@ -225,15 +225,17 @@ class SelectPlayer(sublime_plugin.WindowCommand):
 
                     err_msg = launch.communicate()[1].decode("utf-8")
                     print("launchDesktopPlayer\n", err_msg)
-                    if len(err_msg) == 0:
-                        print("Desktop player opened")
-                    else:
+                    
+                    if len(err_msg) != 0:
                         if "The system cannot find the path specified" in err_msg:
                             msg_body = "Unable to launch Desktop player\n" + "Desktop player not found"
                         else:
                             msg_body = "Unable to launch Desktop player" + err_msg
-                        sublime.error_message(msg_body)
-                        msg = sublime.ok_cancel_dialog("Launching Web player ...", "Ok")
+                        
+                        # sublime.error_message(msg_body)
+                        display_msg = msg_body + "\nLaunching Web player"
+                        msg = sublime.ok_cancel_dialog(display_msg, "Ok")
+
                         if msg is True:
                             print("Launching Web player ...")
                             webbrowser.open("https://open.spotify.com/")
@@ -250,24 +252,27 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                             print("web player selected", ACTIVE_DEVICE)
                         else:
                             pass
+                        
+                    else:
+                        print("Desktop player opened")
+                        time.sleep(5)
+                    
+                        devices = getSpotifyDevice()  
+                        print("Launching desktop player ...2", devices)
+                        # print("Launching devices")
+                        try:
+                            devices = getSpotifyDevice()
+                            print("Launch Desktop Player: list of devices", devices)
 
-                    time.sleep(5)
-                    devices = getSpotifyDevice()
-                    print("Launching desktop player ...2", devices)
-                    # print("Launching devices")
-                    try:
-                        devices = getSpotifyDevice()
-                        print("Launch Desktop Player: list of devices", devices)
+                            device_id = getNonWebPlayerId(devices)
+                            print("Launch non Web Player:device_id", device_id)
 
-                        device_id = getNonWebPlayerId(devices)
-                        print("Launch non Web Player:device_id", device_id)
-
-                        ACTIVE_DEVICE = {}
-                        ACTIVE_DEVICE['device_id'] = device_id
-                        print(ACTIVE_DEVICE)
-                        # currentTrackInfo()
-                    except Exception as e:
-                        print("Launch Desktop Player Error", e)
+                            ACTIVE_DEVICE = {}
+                            ACTIVE_DEVICE['device_id'] = device_id
+                            print(ACTIVE_DEVICE)
+                            # currentTrackInfo()
+                        except Exception as e:
+                            print("Launch Desktop Player Error", e)
 
                 # If user selects web player to launch
                 elif device == "Launch Web Player":
@@ -290,6 +295,7 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                 # time.sleep(5)
                 # Get the device id to transfer the playback
                 try:
+                    print("deviceid before transfer",device_id)
                     transferPlayback(device_id,True)
                     time.sleep(1)
                     # global ACTIVE_DEVICE
