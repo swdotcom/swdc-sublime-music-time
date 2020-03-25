@@ -95,7 +95,7 @@
                             },
                             {
                                 "command": "create_add_playlist",
-                                "caption": "Add or create playlist"
+                                "caption": "Add or Select playlist"
                             },
                             {
                                 "caption": "-",
