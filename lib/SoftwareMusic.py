@@ -42,6 +42,7 @@ def getMusicTimedashboard():
     file = getDashboardFile()
     sublime.active_window().open_file(file)
 
+
 def gatherMusicInfo():
     global existing_track
 
@@ -97,6 +98,7 @@ def gatherMusicInfo():
 
     t = Timer(6, gatherMusicInfo)
     t.start()
+
 
 def getSpotifyTrackInfo():
     api = "/v1/me/player/currently-playing"
@@ -347,13 +349,17 @@ def refreshStatusBar():
     try:
         t = Timer(10, currentTrackInfo)
         t.start()
+        logged_on = getValue("logged_on", True)
+        if logged_on is False:
+            t.cancel()
+            showStatus("Connect Spotify")
         # schedule.every(5).seconds.do(currentTrackInfo())
         # while True:
         #     schedule.run_pending()
     except Exception as E:
         print("Music Time: refreshStatusBar", E)
-        showStatus("No device found . . . ")
-        # showStatus("Connect Spotify")
+        # showStatus("No device found . . . ")
+        showStatus("Connect Spotify")
         pass
 
 # Continuous refresh devices
