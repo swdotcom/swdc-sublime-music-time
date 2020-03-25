@@ -22,15 +22,22 @@ current_track_id = ""
 # To fetch and show music-time dashboard
 def getMusicTimedashboard():
     api = "/dashboard/music"
-    resp = requestIt("GET", api, None, getItem("jwt"))
-    if resp["status"] == 200:
+    # resp = requestIt("GET", api, None, getItem("jwt"))
+    # print("type",type(resp))
+    # print("resp",resp["status"])
+    headers = {'content-type': 'application/json', 'Authorization': getItem("jwt")}
+    dash_url = SOFTWARE_API + api
+    # dash_url = "https://api.software.com/dashboard?plugin=music-time&linux=false&html=false"
+    resp = requests.get(dash_url, headers=headers)
+    if resp.status_code == 200:
+    # if resp["status"] == 200:
         print("Music Time: launching MusicTime.txt")
     else:
         print('getMusicTimedashboard error\n')
 
     file = getDashboardFile()
     with open(file, 'w', encoding='utf-8') as f:
-        f.write(resp)
+        f.write(resp.text)
 
     file = getDashboardFile()
     sublime.active_window().open_file(file)

@@ -56,20 +56,20 @@ def getSpotifyActiveDevice():
 
     api = "/v1/me/player/devices"
     getdevs = requestSpotify("GET", api, None, getItem('spotify_access_token'))
-    ACTIVE_DEVICE = {}  # {"device_name":"","device_id":""}
+    active_device = {}  # {"device_name":"","device_id":""}
 
     if getdevs["status"] == 200:
         # devices = getdevs.json()['devices']
         devices = getdevs["devices"]
         for i in range(len(devices)):
             if devices[i]['is_active'] == True:
-                ACTIVE_DEVICE['device_name'] = devices[i]['name']
-                ACTIVE_DEVICE['device_id'] = devices[i]['id']
+                active_device['device_name'] = devices[i]['name']
+                active_device['device_id'] = devices[i]['id']
 #                 ACTIVE_DEVICE =  {"device_name":device_name,"device_id":device_id}
             # else:
             #     ACTIVE_DEVICE = {}
-    print("getSpotifyActiveDevice:", ACTIVE_DEVICE)
-    return ACTIVE_DEVICE
+    print("getSpotifyActiveDevice:", active_device)
+    return active_device
 
 
 class SelectPlayer(sublime_plugin.WindowCommand):
@@ -211,6 +211,7 @@ class SelectPlayer(sublime_plugin.WindowCommand):
             if device_ids == []:
                 # when desktop is selected
                 if device == "Launch Desktop Player":
+                    print("User selects Desktop player")
 
                     if isMac() == True:
                         launch = subprocess.Popen(
@@ -223,42 +224,15 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                         launch = subprocess.Popen(spotify_path, shell=True,
                                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-                    err_msg = launch.communicate()[1].decode("utf-8")
-                    print("launchDesktopPlayer\n", err_msg)
+                    # err_msg = launch.communicate()[1].decode("utf-8")
+                    # print("launchDesktopPlayer\n", err_msg)
                     
-                    if len(err_msg) != 0:
-                        if "The system cannot find the path specified" in err_msg:
-                            msg_body = "Unable to launch Desktop player\n" + "Desktop player not found"
-                        else:
-                            msg_body = "Unable to launch Desktop player" + err_msg
-                        
-                        # sublime.error_message(msg_body)
-                        display_msg = msg_body + "\nLaunching Web player"
-                        msg = sublime.ok_cancel_dialog(display_msg, "Ok")
-
-                        if msg is True:
-                            print("Launching Web player ...")
-                            webbrowser.open("https://open.spotify.com/")
-                            time.sleep(5)
-
-                            devices = getSpotifyDevice()
-                            print("Launch Web Player:devices", devices)
-                            device_id = getWebPlayerId(devices)
-
-                            print("Launch Web Player:device_id", device_id)
-
-                            ACTIVE_DEVICE = {}
-                            ACTIVE_DEVICE['device_id'] = device_id
-                            print("web player selected", ACTIVE_DEVICE)
-                        else:
-                            pass
-                        
-                    else:
-                        print("Desktop player opened")
+                    # if len(err_msg) == 0:
+                        # print("Desktop player opened")
                         time.sleep(5)
-                    
-                        devices = getSpotifyDevice()  
-                        print("Launching desktop player ...2", devices)
+                        
+                        # devices = getSpotifyDevice()  
+                        print("Launching desktop player ...2")
                         # print("Launching devices")
                         try:
                             devices = getSpotifyDevice()
@@ -273,6 +247,34 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                             # currentTrackInfo()
                         except Exception as e:
                             print("Launch Desktop Player Error", e)
+
+                    # else:
+                        # if "The system cannot find the path specified" in err_msg:
+                        #     msg_body = "Unable to launch Desktop player\n" + "Desktop player not found"
+                        # else:
+                            # msg_body = "Unable to launch Desktop player" + err_msg
+                        
+                        # sublime.error_message(msg_body)
+                            display_msg = "Unable to launch Desktop player" + "\nLaunching Web player"
+                            msg = sublime.ok_cancel_dialog(display_msg, "Ok")
+
+                            if msg is True:
+                                print("Launching Web player ...")
+                                webbrowser.open("https://open.spotify.com/")
+                                time.sleep(5)
+
+                                devices = getSpotifyDevice()
+                                print("Launch Web Player:devices", devices)
+                                device_id = getWebPlayerId(devices)
+
+                                print("Launch Web Player:device_id", device_id)
+
+                                ACTIVE_DEVICE = {}
+                                ACTIVE_DEVICE['device_id'] = device_id
+                                print("web player selected", ACTIVE_DEVICE)
+                        # else:
+                        #     pass
+                        
 
                 # If user selects web player to launch
                 elif device == "Launch Web Player":
@@ -292,7 +294,7 @@ class SelectPlayer(sublime_plugin.WindowCommand):
 
                 else:
                     pass
-                # time.sleep(5)
+                    
                 # Get the device id to transfer the playback
                 try:
                     print("deviceid before transfer",device_id)

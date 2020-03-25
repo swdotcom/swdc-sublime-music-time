@@ -176,14 +176,23 @@ def getPlaylists():
 def getSongsInPlaylist(playlist_name):
     global playlist_data
     print("getSongsInPlaylist: playlist_data",len(playlist_data))
+    print("playlist_name getSongsInPlaylist",playlist_name)
     # if playlist_data == []:
         # getUserPlaylists()
         # checkAIPlaylistid()
     for playlist in playlist_data:
         if playlist.get("name") == playlist_name:
+            if playlist_name == "Liked songs":
+                return playlist.get("songs")
+
+            # print("user playlist",playlist_info)
+            playlistid = playlist_info.get(playlist_name)
+            print("playlistid",playlistid)
+            print("tracks>>>>>>>\n",len(getTracks(playlistid)))
             # print('playlist.get("songs")--------',playlist.get("songs"))
-            # print
-            return playlist.get("songs")
+
+            return getTracks(playlistid)#playlist.get("songs")
+
 
 
 # Play song from playlist without playlist_id
@@ -202,7 +211,6 @@ def playThisSong(currentDeviceId, track_id):
         print("Played from desktop")
 
     else:
-
         # print(Liked_songs_ids)
         uris_list = []
         for song_id in Liked_songs_ids:
@@ -296,67 +304,6 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
         pass
 
     else:
-        # if currentDeviceId == None:
-        #     ACTIVE_DEVICE = getSpotifyActiveDevice()
-        print("playSongFromPlaylistACTIVE_DEVICE",ACTIVE_DEVICE)
-        available_devices = getSpotifyDevice() #[0]['device_id']
-
-        # if currentDeviceId == None or len(available_devices) == 0:# or 
-        if ACTIVE_DEVICE == {}:
-
-            msg = sublime.yes_no_cancel_dialog(
-                "Launch a Spotify device", "Web player", "Desktop player")
-            
-
-            if msg is 1:
-                webbrowser.open("https://open.spotify.com/")
-                time.sleep(3)
-                try:
-                    devices = getSpotifyDevice()
-                    print("Launch Web Player:devices", devices)
-
-                    device_id = getWebPlayerId(devices)
-                    print("Launch Web Player:device_id", device_id)
-
-                    ACTIVE_DEVICE = {}
-                    ACTIVE_DEVICE['device_id'] = device_id
-                    print(ACTIVE_DEVICE)
-                    transferPlayback(device_id,True)
-                    currentDeviceId = device_id
-                    time.sleep(3)
-                except Exception as e:
-                    print("Launch Web Player", e)
-            elif msg is 2:
-                launchDesktopPlayer()
-                time.sleep(5)
-                try:
-                    devices = getSpotifyDevice()
-                    print("Launch Web Player:devices", devices)
-
-                    device_id = getNonWebPlayerId(devices)
-                    print("Launch Web Player:device_id", device_id)
-
-                    ACTIVE_DEVICE = {}
-                    ACTIVE_DEVICE['device_id'] = device_id
-                    print(ACTIVE_DEVICE)
-                    transferPlayback(device_id,True)
-                    currentDeviceId = device_id
-                    time.sleep(3)
-                except Exception as e:
-                    print("Launch Desktop Player Error", e)
-            else:
-                pass
-        else:
-            if ACTIVE_DEVICE:
-                currentDeviceId = ACTIVE_DEVICE.get('device_id')
-                
-            else:
-                currentDeviceId = getSpotifyDevice()[0]['device_id']
-            # print("available_device",available_device)
-            # currentDeviceId = available_device
-                transferPlayback(currentDeviceId,False)
- 
-        # print("device",playstr)
         data = {}
         try:
             data["context_uri"] = "spotify:playlist:" + playlist_id
@@ -365,6 +312,68 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
             print("playSongFromPlaylist", payload)
 
             api = "/v1/me/player/play?device_id=" + currentDeviceId
+            # if currentDeviceId == None:
+            #     ACTIVE_DEVICE = getSpotifyActiveDevice()
+            # print("playSongFromPlaylistACTIVE_DEVICE",ACTIVE_DEVICE)
+            # available_devices = getSpotifyDevice() #[0]['device_id']
+
+            # if currentDeviceId == None or len(available_devices) == 0:# or 
+            if ACTIVE_DEVICE == {}:
+
+                msg = sublime.yes_no_cancel_dialog(
+                    "Launch a Spotify device", "Web player", "Desktop player")
+                
+
+                if msg is 1:
+                    webbrowser.open("https://open.spotify.com/")
+                    time.sleep(3)
+                    try:
+                        devices = getSpotifyDevice()
+                        print("Launch Web Player:devices", devices)
+
+                        device_id = getWebPlayerId(devices)
+                        print("Launch Web Player:device_id", device_id)
+
+                        ACTIVE_DEVICE = {}
+                        ACTIVE_DEVICE['device_id'] = device_id
+                        print(ACTIVE_DEVICE)
+                        transferPlayback(device_id,True)
+                        currentDeviceId = device_id
+                        time.sleep(3)
+                    except Exception as e:
+                        print("Launch Web Player", e)
+                elif msg is 2:
+                    launchDesktopPlayer()
+                    time.sleep(5)
+                    try:
+                        devices = getSpotifyDevice()
+                        print("Launch Web Player:devices", devices)
+
+                        device_id = getNonWebPlayerId(devices)
+                        print("Launch Web Player:device_id", device_id)
+
+                        ACTIVE_DEVICE = {}
+                        ACTIVE_DEVICE['device_id'] = device_id
+                        print(ACTIVE_DEVICE)
+                        transferPlayback(device_id,True)
+                        currentDeviceId = device_id
+                        time.sleep(3)
+                    except Exception as e:
+                        print("Launch Desktop Player Error", e)
+                else:
+                    pass
+            # else:
+            #     if ACTIVE_DEVICE:
+            #         currentDeviceId = ACTIVE_DEVICE.get('device_id')
+                    
+            #     else:
+            #         currentDeviceId = getSpotifyDevice()[0]['device_id']
+            #     # print("available_device",available_device)
+            #     # currentDeviceId = available_device
+            #         transferPlayback(currentDeviceId,False)
+     
+            # print("device",playstr)
+        
             plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
             # print(plays)
         except Exception as e:
@@ -476,21 +485,21 @@ def getUserPlaylists():
         for k, v in playlist_info.items():
             if "Software" in k:
                 playlist_data.append(
-                    {'id': v, 'name': k, 'playlistTypeId': 1, 'songs': getTracks(v)})
+                    {'id': v, 'name': k, 'playlistTypeId': 1, })#'songs': getTracks(v)
 
             elif v == AI_PLAYLIST_ID or k == AI_PLAYLIST_NAME:
                 playlist_data.append(
-                    {'id': v, 'name': k, 'playlistTypeId': 2, 'songs': getTracks(v)})
+                    {'id': v, 'name': k, 'playlistTypeId': 2, })
                 # print("got AI playlist",k," ",v)
 
             else:
                 playlist_data.append(
-                    {'id': v, 'name': k, 'playlistTypeId': 4, 'songs': getTracks(v)})
+                    {'id': v, 'name': k, 'playlistTypeId': 4, })
                 # print("got user playlist",k," ",v)
 
-        if "Software Top 40" not in list(playlist_info.keys()): #SOFTWARE_TOP_40
-            playlist_data.append(
-                    {'id': SOFTWARE_TOP_40, 'name': "Software Top 40", 'playlistTypeId': 1, 'songs': getTracks(SOFTWARE_TOP_40)})
+        # if "Software Top 40" not in list(playlist_info.keys()): #SOFTWARE_TOP_40
+        #     playlist_data.append(
+        #             {'id': SOFTWARE_TOP_40, 'name': "Software Top 40", 'playlistTypeId': 1, 'songs': getTracks(SOFTWARE_TOP_40)})
 
         liked_songs = getLikedSongs()
         playlist_data.append(
@@ -544,21 +553,21 @@ def sortPlaylistByLatest():
     for i in final_list:
 
         if i == "Software Top 40":
-            playlist_data.append({'id': SOFTWARE_TOP_40, 'name': i, 'playlistTypeId': 1, 'songs': getTracks(SOFTWARE_TOP_40)})
+            playlist_data.append({'id': SOFTWARE_TOP_40, 'name': i, 'playlistTypeId': 1, })#'songs': getTracks(SOFTWARE_TOP_40)
         # elif "Software Top 40" not in final_list: #SOFTWARE_TOP_40
             # playlist_data.append({'id': SOFTWARE_TOP_40, 'name': i, 'playlistTypeId': 1, 'songs': getTracks(SOFTWARE_TOP_40)})
 
         elif i == "My AI Top 40" or i == AI_PLAYLIST_NAME:
             #         playlist_data[1] = {'id':playlist_info.get(i),'name':i,'playlistTypeId': 1,'songs': getTracks(playlist_info.get(i))}
             playlist_data.append({'id': playlist_info.get(
-                i), 'name': i, 'playlistTypeId': 2, 'songs': getTracks(playlist_info.get(i))})
+                i), 'name': i, 'playlistTypeId': 2, })#'songs': getTracks(playlist_info.get(i))
         elif i == "Liked songs":
             #         playlist_data[2] = {'id':playlist_info.get(i),'name':i,'playlistTypeId': 3,'songs': getLikedSongs()}
             playlist_data.append({'id': playlist_info.get(
                 i), 'name': i, 'playlistTypeId': 3, 'songs': liked_songs})
         else:
             playlist_data.append({'id': playlist_info.get(
-                i), 'name': i, 'playlistTypeId': 4, 'songs': getTracks(playlist_info.get(i))})
+                i), 'name': i, 'playlistTypeId': 4,}) # 'songs': getTracks(playlist_info.get(i))
 
     # final_playlist = sec_one + sec_three
     for k in playlist_data:
