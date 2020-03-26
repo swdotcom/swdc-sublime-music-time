@@ -234,27 +234,15 @@ class SelectPlayer(sublime_plugin.WindowCommand):
                     # devices = getSpotifyDevice()  
                     print("Launching desktop player ...2")
                     # print("Launching devices")
-                    try:
-                        devices = getSpotifyDevice()
-                        print("Launch Desktop Player: list of devices", devices)
+                    # try:
+                    devices = getSpotifyDevice()
+                    print("Launch Desktop Player: list of devices", devices)
 
-                        device_id = getNonWebPlayerId(devices)
-                        print("Launch non Web Player:device_id", device_id)
+                    device_id = getNonWebPlayerId(devices)
+                    print("Launch non Web Player:device_id", device_id)
 
-                        ACTIVE_DEVICE = {}
-                        ACTIVE_DEVICE['device_id'] = device_id
-                        print(ACTIVE_DEVICE)
-                        # currentTrackInfo()
-                    except Exception as e:
-                        print("Launch Desktop Player Error", e)
-
-                # else:
-                    # if "The system cannot find the path specified" in err_msg:
-                    #     msg_body = "Unable to launch Desktop player\n" + "Desktop player not found"
-                    # else:
-                        # msg_body = "Unable to launch Desktop player" + err_msg
-                    
-                    # sublime.error_message(msg_body)
+                    if device_id is None:
+                        print("Launch Desktop Player Error")
                         display_msg = "Unable to launch Desktop player" + "\nLaunching Web player"
                         msg = sublime.ok_cancel_dialog(display_msg, "Ok")
 
@@ -269,9 +257,41 @@ class SelectPlayer(sublime_plugin.WindowCommand):
 
                             print("Launch Web Player:device_id", device_id)
 
-                            ACTIVE_DEVICE = {}
-                            ACTIVE_DEVICE['device_id'] = device_id
-                            print("web player selected", ACTIVE_DEVICE)
+                            # ACTIVE_DEVICE = {}
+                            # ACTIVE_DEVICE['device_id'] = device_id
+                            # print("web player selected", ACTIVE_DEVICE)
+
+                    ACTIVE_DEVICE = {}
+                    ACTIVE_DEVICE['device_id'] = device_id
+                    print(ACTIVE_DEVICE)
+                        # currentTrackInfo()
+                    # except Exception as e:
+                        # print("Launch Desktop Player Error", e)
+
+                # else:
+                    # if "The system cannot find the path specified" in err_msg:
+                    #     msg_body = "Unable to launch Desktop player\n" + "Desktop player not found"
+                    # else:
+                        # msg_body = "Unable to launch Desktop player" + err_msg
+                    
+                    # sublime.error_message(msg_body)
+                        # display_msg = "Unable to launch Desktop player" + "\nLaunching Web player"
+                        # msg = sublime.ok_cancel_dialog(display_msg, "Ok")
+
+                        # if msg is True:
+                        #     print("Launching Web player ...")
+                        #     webbrowser.open("https://open.spotify.com/")
+                        #     time.sleep(5)
+
+                        #     devices = getSpotifyDevice()
+                        #     print("Launch Web Player:devices", devices)
+                        #     device_id = getWebPlayerId(devices)
+
+                        #     print("Launch Web Player:device_id", device_id)
+
+                        #     ACTIVE_DEVICE = {}
+                        #     ACTIVE_DEVICE['device_id'] = device_id
+                        #     print("web player selected", ACTIVE_DEVICE)
                         # else:
                         #     pass
                         

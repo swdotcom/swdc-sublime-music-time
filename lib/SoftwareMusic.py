@@ -206,7 +206,7 @@ def getActiveDeviceInfo():
         DEVICES = []
         # try:
         if devices['devices'] == []:# and userTypeInfo() == "premium":
-            msg = sublime.ok_cancel_dialog("Please select Spotify player", "Ok")
+            msg = sublime.ok_cancel_dialog("Please select Spotify player or use 'Alt+Ctrl+D' to switch the device", "Ok")
             if msg is True:
                 current_window = sublime.active_window()
                 current_window.run_command("select_player")
