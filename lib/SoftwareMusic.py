@@ -206,7 +206,7 @@ def getActiveDeviceInfo():
         DEVICES = []
         # try:
         if devices['devices'] == []:# and userTypeInfo() == "premium":
-            msg = sublime.ok_cancel_dialog("Please launch Spotify player", "Ok")
+            msg = sublime.ok_cancel_dialog("Please select Spotify player", "Ok")
             if msg is True:
                 current_window = sublime.active_window()
                 current_window.run_command("select_player")
@@ -340,7 +340,10 @@ def currentTrackInfo():
             print('Music Time: currentTrackInfo ConnectionError\n',ex)
             showStatus("Spotify Connected")
             time.sleep(5)
+            # current_window = sublime.active_window()
+            # current_window.run_command("select_player")
             pass
+
     refreshStatusBar()
 
 
