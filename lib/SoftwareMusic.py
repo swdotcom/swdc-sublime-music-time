@@ -162,8 +162,11 @@ def gatherCodingDataAndSendSongSession(songSession):
                     for key, fileInfo in source.items():
                         # check if the payload is in the song session range
                         if (kpmPayloadMatchesSongTimeRange(songSession, fileInfo)):
-                            if (aggregatedSource.get(key, None) is None):
-                                aggregatedSource[key] = fileInfo
+                            try:
+                                if (aggregatedSource.get(key, None) is None):
+                                    aggregatedSource[key] = fileInfo
+                            except Exception as e:
+                                print("aggregatedSource Error\n",e)
                             else:
                                 aggregatedSource['paste'] += fileInfo.get("paste", 0)
                                 aggregatedSource['open'] += fileInfo.get("open", 0)
@@ -178,7 +181,10 @@ def gatherCodingDataAndSendSongSession(songSession):
     songSession["source"] = aggregatedSource
     # Serialize obj to a JSON formatted str
     songSession = json.dumps(songSession)
-    requestIt("POST", "/data/music", songSession, getItem("jwt"))
+    print("songSession\n$$$$$$$$$$$$$$$$",songSession,"\n$$$$$$$$$$$$$$$$$")
+    # requestIt("POST", "/data/music", songSession, getItem("jwt"))
+    requestIt("POST", "/music/session", songSession, getItem("jwt"))
+
 
 def kpmPayloadMatchesSongTimeRange(track, payload):
     if (payload["start"] < track["start"] and payload["end"] < track["start"]):
@@ -206,12 +212,12 @@ def getActiveDeviceInfo():
         DEVICES = []
         # try:
         if devices['devices'] == []:# and userTypeInfo() == "premium":
-            msg = sublime.ok_cancel_dialog("Please select Spotify player or use 'Alt+Ctrl+D' to switch the device", "Ok")
-            if msg is True:
-                current_window = sublime.active_window()
-                current_window.run_command("select_player")
-            else:
-                pass
+            # msg = sublime.ok_cancel_dialog("Please select Spotify player or use 'Alt+Ctrl+D' to switch the device", "Ok")
+            # if msg is True:
+            #     current_window = sublime.active_window()
+            #     current_window.run_command("select_player")
+            print("Devices Not found")
+            pass
 
         else:
             for i in devices:
@@ -271,7 +277,12 @@ def currentTrackInfo():
     # global ACTIVE_DEVICE
     trackstate = ''
     trackinfo = ''
-    Liked_songs_ids = getLikedSongsIds()
+    try:
+        Liked_songs_ids = getLikedSongsIds()
+    except Exception as e:
+        print("Liked_songs_ids error",e)
+        # Liked_songs_ids =[]
+    
 
     # global current_track_id
     # try:

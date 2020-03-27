@@ -597,7 +597,7 @@ def checkUserState():
                 print("checkAIPlaylistid",e)
                 pass
             getUserPlaylists()
-            autoRefreshAccessToken()
+            # autoRefreshAccessToken()
             # refreshStatusBar()
             print('_'*40)
             print(' * logged_on: True', '\n * Email:', resp_data['email'],"\n * Slack:",slack)

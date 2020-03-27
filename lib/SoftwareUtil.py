@@ -669,6 +669,11 @@ def getDashboardDataDisplay(widthLen, data):
 # launch browser to get user permissions
 def launchSpotifyLoginUrl():
     jwt = getItem("jwt")
+    if jwt is None or jwt == "":
+        print("jwt not found")
+        jwt = requests.get(SOFTWARE_API + '/data/apptoken?token=' +
+                           str(round(time.time()))).json()['jwt']
+        setItem("jwt", jwt)
     try:
         spotify_url = SOFTWARE_API + "/auth/spotify?token=" + \
             jwt + "&mac=" + str(isMac()).lower()
@@ -717,6 +722,12 @@ def getAuthInfo():
                 message_dialog = sublime.message_dialog("Your Spotify account is now connected")
                 setValue("logged_on", True)
                 showStatus("Spotify Connected")
+                user_msg = "Connect a Spotify Device to enjoy music"
+                user_ip = sublime.ok_cancel_dialog(user_msg, "Select player")
+                if user_ip is True:
+                    current_window = sublime.active_window()
+                    current_window.run_command("select_player")
+
                 try:
                     checkAIPlaylistid()
                     getUserPlaylists()

@@ -281,9 +281,17 @@ def playThisSong(currentDeviceId, track_id):
 
             api = "/v1/me/player/play?device_id=" + currentDeviceId
             plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
-            print("plays",type(plays),plays)
+            # print("plays",type(plays),plays)
             if plays is not None and plays["status"] == 403:
                 sublime.error_message("We were unable to play the selected track because it is unavailable in your market.")
+            
+            if plays is not None and plays["status"] == 404:
+                current_window = sublime.active_window()
+                current_window.run_command("select_player")
+
+                plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
+
+
             # print(plays)
         except Exception as e:
             print("playThisSong", e)
@@ -382,7 +390,14 @@ def playSongFromPlaylist(currentDeviceId, playlistid, track_id):
             print("plays",type(plays),plays)
             if plays is not None and plays["status"] == 403:
                 sublime.error_message("We were unable to play the selected track because it is unavailable in your market.")
-        
+            
+            if plays is not None and plays["status"] == 404:
+                current_window = sublime.active_window()
+                current_window.run_command("select_player")
+
+                plays = requestSpotify("PUT", api, payload, getItem('spotify_access_token'))
+
+
         except Exception as e:
             print("playSongFromPlaylist", e)
     currentTrackInfo()
