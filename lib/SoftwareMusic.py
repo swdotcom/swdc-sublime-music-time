@@ -305,7 +305,7 @@ def currentTrackInfo():
                 # print("Paused "+trackinfo)
         except Exception as e:
             print("Music time: player not found", e)
-            showStatus("Connect Premium")
+            # showStatus("Connect Premium")
 
     else:
         try:
@@ -389,8 +389,8 @@ def refreshStatusBar():
 
 
 #  function for checking user
-def check_user(): return "Spotify Connected" if (userTypeInfo() == "premium") else (
-    "Connect Premium" if (userTypeInfo() == "open") else "Connect Spotify")
+# def check_user(): return "Spotify Connected" if (userTypeInfo() == "premium") else (
+#     "Connect Premium" if (userTypeInfo() == "open") else "Connect Spotify")
 
 # to get all device names
 
