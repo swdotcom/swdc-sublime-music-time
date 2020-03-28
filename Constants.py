@@ -1,4 +1,13 @@
-# MusicTime = "Music Time"
+'''
+This file contains constants
+'''
+# SoftwareUtil.py
+VERSION = '0.9.3'
+PLUGIN_ID = 1
+DASHBOARD_LABEL_WIDTH = 25
+DASHBOARD_VALUE_WIDTH = 25
+MARKER_WIDTH = 4
+
 USER_AGENT = 'Music Time Sublime Plugin'
 
 SOFTWARE_API = "https://api.software.com"
@@ -25,13 +34,6 @@ LONG_THRESHOLD_HOURS = 12
 SHORT_THRESHOLD_HOURS = 4
 NO_TOKEN_THRESHOLD_HOURS = 2
 LOGIN_LABEL = "Log in"
-
-# SoftwareUtil.py
-VERSION = '0.9.2'
-PLUGIN_ID = 1
-DASHBOARD_LABEL_WIDTH = 25
-DASHBOARD_VALUE_WIDTH = 25
-MARKER_WIDTH = 4
 
 # Software.py
 DEFAULT_DURATION = 60

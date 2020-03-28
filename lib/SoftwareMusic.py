@@ -183,8 +183,12 @@ def gatherCodingDataAndSendSongSession(songSession):
     songSession = json.dumps(songSession)
     print("songSession\n$$$$$$$$$$$$$$$$",songSession,"\n$$$$$$$$$$$$$$$$$")
     # requestIt("POST", "/data/music", songSession, getItem("jwt"))
-    requestIt("POST", "/music/session", songSession, getItem("jwt"))
-
+    sendPayload = requestIt("POST", "/music/session", songSession, getItem("jwt"))
+    if sendPayload["statusCode"] == 200:
+        with open(getMusicDataFile(),'w'):
+            pass
+        #   print("Cleared the musicData.json")
+        # os.remove(getMusicDataFile())
 
 def kpmPayloadMatchesSongTimeRange(track, payload):
     if (payload["start"] < track["start"] and payload["end"] < track["start"]):
@@ -240,10 +244,7 @@ def getActiveDeviceInfo():
     elif getdevs["status"] == 401:
         refreshSpotifyToken()
 
-        # except Exception as E:
-        #     print("Music Time: getActiveDeviceInfo", E)
 
-    # refreshDeviceStatus()
 
 # Function to check whether current track is liked or not.
 check_liked_songs = lambda x :"  ❤️" if (x in Liked_songs_ids) else " "
@@ -376,59 +377,6 @@ def refreshStatusBar():
         showStatus("Connect Spotify")
         pass
 
-# Continuous refresh devices
-# def refreshDeviceStatus():
-#     try:
-#         t = Timer(60, getActiveDeviceInfo)
-#         t.start()
-#     except Exception as E:
-#         print("Music Time: refreshStatusBar", E)
-#         showStatus("No device found . . . ")
-#         # showStatus("Connect Spotify")
-#         pass
-
-
-#  function for checking user
-# def check_user(): return "Spotify Connected" if (userTypeInfo() == "premium") else (
-#     "Connect Premium" if (userTypeInfo() == "open") else "Connect Spotify")
-
-# to get all device names
-
-
-
-# # Show Active/connected/no device msg
-
-
-# def myToolTip():
-#     # global DEVICES
-#     # getActiveDeviceInfo()
-#     header = "<h3>Music Time</h3>"
-#     connected = '<p><b>{}</b></p>'.format(check_user())
-#     close_msg = '(Press <b>Esc</b> to close)'
-
-#     if len(activeDeviceName()) > 0:
-#         show_str = activeDeviceName()
-#         # print(show_str)
-#         listen_on = '<p><b>Listening on </b><i>{}</i></p>'.format(show_str)
-#         body = "<body>" + header + connected + listen_on + close_msg + "</body>"
-#         # print("\n",body)
-
-#     else:
-#         if getDeviceNames() == "Device not found":
-#             show_str = getDeviceNames()
-#             # print(show_str)
-#             no_device_msg = '<p><i>No device found</i></p>'
-#             body = "<body>" + header + connected + no_device_msg + close_msg + "</body>"
-#             # print("\n",body)
-#         else:
-#             show_str = getDeviceNames()
-#             # print(show_str)
-#             available_on = '<p><b>Connected on </b><i>{}</i></p>'.format(
-#                 show_str)
-#             body = "<body>" + header + connected + available_on + close_msg + "</body>"
-#     # print("\n",body)
-#     return body
-
 
 # To open spotify playlist/track web url
 def openTrackInWeb(playlist_ids, current_songs):
@@ -468,101 +416,4 @@ def openTrackInWeb(playlist_ids, current_songs):
 
     else:
         pass
-
-# ---------------------------------------------------plug292
-
-# class SelectPlayer(sublime_plugin.WindowCommand):
-
-#     def run(self):
-#         player = ["Launch Web Player", "Launch Desktop Player"]
-#         self.window.show_quick_panel(player, lambda id: self.on_done(id, player))
-
-#     def on_done(self, id, player):
-#         if id >= 0 and player[id] == "Launch Web Player":
-#             webbrowser.open("https://open.spotify.com/")
-
-#         else:
-#             # open desktop
-#             result = subprocess.Popen("cmd /c spotify.exe", shell=True,
-#                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#             output,error = result.communicate()
-
-#             if len(error) is not 0:
-#                 print("Spotify not found in C")
-#                 result = subprocess.Popen("%APPDATA%/Spotify/Spotify.exe", shell=True,
-#                                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-#                 output,error = result.communicate()
-#                 if len(error) is not 0:
-#                     print("Desktop player not found. Opening Web player. \nError:",error)
-
-
-
-
-#----------------------------------------------plug57
-existingtrack = {}
-playingtrack = {}
-
-def isValidExistingTrack():
-    if existingtrackid is True:
-        return True
-    return False
-
-
-def isValidTrack():
-    if playingtrackid is True:
-        return True
-    return False
-
-
-def isNewTrack():
-    if existingtrackid != playingtrackid:
-        return True 
-    return False
-
-
-def trackIsdone(playingrack):
-    if playingtrack["progress_ms"] == None:
-        return False
-    
-    playingTrackId = playingtrack["id"]
-
-    if playingTrackId and playingtrack["progress_ms"] > 0:
-        hasProgress = True
-    else:
-        hasProgress = False
-    # return hasProgress
-
-    if playingTrackId is not None or (playingtrack["state"] != TrackStatus['playing'] ):
-        isPausedOrNotPlaying = True
-    isPausedOrNotPlaying = False
-    # return isPausedOrNotPlaying
-
-    if isPausedOrNotPlaying is True and hasProgress is not None:
-        return true
-    return false
-
-
-def trackIsLongPaused(playingTrack):
-    if playingTrack["progress_ms"] == None:
-        return False
-    
-    if playingTrack:
-        if playingTrack["id"] is not None:
-            playingTrackId = playingTrack["id"]
-        else:
-            playingTrackId = None
-
-    pauseThreshold = 60 * 5
-
-    pass
-
-
-def isEndInRange(playingTrack):
-    if playingTrack is None or playingTrack['id'] is None:
-        return False
-    
-    buffer_val = playingTrack['duration_ms'] * 0.07
-    if (playingTrack['duration_ms'] - buffer_val) <= playingTrack['duration_ms']:
-        return True
 
