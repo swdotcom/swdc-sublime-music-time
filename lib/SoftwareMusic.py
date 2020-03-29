@@ -199,6 +199,29 @@ def kpmPayloadMatchesSongTimeRange(track, payload):
 
     return True
 
+
+def batchSendPayloadData(api, file, payloads):
+    if (payloads is not None and len(payloads) > 0):
+
+        # go through the payloads array 50 at a time
+        batch = []
+        length = len(payloads)
+        for i in range(length):
+            payload = payloads[i]
+            if (len(batch) >= 50):
+                requestIt("POST", "/data/batch", json.dumps(batch), getItem("jwt"))
+                # send batch
+                batch = []
+            batch.append(payload)
+
+        # send remaining batch
+        if (len(batch) > 0):
+            requestIt("POST", "/data/batch", json.dumps(batch), getItem("jwt"))
+        
+        os.remove(file)
+
+
+
 # Fetch Active device  and Devices(all device including inactive devices)
 def getActiveDeviceInfo():
     # print("{}".format(getItem('spotify_access_token')))

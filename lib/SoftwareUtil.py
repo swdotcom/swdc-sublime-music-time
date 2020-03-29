@@ -840,6 +840,36 @@ def getClientCredentials():
     return clientId, clientSecret
 
 # Refresh access token after expiry
+# def refreshSpotifyToken():
+#     jwt = getItem("jwt")
+#     payload = {}
+#     obj = {}
+#     # try:
+#     spotify_refresh_token = getItem("spotify_refresh_token")
+#     payload['grant_type'] = 'refresh_token'
+#     payload['refresh_token'] = spotify_refresh_token
+#     refresh_token_url = "https://accounts.spotify.com/api/token"
+#     CLIENT_ID, CLIENT_SECRET = getClientCredentials()
+#     auth_header = base64.b64encode(six.text_type(
+#         CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii'))
+#     headers = {'Authorization': 'Basic %s' % auth_header.decode('ascii')}
+#     response = requests.post(
+#         refresh_token_url, data=payload, headers=headers)
+
+#     if response.status_code == 200:
+#         obj = response.json()
+
+#         setItem("spotify_access_token", obj['access_token'])
+#         setItem("spotify_refresh_token", spotify_refresh_token)
+#         setItem("jwt", jwt)
+#         print("Music Time: Spotify Access token updated !",str(time.localtime()[3:6]))
+
+#     else:
+# # except Exception as e:
+#         print("Music Time: Refresh token not found !", response)
+#         setItem("jwt", jwt)
+#         setItem("spotify_refresh_token", spotify_refresh_token)
+
 
 
 def refreshSpotifyToken():

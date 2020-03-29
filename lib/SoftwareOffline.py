@@ -323,8 +323,10 @@ def sendOfflineData():
 
             if (payloads):
                 os.remove(dataStoreFile)
+                print("Music Time: Sending batch payloads .......",str(time.localtime()[3:6]))
 
                 # go through the payloads array 50 at a time
+
                 batch = []
                 length = len(payloads)
                 for i in range(length):
@@ -339,11 +341,15 @@ def sendOfflineData():
                 if (len(batch) > 0):
                     requestIt("POST", "/data/batch", json.dumps(batch), getItem("jwt"))
 
-    # update the statusbar
-    fetchDailyKpmSessionInfo(True)
+            # os.remove(dataStoreFile)
+                    print("Sending batch payloads")
 
-    # send the next batch in 30 minutes
-    sendOfflineDataTimer = Timer(60 * 30, sendOfflineData)
-    sendOfflineDataTimer.start()
+# update the statusbar
+fetchDailyKpmSessionInfo(True)
+
+# send the next batch in 30 minutes
+sendOfflineDataTimer = Timer(60 * 30, sendOfflineData)
+sendOfflineDataTimer.start()
+print("30 minutes batch payloads started",str(time.localtime()[3:6]))
 
 

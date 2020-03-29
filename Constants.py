@@ -1,5 +1,6 @@
 '''
 This file contains constants
+
 '''
 # SoftwareUtil.py
 VERSION = '0.9.3'
