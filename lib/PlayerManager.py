@@ -122,8 +122,9 @@ class SelectPlayer(sublime_plugin.WindowCommand):
 
                 else:
                     print("when device is not active")
-                    for i in items:
-                        new_items.append(("Available on "+i[0], [i[1][0]]))
+                    new_items.append(("Launch Desktop Player", []))
+                    # for i in items:
+                        # new_items.append(("Available on "+i[0], [i[1][0]]))
 
             else:
                 items = []
