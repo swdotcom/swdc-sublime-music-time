@@ -602,13 +602,13 @@ def checkUserState():
             print('_'*40)
             print(' * logged_on: True', '\n * Email:', resp_data['email'],"\n * Slack:",slack)
             print('_'*40)
-            user_msg = "Connect a Spotify Device to enjoy music"
-            user_ip = sublime.ok_cancel_dialog(user_msg, "Select player")
-            if user_ip is True:
-                current_window = sublime.active_window()
-                current_window.run_command("select_player")
-            else:
-                pass
+            # user_msg = "Connect a Spotify Device to enjoy music"
+            # user_ip = sublime.ok_cancel_dialog(user_msg, "Select player")
+            # if user_ip is True:
+            current_window = sublime.active_window()
+            current_window.run_command("select_player")
+            # else:
+                # pass
         else:
             setValue("logged_on", False)
             print('logged_on:False')
